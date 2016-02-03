@@ -1,15 +1,13 @@
+#include "optionparser.hpp"
+#include "options.hpp"
+#include "logging.hpp"
+#include "multi_intravox_fiber_reconstruction.hpp"
+
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include "optionparser.hpp"
-#include <boost/filesystem.hpp>
-#include "options.hpp"
-#include "create_signal_multi_tensor.hpp"
-#include "logging.hpp"
-#include "storage_adaptators.hpp"
-#include "multi_intravox_fiber_reconstruction.hpp"
 #include <chrono>
-
+#include <boost/filesystem.hpp>
 
 enum  optionIndex { UNKNOWN, HELP, PATH, ODF, DEBUG};
 
@@ -61,14 +59,14 @@ struct Arg: public option::Arg
 
 const option::Descriptor usage[] =
 {
-    {UNKNOWN, 0, "", "",option::Arg::None, "USAGE: fiber [options]\n\n"
+    {UNKNOWN, 0, "", "",option::Arg::None, "USAGE: pfiber [options]\n\n"
         "Options:" },
     {HELP, 0,"", "help",option::Arg::None, "  --help  \tPrint usage and exit." },
     {PATH, 0,"p","path",Arg::Required, "  --path, -p  \tPath of the input data." },
     {ODF, 0,"o","odf",Arg::Required, "  --odf, -o  \tOutput file name." },
     {DEBUG, 0,"v","verbose",option::Arg::None, "  --verbose, -v  \tVerbose execution details." },
     {UNKNOWN, 0, "", "",option::Arg::None, "\nExamples:\n"
-        "  fiber --path data/ --odf  data_odf.nii.gz\n"
+        "  pfiber --path data/ --odf  data_odf.nii.gz\n"
         "  " },
     {0,0,0,0,0,0}
 };
@@ -99,7 +97,7 @@ int main(int argc, char ** argv) {
         return 0;
     }
     
-    fiber::options opts;
+    pfiber::options opts;
     
     init_logging(options[DEBUG].count() > 0);
     
@@ -149,7 +147,6 @@ int main(int argc, char ** argv) {
     // opts.saveODF = 1; % Save or not the ODF
     opts.reconsMethod = RUMBA_SD; // Reconstruction Method
     opts.datreadMethod = SLICES;  //Reading Data
-    opts.saveODF = true; // Save or not the ODF
     opts.inputDir = inputDir;
       
     BOOST_LOG_TRIVIAL(info) << "calling Multi_IntraVox_Fiber_Reconstruction";   

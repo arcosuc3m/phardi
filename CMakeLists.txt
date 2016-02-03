@@ -24,8 +24,8 @@ set(CMAKE_CXX_COMPILER "icc")
 
 set (CMAKE_CXX_STANDARD 11)
 
-SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}  -fpermissive  -mkl -openmp" )
-#SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}  -std=c++11   -fpermissive -L/usr/local/cuda/lib64 -lnvblas -openmp" )
+SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS} -mkl -openmp" )
+#SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}  -std=c++11   -L/usr/local/cuda/lib64 -lnvblas -openmp" )
 
 
 #Process subdirectories
