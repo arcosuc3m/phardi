@@ -1,0 +1,33 @@
+cmake_minimum_required (VERSION 2.8)
+
+set(PROJECT_NAME_STR fiber)
+project (${PROJECT_NAME_STR})
+
+
+FIND_PACKAGE(Armadillo REQUIRED)
+
+FIND_PACKAGE(ITK REQUIRED)
+include(${ITK_USE_FILE})
+
+set(Boost_USE_STATIC_LIBS ON)
+set(Boost_USE_STATIC_RUNTIME OFF)
+FIND_PACKAGE(Boost 1.55 REQUIRED thread filesystem date_time system log log_setup chrono)
+
+INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIRS} ${ARMADILLO_INCLUDE_DIRS})
+
+# Local project include directory
+include_directories("${CMAKE_SOURCE_DIR}/include")
+
+# Build binary directory
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
+set(CMAKE_CXX_COMPILER "icc")
+
+set (CMAKE_CXX_STANDARD 11)
+
+SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}  -fpermissive  -mkl -openmp" )
+#SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}  -std=c++11   -fpermissive -L/usr/local/cuda/lib64 -lnvblas -openmp" )
+
+
+#Process subdirectories
+add_subdirectory(src)
+add_subdirectory(apps)

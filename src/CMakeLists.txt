@@ -1,0 +1,5 @@
+add_library(logging logging.cpp)
+add_library(create_signal_multi_tensor create_signal_multi_tensor.cpp)
+add_library(create_kernel_for_rumba  create_signal_multi_tensor  create_kernel_for_rumba.cpp)
+add_library(intravox_fiber_reconst_sphdeconv_rumba_sd  intravox_fiber_reconst_sphdeconv_rumba_sd.cpp)
+add_library(multi_intravox_fiber_reconstruction  multi_intravox_fiber_reconstruction.cpp)
