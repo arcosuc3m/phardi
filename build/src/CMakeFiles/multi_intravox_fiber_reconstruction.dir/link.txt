@@ -1,0 +1,2 @@
+/usr/bin/ar cq libmulti_intravox_fiber_reconstruction.a  CMakeFiles/multi_intravox_fiber_reconstruction.dir/multi_intravox_fiber_reconstruction.cpp.o
+/usr/bin/ranlib libmulti_intravox_fiber_reconstruction.a

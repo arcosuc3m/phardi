@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 2.8)
 
-set(PROJECT_NAME_STR fiber)
+set(PROJECT_NAME_STR pfiber)
 project (${PROJECT_NAME_STR})
 
 

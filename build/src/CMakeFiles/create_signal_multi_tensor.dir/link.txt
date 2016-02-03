@@ -1,0 +1,2 @@
+/usr/bin/ar cq libcreate_signal_multi_tensor.a  CMakeFiles/create_signal_multi_tensor.dir/create_signal_multi_tensor.cpp.o
+/usr/bin/ranlib libcreate_signal_multi_tensor.a

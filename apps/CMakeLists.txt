@@ -1,6 +1,6 @@
 # App: test
-add_executable(fiber fiber.cpp)
-target_link_libraries(fiber 
+add_executable(pfiber pfiber.cpp)
+target_link_libraries(pfiber 
                       logging
                       multi_intravox_fiber_reconstruction
                       create_kernel_for_rumba 
