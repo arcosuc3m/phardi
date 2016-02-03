@@ -18,7 +18,7 @@ namespace pfiber {
                                              std::string diffBvalsfilename,
                                              std::string diffBmaskfilename,
                                              std::string ODFfilename,
-                                             fiber::options opts) {
+                                             pfiber::options opts) {
         using namespace arma;
         using namespace itk;
        
