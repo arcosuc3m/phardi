@@ -1,7 +1,6 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 
-
 #include <boost/log/trivial.hpp>
 #include <itkImage.h>
 #include <itkImageFileReader.h>
@@ -12,7 +11,7 @@
 #include <itkGDCMImageIO.h>
 #include <itkRGBAPixel.h>
 
-namespace fiber {
+namespace pfiber {
 
     typedef float                       PixelType;
     typedef itk::Image< PixelType, 2 >  Image2DType;
@@ -82,7 +81,6 @@ namespace fiber {
         }
         image->Graft(reader->GetOutput());
     }
-    
 
     template<typename TImageType>
     void CreateImage(typename TImageType::Pointer image, 

@@ -76,7 +76,7 @@ const option::Descriptor usage[] =
 
 int main(int argc, char ** argv) {
     using namespace std;
-    using namespace fiber;
+    using namespace pfiber;
     using namespace boost::filesystem;
     using namespace std::chrono;
     using namespace std::chrono;

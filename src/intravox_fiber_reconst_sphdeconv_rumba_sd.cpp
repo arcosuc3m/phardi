@@ -4,7 +4,7 @@
 #include <math.h>
 
 
-namespace fiber {
+namespace pfiber {
     
    arma::mat intravox_fiber_reconst_sphdeconv_rumba_sd(const arma::mat & Signal,
                                                    const arma::mat & Kernel,

@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-namespace fiber {
+namespace pfiber {
 
    enum recons {DOT, SPHDECONV, RUMBA_SD};
    enum datread {VOXELS, SLICES, VOLUME};
@@ -21,7 +21,6 @@ namespace fiber {
        datread datreadMethod;   // Data reading method.
        std::string inputDir;
        std::string ODFDirscheme;    // Directions scheme for reconstructing ODF.
-       bool saveODF;
        options_rumba rumba_sd;
        bool debug;
    }; 

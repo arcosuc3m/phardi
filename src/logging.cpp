@@ -8,10 +8,10 @@
 #include <boost/log/utility/setup.hpp>
 #include <boost/log/support/date_time.hpp>
 
-namespace fiber {
+namespace pfiber {
+
     void init_logging(bool debug)
-    {
-        
+    {        
         if (debug) {
         
         boost::log::register_simple_formatter_factory< boost::log::trivial::severity_level, char >("Severity");

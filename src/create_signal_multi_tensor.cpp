@@ -6,7 +6,7 @@
 #include <armadillo>
 
 
-namespace fiber {
+namespace pfiber {
 
     // function R = RotMatrix(phi,theta)
     arma::mat RotMatrix(double phi, double theta) {

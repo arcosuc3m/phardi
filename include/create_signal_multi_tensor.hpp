@@ -3,7 +3,7 @@
 
 #include <armadillo>
 
-namespace fiber {
+namespace pfiber {
 
 arma::mat RotMatrix(double phi, double theta);
 

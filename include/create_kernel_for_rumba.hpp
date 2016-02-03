@@ -4,16 +4,16 @@
 
 #include <armadillo>
 
-namespace fiber {
+namespace pfiber {
 
 void create_Kernel_for_rumba(const arma::mat & V,
-                                const arma::mat & diffGrads,
-                                const arma::vec & diffBvals,
-                                double lambda1,
-                                double lambda2,
-                                double lambda_csf,
-                                double lambda_gm,
-                                arma::mat & kernel);
+                             const arma::mat & diffGrads,
+                             const arma::vec & diffBvals,
+                             double lambda1,
+                             double lambda2,
+                             double lambda_csf,
+                             double lambda_gm,
+                             arma::mat & kernel);
 
 }
 

@@ -3,12 +3,14 @@
 #include "logging.hpp"
 #include "image.hpp"
 #include "create_kernel_for_rumba.hpp"
+#include "constants.hpp" 
+
 #include <iostream>
 #include <fstream>
 #include <math.h>
 #include <algorithm>
 
-namespace fiber {
+namespace pfiber {
  
     
     void Multi_IntraVox_Fiber_Reconstruction(std::string diffSignalfilename,

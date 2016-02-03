@@ -1,12 +1,10 @@
-#ifndef COMMON_H
-#define COMMON_H
-
+#ifndef LOGGING_H
+#define LOGGING_H
 
 #include <boost/log/trivial.hpp>
 #include <boost/log/core.hpp>
 
-
-namespace fiber {
+namespace pfiber {
     void init_logging(bool debug);
 }
 
