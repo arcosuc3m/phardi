@@ -1,2 +1,0 @@
-/usr/bin/ar cq libcreate_kernel_for_rumba.a  CMakeFiles/create_kernel_for_rumba.dir/create_signal_multi_tensor.cpp.o CMakeFiles/create_kernel_for_rumba.dir/create_kernel_for_rumba.cpp.o
-/usr/bin/ranlib libcreate_kernel_for_rumba.a

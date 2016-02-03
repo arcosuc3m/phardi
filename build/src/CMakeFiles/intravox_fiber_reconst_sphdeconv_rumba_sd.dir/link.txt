@@ -1,2 +1,0 @@
-/usr/bin/ar cq libintravox_fiber_reconst_sphdeconv_rumba_sd.a  CMakeFiles/intravox_fiber_reconst_sphdeconv_rumba_sd.dir/intravox_fiber_reconst_sphdeconv_rumba_sd.cpp.o
-/usr/bin/ranlib libintravox_fiber_reconst_sphdeconv_rumba_sd.a
