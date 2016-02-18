@@ -16,6 +16,6 @@ This README would normally document whatever steps are necessary to get your app
 
 mkdir build
 cd build
-cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/g++-4.9
+cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/g++-4.9 -DCMAKE_BUILD_TYPE=Release
 make
 ```
