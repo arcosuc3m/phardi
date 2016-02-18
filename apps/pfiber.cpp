@@ -8,9 +8,9 @@
 #include <vector>
 #include <chrono>
 #include <boost/filesystem.hpp>
+#include <armadillo>
 
-enum  optionIndex { UNKNOWN, HELP, PATH, ODF, DEBUG};
-
+enum  optionIndex { UNKNOWN, HELP, PATH, ODF, PRECISION, DEBUG};
 
 struct Arg: public option::Arg
 {
@@ -64,6 +64,7 @@ const option::Descriptor usage[] =
     {HELP, 0,"", "help",option::Arg::None, "  --help  \tPrint usage and exit." },
     {PATH, 0,"p","path",Arg::Required, "  --path, -p  \tPath of the input data." },
     {ODF, 0,"o","odf",Arg::Required, "  --odf, -o  \tOutput file name." },
+    {PRECISION, 0,"p","presicion",Arg::None, "  --precision, -p  \tCalculation precision (float|double)." },
     {DEBUG, 0,"v","verbose",option::Arg::None, "  --verbose, -v  \tVerbose execution details." },
     {UNKNOWN, 0, "", "",option::Arg::None, "\nExamples:\n"
         "  pfiber --path data/ --odf  data_odf.nii.gz\n"
@@ -155,8 +156,12 @@ int main(int argc, char ** argv) {
     BOOST_LOG_TRIVIAL(info) << "    bvalsFilename: " << bvalsFilename;   
     BOOST_LOG_TRIVIAL(info) << "    diffBmask:" << diffBmask;   
     BOOST_LOG_TRIVIAL(info) << "    ODFfilename:" << ODFfilename;   
-    Multi_IntraVox_Fiber_Reconstruction(diffImage,bvecsFilename,bvalsFilename,diffBmask,ODFfilename,opts);
-    
+
+    if (options[PRECISION].arg == "float")
+        Multi_IntraVox_Fiber_Reconstruction<float>(diffImage,bvecsFilename,bvalsFilename,diffBmask,ODFfilename,opts);
+    else
+        Multi_IntraVox_Fiber_Reconstruction<double>(diffImage,bvecsFilename,bvalsFilename,diffBmask,ODFfilename,opts);
+
     BOOST_LOG_TRIVIAL(info) << "Finalize.";
   
     auto t2 = clk::now();    
