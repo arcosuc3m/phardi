@@ -66,11 +66,11 @@ const option::Descriptor usage[] =
     {PATH, 0,"p","path",Arg::Required, "  --path, -p  \tPath of the input data." },
     {ODF, 0,"o","odf",Arg::Required, "  --odf, -o  \tOutput file name." },
     {PRECISION, 0,"p","presicion",Arg::None, "  --precision, -p  \tCalculation precision (float|double)." },
-    {OP_ITER, 0,"i","iterations",Arg::None, "  --iterations, -i  \tIterations performed." },
-    {OP_LAMBDA1, 0,"l1","lambda1",Arg::None, "  --lambda1, -l1  \tLambda 1 value." },
-    {OP_LAMBDA2, 0,"l2","lambda2",Arg::None, "  --lambda2, -l2  \tLambda 2 value." },
-    {OP_LAMBDA_CSF, 0,"lc","lambda-csf",Arg::None, "  --lambda-csf, -lc  \tLambda CSF value." },
-    {OP_LAMBDA_GM, 0,"lg","lambda-gm",Arg::None, "  --lambda-gm, -lg  \tLambda GM value." },
+    {OP_ITER, 0,"i","iterations",Arg::Numeric, "  --iterations, -i  \tIterations performed." },
+    {OP_LAMBDA1, 0,"l1","lambda1",Arg::Numeric, "  --lambda1, -l1  \tLambda 1 value." },
+    {OP_LAMBDA2, 0,"l2","lambda2",Arg::Numeric, "  --lambda2, -l2  \tLambda 2 value." },
+    {OP_LAMBDA_CSF, 0,"lc","lambda-csf",Arg::Numeric, "  --lambda-csf, -lc  \tLambda CSF value." },
+    {OP_LAMBDA_GM, 0,"lg","lambda-gm",Arg::Numeric, "  --lambda-gm, -lg  \tLambda GM value." },
     {DEBUG, 0,"v","verbose",option::Arg::None, "  --verbose, -v  \tVerbose execution details." },
     {UNKNOWN, 0, "", "",option::Arg::None, "\nExamples:\n"
         "  pfiber --path data/ --odf  data_odf.nii.gz\n"
@@ -160,9 +160,12 @@ int main(int argc, char ** argv) {
     opts.rumba_sd.lambda2    = LAMBDA2;
     opts.rumba_sd.lambda_csf = LAMBDA_CSF;
     opts.rumba_sd.lambda_gm  = LAMBDA_GM;
+ 
+    BOOST_LOG_TRIVIAL(info) << "Start.";   
+
 
     if (options[OP_ITER].count() > 0) {
-        opts.rumba_sd.Niter =  std::stoi(options[OP_ITER].arg);  
+        opts.rumba_sd.Niter = std::stof(options[OP_ITER].arg);  
     }
     if (options[OP_LAMBDA1].count() > 0) {
         opts.rumba_sd.lambda1 =  std::stof(options[OP_LAMBDA1].arg);  
@@ -179,9 +182,12 @@ int main(int argc, char ** argv) {
     if (options[OP_LAMBDA_GM].count() > 0) {
         opts.rumba_sd.lambda_gm =  std::stof(options[OP_LAMBDA_GM].arg);  
     }
- 
-    BOOST_LOG_TRIVIAL(info) << "Start.";   
-    BOOST_LOG_TRIVIAL(info) << "Config: Iterations=" << opts.rumba_sd.Niter << std::endl;   
+    BOOST_LOG_TRIVIAL(info) << "Configuration details:";   
+    BOOST_LOG_TRIVIAL(info) << "         Iterations = " << opts.rumba_sd.Niter;   
+    BOOST_LOG_TRIVIAL(info) << "         Lambda 1   = " << opts.rumba_sd.lambda1;   
+    BOOST_LOG_TRIVIAL(info) << "         Lambda 2   = " << opts.rumba_sd.lambda2;   
+    BOOST_LOG_TRIVIAL(info) << "         Lambda CSF = " << opts.rumba_sd.lambda_csf;   
+    BOOST_LOG_TRIVIAL(info) << "         Lambda GM  = " << opts.rumba_sd.lambda_gm;   
 
     BOOST_LOG_TRIVIAL(info) << "calling Multi_IntraVox_Fiber_Reconstruction";   
     BOOST_LOG_TRIVIAL(info) << "    diffImage: " << diffImage;   
