@@ -1,6 +1,7 @@
 #include "optionparser.hpp"
 #include "options.hpp"
 #include "logging.hpp"
+#include "constants.hpp"
 #include "multi_intravox_fiber_reconstruction.hpp"
 
 #include <iostream>
@@ -10,7 +11,7 @@
 #include <boost/filesystem.hpp>
 #include <armadillo>
 
-enum  optionIndex { UNKNOWN, HELP, PATH, ODF, PRECISION, DEBUG};
+enum  optionIndex { UNKNOWN, HELP, PATH, ODF, PRECISION, OP_ITER, OP_LAMBDA1, OP_LAMBDA2, OP_LAMBDA_CSF, OP_LAMBDA_GM,  DEBUG};
 
 struct Arg: public option::Arg
 {
@@ -65,13 +66,17 @@ const option::Descriptor usage[] =
     {PATH, 0,"p","path",Arg::Required, "  --path, -p  \tPath of the input data." },
     {ODF, 0,"o","odf",Arg::Required, "  --odf, -o  \tOutput file name." },
     {PRECISION, 0,"p","presicion",Arg::None, "  --precision, -p  \tCalculation precision (float|double)." },
+    {OP_ITER, 0,"i","iterations",Arg::None, "  --iterations, -i  \tIterations performed." },
+    {OP_LAMBDA1, 0,"l1","lambda1",Arg::None, "  --lambda1, -l1  \tLambda 1 value." },
+    {OP_LAMBDA2, 0,"l2","lambda2",Arg::None, "  --lambda2, -l2  \tLambda 2 value." },
+    {OP_LAMBDA_CSF, 0,"lc","lambda-csf",Arg::None, "  --lambda-csf, -lc  \tLambda CSF value." },
+    {OP_LAMBDA_GM, 0,"lg","lambda-gm",Arg::None, "  --lambda-gm, -lg  \tLambda GM value." },
     {DEBUG, 0,"v","verbose",option::Arg::None, "  --verbose, -v  \tVerbose execution details." },
     {UNKNOWN, 0, "", "",option::Arg::None, "\nExamples:\n"
         "  pfiber --path data/ --odf  data_odf.nii.gz\n"
         "  " },
     {0,0,0,0,0,0}
 };
-
 
 int main(int argc, char ** argv) {
     using namespace std;
@@ -150,6 +155,34 @@ int main(int argc, char ** argv) {
     opts.datreadMethod = SLICES;  //Reading Data
     opts.inputDir = inputDir;
       
+    opts.rumba_sd.Niter      = NITER;
+    opts.rumba_sd.lambda1    = LAMBDA1;
+    opts.rumba_sd.lambda2    = LAMBDA2;
+    opts.rumba_sd.lambda_csf = LAMBDA_CSF;
+    opts.rumba_sd.lambda_gm  = LAMBDA_GM;
+
+    if (options[OP_ITER].count() > 0) {
+        opts.rumba_sd.Niter =  std::stoi(options[OP_ITER].arg);  
+    }
+    if (options[OP_LAMBDA1].count() > 0) {
+        opts.rumba_sd.lambda1 =  std::stof(options[OP_LAMBDA1].arg);  
+    }
+
+    if (options[OP_LAMBDA2].count() > 0) {
+        opts.rumba_sd.lambda2 =  std::stof(options[OP_LAMBDA2].arg);  
+    }
+
+    if (options[OP_LAMBDA_CSF].count() > 0) {
+        opts.rumba_sd.lambda_csf =  std::stof(options[OP_LAMBDA_CSF].arg);  
+    }
+
+    if (options[OP_LAMBDA_GM].count() > 0) {
+        opts.rumba_sd.lambda_gm =  std::stof(options[OP_LAMBDA_GM].arg);  
+    }
+ 
+    BOOST_LOG_TRIVIAL(info) << "Start.";   
+    BOOST_LOG_TRIVIAL(info) << "Config: Iterations=" << opts.rumba_sd.Niter << std::endl;   
+
     BOOST_LOG_TRIVIAL(info) << "calling Multi_IntraVox_Fiber_Reconstruction";   
     BOOST_LOG_TRIVIAL(info) << "    diffImage: " << diffImage;   
     BOOST_LOG_TRIVIAL(info) << "    bvecsFilename: " << bvecsFilename;   

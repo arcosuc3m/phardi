@@ -1,5 +1,5 @@
-#ifndef INTRAVOX_H
-#define INTRAVOX_H
+#ifndef CONSTANTS_H
+#define CONSTANTS_H
 
 
 namespace pfiber {

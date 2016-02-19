@@ -36,24 +36,6 @@ namespace pfiber {
         V.load(opts.ODFDirscheme, arma::raw_ascii);
         BOOST_LOG_TRIVIAL(info) << "Reading V " << opts.ODFDirscheme << " [" << V.n_rows << ", " << V.n_cols << "]";
 
-        switch (opts.reconsMethod) {
-            case DOT:
-                break;
-
-            case SPHDECONV:
-                break;
-
-            case RUMBA_SD:
-
-                opts.rumba_sd.Niter =         300;
-                opts.rumba_sd.lambda1 =    1.7e-3;
-                opts.rumba_sd.lambda2 =    0.3e-3;
-                opts.rumba_sd.lambda_csf = 3.0e-3;
-                opts.rumba_sd.lambda_gm =  0.7e-3;
-
-                break;
-        }
-
         Mat<T> diffGrads;
         diffGrads.load(diffGradsfilename, arma::raw_ascii);
         diffGrads = diffGrads.t();
