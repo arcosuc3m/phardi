@@ -6,7 +6,7 @@ This README would normally document whatever steps are necessary to get your app
 
 * Boost > 1.54
 * Armadillo 
-* ITK 4.8
+* ITK 4.9
 * GCC 4.9
 
 ### How do I get set up? ###
