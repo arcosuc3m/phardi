@@ -3,6 +3,7 @@
 #include "logging.hpp"
 #include "constants.hpp"
 #include "multi_intravox_fiber_reconstruction.hpp"
+#include "config.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -10,6 +11,7 @@
 #include <chrono>
 #include <boost/filesystem.hpp>
 #include <armadillo>
+
 
 enum  optionIndex { UNKNOWN, HELP, PATH, ODF, PRECISION, OP_ITER, OP_LAMBDA1, OP_LAMBDA2, OP_LAMBDA_CSF, OP_LAMBDA_GM,  DEBUG};
 
@@ -107,8 +109,6 @@ int main(int argc, char ** argv) {
     
     init_logging(options[DEBUG].count() > 0);
     
-    BOOST_LOG_TRIVIAL(info) << "Init.";
-    
     for (option::Option* opt = options.front(); opt; opt = opt->next()) {
         BOOST_LOG_TRIVIAL(info) << "Option: " << opt->name <<  ": " <<  opt->arg;
     }
@@ -160,7 +160,10 @@ int main(int argc, char ** argv) {
     opts.rumba_sd.lambda2    = LAMBDA2;
     opts.rumba_sd.lambda_csf = LAMBDA_CSF;
     opts.rumba_sd.lambda_gm  = LAMBDA_GM;
+
+
  
+    BOOST_LOG_TRIVIAL(info) << "pfiber "<< VERSION_MAJOR << "." << VERSION_MINOR;   
     BOOST_LOG_TRIVIAL(info) << "Start.";   
 
 
@@ -182,19 +185,22 @@ int main(int argc, char ** argv) {
     if (options[OP_LAMBDA_GM].count() > 0) {
         opts.rumba_sd.lambda_gm =  std::stof(options[OP_LAMBDA_GM].arg);  
     }
-    BOOST_LOG_TRIVIAL(info) << "Configuration details:";   
-    BOOST_LOG_TRIVIAL(info) << "         Iterations = " << opts.rumba_sd.Niter;   
-    BOOST_LOG_TRIVIAL(info) << "         Lambda 1   = " << opts.rumba_sd.lambda1;   
-    BOOST_LOG_TRIVIAL(info) << "         Lambda 2   = " << opts.rumba_sd.lambda2;   
-    BOOST_LOG_TRIVIAL(info) << "         Lambda CSF = " << opts.rumba_sd.lambda_csf;   
-    BOOST_LOG_TRIVIAL(info) << "         Lambda GM  = " << opts.rumba_sd.lambda_gm;   
 
-    BOOST_LOG_TRIVIAL(info) << "calling Multi_IntraVox_Fiber_Reconstruction";   
-    BOOST_LOG_TRIVIAL(info) << "    diffImage: " << diffImage;   
-    BOOST_LOG_TRIVIAL(info) << "    bvecsFilename: " << bvecsFilename;   
-    BOOST_LOG_TRIVIAL(info) << "    bvalsFilename: " << bvalsFilename;   
-    BOOST_LOG_TRIVIAL(info) << "    diffBmask:" << diffBmask;   
-    BOOST_LOG_TRIVIAL(info) << "    ODFfilename:" << ODFfilename;   
+    BOOST_LOG_TRIVIAL(info) << "Configuration details:";   
+    BOOST_LOG_TRIVIAL(info) << "    Iterations    = " << opts.rumba_sd.Niter;   
+    BOOST_LOG_TRIVIAL(info) << "    Lambda 1      = " << opts.rumba_sd.lambda1;   
+    BOOST_LOG_TRIVIAL(info) << "    Lambda 2      = " << opts.rumba_sd.lambda2;   
+    BOOST_LOG_TRIVIAL(info) << "    Lambda CSF    = " << opts.rumba_sd.lambda_csf;   
+    BOOST_LOG_TRIVIAL(info) << "    Lambda GM     = " << opts.rumba_sd.lambda_gm;   
+    BOOST_LOG_TRIVIAL(info) << "    diffImage     = " << diffImage;   
+    BOOST_LOG_TRIVIAL(info) << "    bvecsFilename = " << bvecsFilename;   
+    BOOST_LOG_TRIVIAL(info) << "    bvalsFilename = " << bvalsFilename;   
+    BOOST_LOG_TRIVIAL(info) << "    diffBmask     = " << diffBmask;   
+    BOOST_LOG_TRIVIAL(info) << "    ODFfilename   = " << ODFfilename;   
+    if (options[PRECISION].arg == "float")
+    BOOST_LOG_TRIVIAL(info) << "    Precision     = float";   
+    else
+    BOOST_LOG_TRIVIAL(info) << "    Precision     = double";   
 
     if (options[PRECISION].arg == "float")
         Multi_IntraVox_Fiber_Reconstruction<float>(diffImage,bvecsFilename,bvalsFilename,diffBmask,ODFfilename,opts);

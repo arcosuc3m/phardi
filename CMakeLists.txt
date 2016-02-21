@@ -1,9 +1,12 @@
-cmake_minimum_required (VERSION 2.8 FATAL_ERROR)
+CMAKE_MINIMUM_REQUIRED (VERSION 2.8 FATAL_ERROR)
 
-set(PROJECT_NAME_STR pfiber)
-project (${PROJECT_NAME_STR})
+SET(PROJECT_NAME_STR pfiber)
+PROJECT (${PROJECT_NAME_STR})
 
-set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
+SET (${PROJECT_NAME_STR}_VERSION_MAJOR 0)
+SET (${PROJECT_NAME_STR}_VERSION_MINOR 1)
+
+SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 
 # default built type
 IF(NOT CMAKE_BUILD_TYPE)
@@ -12,50 +15,53 @@ IF(NOT CMAKE_BUILD_TYPE)
       FORCE)
 ENDIF(NOT CMAKE_BUILD_TYPE)
 
-
-
 FIND_PACKAGE(Armadillo REQUIRED)
 
 FIND_PACKAGE(ITK REQUIRED)
-include(${ITK_USE_FILE})
+INCLUDE(${ITK_USE_FILE})
 
-set(Boost_USE_STATIC_LIBS ON)
-set(Boost_USE_STATIC_RUNTIME OFF)
+SET(Boost_USE_STATIC_LIBS ON)
+SET(Boost_USE_STATIC_RUNTIME ON)
 FIND_PACKAGE(Boost 1.55 REQUIRED thread filesystem date_time system log log_setup chrono)
 
 INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIRS} ${ARMADILLO_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES( "${CMAKE_SOURCE_DIR}/include" "${PROJECT_BINARY_DIR}/include" )
 
-# Local project include directory
-include_directories("${CMAKE_SOURCE_DIR}/include")
-
+# configure a header file to pass some of the CMake SETtings
+# to the source code
+CONFIGURE_FILE (
+  "${PROJECT_SOURCE_DIR}/include/config.hpp.in"
+  "${PROJECT_BINARY_DIR}/include/config.hpp"
+  )
+ 
 # Build binary directory
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 
-include(CheckCXXCompilerFlag)
+INCLUDE(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
-if(COMPILER_SUPPORTS_CXX11)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-elseif(COMPILER_SUPPORTS_CXX0X)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-else()
-        message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
-endif()
+
+IF(COMPILER_SUPPORTS_CXX11)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+ELSEIF(COMPILER_SUPPORTS_CXX0X)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+ELSE()
+    MESSAGE(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a dIFferent C++ compiler.")
+ENDIF()
 
 
+FIND_PACKAGE(OpenMP)
+IF (OPENMP_FOUND)
+    SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+ENDIF()
 
+FIND_PACKAGE(BLAS)
 
-find_package(OpenMP)
-if (OPENMP_FOUND)
-    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-endif()
+SET( CMAKE_CXX_FLAGS  " -fpermissive ${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS} ")
 
-find_package(BLAS)
-
-SET( CMAKE_CXX_FLAGS  " ${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS} ")
-
+SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}" )
 
 #Process subdirectories
-add_subdirectory(src)
-add_subdirectory(apps)
+ADD_SUBDIRECTORY(src)
+ADD_SUBDIRECTORY(apps)

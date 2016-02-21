@@ -1,0 +1,9 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+namespace pfiber {
+  #define VERSION_MAJOR @pfiber_VERSION_MAJOR@
+  #define VERSION_MINOR @pfiber_VERSION_MINOR@
+}
+
+#endif
