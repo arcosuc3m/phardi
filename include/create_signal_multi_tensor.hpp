@@ -93,7 +93,7 @@ namespace pfiber {
             Col<T> temp = temp_mat.diag();
 
             for (size_t j = 0; j < S.n_elem; ++j)
-                S(j) +=  fa(i) * std::exp(-b(j)*temp(j));
+                S(j) += fa(i) * std::exp(-b(j)*temp(j));
 
         }
 
@@ -103,13 +103,18 @@ namespace pfiber {
 
         if (add_noise) {
             //sigma = S0/SNR;
-            T sigma = S0 /SNR;
+            T sigma = S0 / SNR;
 
             // standar_deviation = sigma.*(ones(length(grad),1));
             //med = zeros(length(grad),1);
             //er1 = normrnd(med, standar_deviation);
             //er2 = normrnd(med, standar_deviation);
+            Col<T> er1(S.n_elem,fill::randu);
+            Col<T> er2(S.n_elem,fill::randu);
+
             //S = sqrt((S + er1).^2 + er2.^2); % Signal with Rician noise
+            for (size_t i  = 0; i < S.n_elem; ++i)
+                S(i) = std::sqrt( std::pow(S(i) + er1(i),2) + std::pow(er2(i),2));
         }
     }
 }

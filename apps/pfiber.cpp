@@ -13,7 +13,7 @@
 #include <armadillo>
 
 
-enum  optionIndex { UNKNOWN, HELP, PATH, ODF, PRECISION, OP_ITER, OP_LAMBDA1, OP_LAMBDA2, OP_LAMBDA_CSF, OP_LAMBDA_GM,  DEBUG};
+enum  optionIndex { UNKNOWN, HELP, PATH, ODF, PRECISION, NOISE, OP_ITER, OP_LAMBDA1, OP_LAMBDA2, OP_LAMBDA_CSF, OP_LAMBDA_GM,  DEBUG};
 
 struct Arg: public option::Arg
 {
@@ -67,13 +67,14 @@ const option::Descriptor usage[] =
     {HELP, 0,"", "help",option::Arg::None, "  --help  \tPrint usage and exit." },
     {PATH, 0,"p","path",Arg::Required, "  --path, -p  \tPath of the input data." },
     {ODF, 0,"o","odf",Arg::Required, "  --odf, -o  \tOutput file name." },
-    {PRECISION, 0,"p","presicion",Arg::None, "  --precision, -p  \tCalculation precision (float|double)." },
+    {PRECISION, 0,"p","presicion",Arg::NonEmpty, "  --precision, -p  \tCalculation precision (float|double)." },
     {OP_ITER, 0,"i","iterations",Arg::Numeric, "  --iterations, -i  \tIterations performed." },
     {OP_LAMBDA1, 0,"l1","lambda1",Arg::Numeric, "  --lambda1, -l1  \tLambda 1 value." },
     {OP_LAMBDA2, 0,"l2","lambda2",Arg::Numeric, "  --lambda2, -l2  \tLambda 2 value." },
     {OP_LAMBDA_CSF, 0,"lc","lambda-csf",Arg::Numeric, "  --lambda-csf, -lc  \tLambda CSF value." },
     {OP_LAMBDA_GM, 0,"lg","lambda-gm",Arg::Numeric, "  --lambda-gm, -lg  \tLambda GM value." },
     {DEBUG, 0,"v","verbose",option::Arg::None, "  --verbose, -v  \tVerbose execution details." },
+    {NOISE, 0,"n","noise",option::Arg::None, "  --noise, -n  \tAdd rician noise." },
     {UNKNOWN, 0, "", "",option::Arg::None, "\nExamples:\n"
         "  pfiber --path data/ --odf  data_odf.nii.gz\n"
         "  " },
@@ -151,10 +152,11 @@ int main(int argc, char ** argv) {
     // opts.reconsMethod = 'rumba_sd'; % Reconstruction Method
     // opts.datreadMethod = 'slices'; % Reading Data
     // opts.saveODF = 1; % Save or not the ODF
-    opts.reconsMethod = RUMBA_SD; // Reconstruction Method
-    opts.datreadMethod = SLICES;  //Reading Data
-    opts.inputDir = inputDir;
-      
+    opts.reconsMethod        = RUMBA_SD; // Reconstruction Method
+    opts.datreadMethod       = SLICES;  //Reading Data
+    opts.inputDir            = inputDir;
+    opts.add_noise           = false;
+
     opts.rumba_sd.Niter      = NITER;
     opts.rumba_sd.lambda1    = LAMBDA1;
     opts.rumba_sd.lambda2    = LAMBDA2;
@@ -185,6 +187,11 @@ int main(int argc, char ** argv) {
     if (options[OP_LAMBDA_GM].count() > 0) {
         opts.rumba_sd.lambda_gm =  std::stof(options[OP_LAMBDA_GM].arg);  
     }
+
+    if (options[NOISE].count() > 0) {
+        opts.add_noise =  true;
+    }
+   
 
     BOOST_LOG_TRIVIAL(info) << "Configuration details:";   
     BOOST_LOG_TRIVIAL(info) << "    Iterations    = " << opts.rumba_sd.Niter;   

@@ -33,12 +33,13 @@ namespace pfiber {
                                  T lambda2,
                                  T lambda_csf,
                                  T lambda_gm,
-                                 arma::Mat<T> & Kernel) {
+                                 arma::Mat<T> & Kernel,
+                                 const pfiber::options opts) {
 
 
         using namespace arma;
         // add_rician_noise = 0;
-        bool add_rician_noise = false;
+        bool add_rician_noise = opts.add_noise;
 
         T SNR = 1;
 

@@ -18,11 +18,11 @@
 namespace pfiber {
 
     template<typename T>
-    void Multi_IntraVox_Fiber_Reconstruction(std::string diffSignalfilename,
-                                             std::string diffGradsfilename,
-                                             std::string diffBvalsfilename,
-                                             std::string diffBmaskfilename,
-                                             std::string ODFfilename,
+    void Multi_IntraVox_Fiber_Reconstruction(const std::string diffSignalfilename,
+                                             const std::string diffGradsfilename,
+                                             const std::string diffBvalsfilename,
+                                             const std::string diffBmaskfilename,
+                                             const std::string ODFfilename,
                                              pfiber::options opts
                                              )  {
         using namespace arma;
@@ -145,7 +145,7 @@ namespace pfiber {
         // Kernel = create_Kernel_for_rumba(V, diffGrads, diffBvals, opts.rumba_sd.lambda1, opts.rumba_sd.lambda2, opts.rumba_sd.lambda_csf, opts.rumba_sd.lambda_gm); % Creating Kernel 
         BOOST_LOG_TRIVIAL(info) << "calling create_Kernel_for_rumba";
 
-        create_Kernel_for_rumba<T>(V,diffGrads,diffBvals,opts.rumba_sd.lambda1, opts.rumba_sd.lambda2, opts.rumba_sd.lambda_csf, opts.rumba_sd.lambda_gm, Kernel);
+        create_Kernel_for_rumba<T>(V,diffGrads,diffBvals,opts.rumba_sd.lambda1, opts.rumba_sd.lambda2, opts.rumba_sd.lambda_csf, opts.rumba_sd.lambda_gm, Kernel, opts);
 
         Mat<T> slicevf_CSF(xdiff,ydiff,fill::zeros);
         Mat<T> slicevf_GM(xdiff,ydiff,fill::zeros);
