@@ -16,7 +16,7 @@ namespace pfiber {
         Mat<T> y(x.n_rows,x.n_cols);
 
         // y = x./( (2*n + x) - ( 2*x.*(n+1/2)./ ( 2*n + 1 + 2*x - ( 2*x.*(n+3/2)./ ( 2*n + 2 + 2*x - ( 2*x.*(n+5/2)./ ( 2*n + 3 + 2*x ) ) ) ) ) ) );
-        //#pragma omp parallel for
+        #pragma omp parallel for
         for (size_t i = 0; i < x.n_rows; ++i) {
             for (size_t j = 0; j < x.n_cols; ++j) {
                 y(i,j) = x(i,j) / ((2*n + x(i,j)) - (2*x(i,j)*(n+1.0/2.0) / (2*n + 1 +2*x(i,j) - (2*x(i,j)*(n+3.0/2.0) / (2*n + 2 + 2*x(i,j) - (2*x(i,j)*(n+5.0/2.0) / (2*n +3 +2 *x(i,j))))))));
@@ -66,11 +66,13 @@ namespace pfiber {
 
         // Reblurred_S = (Signal.*Reblurred)./sigma2;
         Mat<T> Reblurred_S(Signal.n_rows, Signal.n_cols);
-        for (size_t i = 0; i < Signal.n_rows; ++i) {
-            for (size_t j = 0; j < Signal.n_cols; ++j) {
-                Reblurred_S(i,j) = (Signal(i,j) * Reblurred(i,j)) / sigma2;
-            }
-        }
+        //for (size_t i = 0; i < Signal.n_rows; ++i) {
+        //    for (size_t j = 0; j < Signal.n_cols; ++j) {
+        //        Reblurred_S(i,j) = (Signal(i,j) * Reblurred(i,j)) / sigma2;
+        //    }
+        //}
+        
+        Reblurred_S = Signal % Reblurred / sigma2;
 
         Mat<T> fODFi;
         Mat<T> Ratio;
@@ -82,7 +84,6 @@ namespace pfiber {
             // fODFi = fODF;
             fODFi = fODF;
 
-            //BOOST_LOG_TRIVIAL(info) << "    calling mBessel_ratio";
             //Ratio = mBessel_ratio(n_order,Reblurred_S);
             Ratio = mBessel_ratio<T>(n_order,Reblurred_S);
 
@@ -114,8 +115,8 @@ namespace pfiber {
                 }
             }
             */
-            RL_factor = KernelT * (Signal % Ratio) / ((KernelT * Reblurred) + std::numeric_limits<double>::epsilon());
 
+            RL_factor = KernelT * (Signal % Ratio) / ((KernelT * Reblurred) + std::numeric_limits<double>::epsilon());
 
             //fODF = fODFi.*RL_factor;
             /*for (auto i = 0; i < fODF.n_rows; ++i) {
@@ -142,6 +143,8 @@ namespace pfiber {
             //% -------------------- Estimate the noise level  -------------------- %
             //sigma2_i = (1/N)*sum( (Signal.^2 + Reblurred.^2)/2 - (sigma2.*Reblurred_S).*Ratio, 1)./n_order;
             T sum = 0.0;
+   
+            #pragma omp parallel for reduction (+:sum)
             for (size_t i = 0; i < Signal.n_rows; ++i) {
                 for (size_t j = 0; j < Signal.n_cols; ++j) {
                     sum += (std::pow<T>(Signal(i,j),2) + std::pow<T>(Reblurred(i,j),2)/2 - (sigma2*Reblurred_S(i,j)) * Ratio(i,j));
