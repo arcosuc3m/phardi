@@ -23,6 +23,7 @@ namespace pfiber {
        std::string ODFDirscheme;    // Directions scheme for reconstructing ODF.
        options_rumba rumba_sd;
        bool debug;
+       bool add_noise;
    }; 
 }
 
