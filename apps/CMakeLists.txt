@@ -1,7 +1,6 @@
 # App: test
-add_executable(pfiber pfiber.cpp)
+add_executable(pfiber pfiber.cpp ../src/logging.cpp)
 target_link_libraries(pfiber 
-                      logging
                       ${Boost_FILESYSTEM_LIBRARY}
                       ${Boost_SYSTEM_LIBRARY}
                       ${Boost_LOG_LIBRARY}
@@ -10,5 +9,6 @@ target_link_libraries(pfiber
                       ${Glue}  ${VTK_LIBRARIES} ${ITK_LIBRARIES}
                       ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES}
                       ${ARMADILLO_LIBRARIES}  
+                      ${MKL_LIBRARIES}
 )
 
