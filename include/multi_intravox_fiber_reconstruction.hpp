@@ -3,12 +3,11 @@
 
 #include "options.hpp"
 #include "intravox_fiber_reconst_sphdeconv_rumba_sd.hpp"
-#include "logging.hpp"
 #include "image.hpp"
 #include "create_kernel_for_rumba.hpp"
 #include "constants.hpp"
 
-#include <boost/filesystem/path.hpp>
+#include <plog/Log.h>
 #include <armadillo>
 #include <iostream>
 #include <fstream>
@@ -16,6 +15,13 @@
 #include <algorithm>
 
 namespace pfiber {
+
+    const char kPathSeparator =
+#ifdef _WIN32
+                            '\\';
+#else
+                            '/';
+#endif
 
     template<typename T>
     void Multi_IntraVox_Fiber_Reconstruction(const std::string diffSignalfilename,
@@ -30,17 +36,17 @@ namespace pfiber {
 
         Mat<T> V;
         if (opts.ODFDirscheme.length() == 0)
-            opts.ODFDirscheme = opts.inputDir + boost::filesystem::path::preferred_separator + "724_shell.txt";
+            opts.ODFDirscheme = opts.inputDir + kPathSeparator + "724_shell.txt";
 
 
         V.load(opts.ODFDirscheme, arma::raw_ascii);
-        BOOST_LOG_TRIVIAL(info) << "Reading V " << opts.ODFDirscheme << " [" << V.n_rows << ", " << V.n_cols << "]";
+        LOG_INFO << "Reading V " << opts.ODFDirscheme << " [" << V.n_rows << ", " << V.n_cols << "]";
 
         Mat<T> diffGrads;
         diffGrads.load(diffGradsfilename, arma::raw_ascii);
         diffGrads = diffGrads.t();
 
-        BOOST_LOG_TRIVIAL(info) << "Reading diffGrads " << diffGradsfilename << " [" << diffGrads.n_rows << ", " << diffGrads.n_cols << "]";
+        LOG_INFO << "Reading diffGrads " << diffGradsfilename << " [" << diffGrads.n_rows << ", " << diffGrads.n_cols << "]";
 
         size_t Ngrad = diffGrads.n_rows;
 
@@ -50,7 +56,7 @@ namespace pfiber {
         Col<T> diffBvals (diffBvalsM.n_elem);
         for (size_t i = 0; i < diffBvalsM.n_elem; ++i) diffBvals(i) = diffBvalsM(0,i);
 
-        BOOST_LOG_TRIVIAL(info) << "Reading diffBvals " << diffBvalsfilename << " [" << diffBvals.n_elem << "]";
+        LOG_INFO << "Reading diffBvals " << diffBvalsfilename << " [" << diffBvals.n_elem << "]";
 
 
         Image4DType::Pointer imageDiff = Image4DType::New();
@@ -92,7 +98,7 @@ namespace pfiber {
                 Vdiff[w] = temp;
         }
 
-        BOOST_LOG_TRIVIAL(info) << "Diff " << imageDiff;
+        LOG_INFO << "Diff " << imageDiff;
 
         Image3DType::Pointer imageMask = Image3DType::New();
 
@@ -105,7 +111,7 @@ namespace pfiber {
         Origin3DType      origin3D     = imageMask->GetOrigin();
         Direction3DType   direction3D  = imageMask->GetDirection();
 
-        BOOST_LOG_TRIVIAL(info) << "Mask size " << regionMask.GetSize();
+        LOG_INFO << "Mask size " << regionMask.GetSize();
 
         Cube<T> Vmask(regionMask.GetSize()[0],regionMask.GetSize()[1],regionMask.GetSize()[2]);
 
@@ -133,17 +139,17 @@ namespace pfiber {
         size4DODF[3] = Nd;      index4DODF[3] = 0;
 
         CreateImage<Image4DType>(imageODF, size4DODF, index4DODF, spacing4D, origin4D,direction4D);
-        BOOST_LOG_TRIVIAL(info) << "created ODF image";
-        BOOST_LOG_TRIVIAL(info) << imageODF;
+        LOG_INFO << "created ODF image";
+        LOG_INFO << imageODF;
 
         // %%  =====================================================================
 
         Mat<T> Kernel (V.n_rows + 2, diffGrads.n_rows);
 
-        BOOST_LOG_TRIVIAL(info) << "Kernel size: " << size(Kernel);
+        LOG_INFO << "Kernel size: " << size(Kernel);
         Kernel.fill(0.0);
         // Kernel = create_Kernel_for_rumba(V, diffGrads, diffBvals, opts.rumba_sd.lambda1, opts.rumba_sd.lambda2, opts.rumba_sd.lambda_csf, opts.rumba_sd.lambda_gm); % Creating Kernel 
-        BOOST_LOG_TRIVIAL(info) << "calling create_Kernel_for_rumba";
+        LOG_INFO << "calling create_Kernel_for_rumba";
 
         create_Kernel_for_rumba<T>(V,diffGrads,diffBvals,opts.rumba_sd.lambda1, opts.rumba_sd.lambda2, opts.rumba_sd.lambda_csf, opts.rumba_sd.lambda_gm, Kernel, opts);
 
@@ -152,8 +158,8 @@ namespace pfiber {
 
         Cube<T> globODFslice (xdiff,ydiff,Nd,fill::zeros);
 
-        std::string filenameCSF = opts.inputDir + boost::filesystem::path::preferred_separator + "data-vf_csf.nii.gz";
-        std::string filenameGM = opts.inputDir + boost::filesystem::path::preferred_separator + "data-vf_gm.nii.gz";
+        std::string filenameCSF = opts.inputDir + kPathSeparator + "data-vf_csf.nii.gz";
+        std::string filenameGM = opts.inputDir + kPathSeparator + "data-vf_gm.nii.gz";
 
 
         size3D[0] = xdiff;   index3D[0] = 0;
@@ -167,7 +173,7 @@ namespace pfiber {
         CreateImage<Image3DType>(imageGM, size3D, index3D, spacing3D, origin3D, direction3D);
 
         for (int slice = 0; slice < zdiff; ++slice) {
-           BOOST_LOG_TRIVIAL(info) << "Processing slice number " << slice << " of " << zdiff;
+           LOG_INFO << "Processing slice number " << slice << " of " << zdiff;
 
            Mat<T> ODF;
            // Imask  = squeeze(spm_slice_vol(Vmask,spm_matrix([0 0 slice]),Vmask.dim(1:2),0));
@@ -216,7 +222,7 @@ namespace pfiber {
                              // fODF0 = fODF0/sum(fODF0); % Normalizing ODFs values
                              fODF0.fill(1.0/fODF0.n_elem);
 
-                             BOOST_LOG_TRIVIAL(info) << "calling intravox_fiber_reconst_sphdeconv_rumba_sd";
+                             LOG_INFO << "calling intravox_fiber_reconst_sphdeconv_rumba_sd";
                              // ODF = Intravox_Fiber_Reconst_sphdeconv_rumba_sd(diffSignal, Kernel, fODF0, opts.rumba_sd.Niter); % Intravoxel Fiber Reconstruction using RUMBA (Canales-Rodriguez, et al 2015)          
                              ODF = intravox_fiber_reconst_sphdeconv_rumba_sd<T>(diffSignal, Kernel, fODF0, opts.rumba_sd.Niter);           
 
@@ -276,15 +282,15 @@ namespace pfiber {
             }
         }
 
-        BOOST_LOG_TRIVIAL(info) << "writting file " << filenameCSF;
-        BOOST_LOG_TRIVIAL(info) << imageCSF;
+        LOG_INFO << "writting file " << filenameCSF;
+        LOG_INFO << imageCSF;
         WriteImage<Image3DType,NiftiType>(filenameCSF,imageCSF);
 
-        BOOST_LOG_TRIVIAL(info) << "writting file " << filenameGM;
-        BOOST_LOG_TRIVIAL(info) <<  imageGM;
+        LOG_INFO << "writting file " << filenameGM;
+        LOG_INFO <<  imageGM;
         WriteImage<Image3DType,NiftiType>(filenameGM,imageGM);
 
-        BOOST_LOG_TRIVIAL(info) << "writting file " << ODFfilename;
+        LOG_INFO << "writting file " << ODFfilename;
         WriteImage<Image4DType,NiftiType>(ODFfilename,imageODF);
     }
 }

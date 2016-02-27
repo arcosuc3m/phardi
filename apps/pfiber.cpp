@@ -1,15 +1,15 @@
 #include "optionparser.hpp"
 #include "options.hpp"
-#include "logging.hpp"
 #include "constants.hpp"
 #include "multi_intravox_fiber_reconstruction.hpp"
 #include "config.hpp"
 
+#include <plog/Log.h>
+#include <plog/Appenders/ColorConsoleAppender.h>
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <chrono>
-#include <boost/filesystem.hpp>
 #include <armadillo>
 
 
@@ -81,10 +81,15 @@ const option::Descriptor usage[] =
     {0,0,0,0,0,0}
 };
 
+bool is_file_exist(const std::string fileName)
+{
+    std::ifstream infile(fileName);
+    return infile.good();
+}
+
 int main(int argc, char ** argv) {
     using namespace std;
     using namespace pfiber;
-    using namespace boost::filesystem;
     using namespace std::chrono;
     using namespace std::chrono;
     
@@ -108,45 +113,48 @@ int main(int argc, char ** argv) {
     
     pfiber::options opts;
     
-    init_logging(options[DEBUG].count() > 0);
-    
+    if (options[DEBUG].count() > 0) {
+       static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
+       plog::init(plog::verbose, &consoleAppender);
+    } else {
+       plog::init(plog::debug, "pfiber.log");
+    }
+
     for (option::Option* opt = options.front(); opt; opt = opt->next()) {
-        BOOST_LOG_TRIVIAL(info) << "Option: " << opt->name <<  ": " <<  opt->arg;
+        LOG_INFO << "Option: " << opt->name <<  ": " <<  opt->arg;
     }
     
     std::string inputDir = options[PATH].arg;
     
-    std::string diffImage = inputDir + boost::filesystem::path::preferred_separator + "data.nii.gz";
-    std::string bvecsFilename = inputDir + boost::filesystem::path::preferred_separator + "bvecs";
-    std::string bvalsFilename = inputDir + boost::filesystem::path::preferred_separator + "bvals";
-    std::string diffBmask = inputDir + boost::filesystem::path::preferred_separator + "nodif_brain_mask.nii.gz";
-    std::string ODFfilename = inputDir + boost::filesystem::path::preferred_separator + options[ODF].arg;
+    std::string diffImage = inputDir + kPathSeparator + "data.nii.gz";
+    std::string bvecsFilename = inputDir + kPathSeparator + "bvecs";
+    std::string bvalsFilename = inputDir + kPathSeparator + "bvals";
+    std::string diffBmask = inputDir + kPathSeparator + "nodif_brain_mask.nii.gz";
+    std::string ODFfilename = inputDir + kPathSeparator + options[ODF].arg;
 
-    if (!exists(diffImage))
+    if (!is_file_exist(diffImage))
     {
-        BOOST_LOG_TRIVIAL(error) << "Can't find " << diffImage;
+        LOG_ERROR << "Can't find " << diffImage;
         return 1;
     }
 
-    if (!exists(bvecsFilename))
+    if (!is_file_exist(bvecsFilename))
     {
-        BOOST_LOG_TRIVIAL(error) << "Can't find " << bvecsFilename;
+        LOG_ERROR << "Can't find " << bvecsFilename;
         return 1;
     }
     
-    if (!exists(bvalsFilename))
+    if (!is_file_exist(bvalsFilename))
     {
-        BOOST_LOG_TRIVIAL(error) << "Can't find " << bvalsFilename;
+        LOG_ERROR << "Can't find " << bvalsFilename;
         return 1;
     }
     
-    if (!exists(diffBmask))
+    if (!is_file_exist(diffBmask))
     {
-        BOOST_LOG_TRIVIAL(error) << "Can't find " << diffBmask;
+        LOG_ERROR << "Can't find " << diffBmask;
         return 1;
     }
-    
-    
     
     // %% Options
     // opts.reconsMethod = 'rumba_sd'; % Reconstruction Method
@@ -162,11 +170,9 @@ int main(int argc, char ** argv) {
     opts.rumba_sd.lambda2    = LAMBDA2;
     opts.rumba_sd.lambda_csf = LAMBDA_CSF;
     opts.rumba_sd.lambda_gm  = LAMBDA_GM;
-
-
  
-    BOOST_LOG_TRIVIAL(info) << "pfiber "<< VERSION_MAJOR << "." << VERSION_MINOR;   
-    BOOST_LOG_TRIVIAL(info) << "Start.";   
+    LOG_INFO << "pfiber "<< VERSION_MAJOR << "." << VERSION_MINOR;   
+    LOG_INFO << "Start.";   
 
 
     if (options[OP_ITER].count() > 0) {
@@ -192,29 +198,28 @@ int main(int argc, char ** argv) {
         opts.add_noise =  true;
     }
    
-
-    BOOST_LOG_TRIVIAL(info) << "Configuration details:";   
-    BOOST_LOG_TRIVIAL(info) << "    Iterations    = " << opts.rumba_sd.Niter;   
-    BOOST_LOG_TRIVIAL(info) << "    Lambda 1      = " << opts.rumba_sd.lambda1;   
-    BOOST_LOG_TRIVIAL(info) << "    Lambda 2      = " << opts.rumba_sd.lambda2;   
-    BOOST_LOG_TRIVIAL(info) << "    Lambda CSF    = " << opts.rumba_sd.lambda_csf;   
-    BOOST_LOG_TRIVIAL(info) << "    Lambda GM     = " << opts.rumba_sd.lambda_gm;   
-    BOOST_LOG_TRIVIAL(info) << "    diffImage     = " << diffImage;   
-    BOOST_LOG_TRIVIAL(info) << "    bvecsFilename = " << bvecsFilename;   
-    BOOST_LOG_TRIVIAL(info) << "    bvalsFilename = " << bvalsFilename;   
-    BOOST_LOG_TRIVIAL(info) << "    diffBmask     = " << diffBmask;   
-    BOOST_LOG_TRIVIAL(info) << "    ODFfilename   = " << ODFfilename;   
+    LOG_INFO << "Configuration details:";   
+    LOG_INFO << "    Iterations    = " << opts.rumba_sd.Niter;   
+    LOG_INFO << "    Lambda 1      = " << opts.rumba_sd.lambda1;   
+    LOG_INFO << "    Lambda 2      = " << opts.rumba_sd.lambda2;   
+    LOG_INFO << "    Lambda CSF    = " << opts.rumba_sd.lambda_csf;   
+    LOG_INFO << "    Lambda GM     = " << opts.rumba_sd.lambda_gm;   
+    LOG_INFO << "    diffImage     = " << diffImage;   
+    LOG_INFO << "    bvecsFilename = " << bvecsFilename;   
+    LOG_INFO << "    bvalsFilename = " << bvalsFilename;   
+    LOG_INFO << "    diffBmask     = " << diffBmask;   
+    LOG_INFO << "    ODFfilename   = " << ODFfilename;   
     if (options[PRECISION].arg == "float")
-    BOOST_LOG_TRIVIAL(info) << "    Precision     = float";   
+    LOG_INFO << "    Precision     = float";   
     else
-    BOOST_LOG_TRIVIAL(info) << "    Precision     = double";   
+    LOG_INFO << "    Precision     = double";   
 
     if (options[PRECISION].arg == "float")
         Multi_IntraVox_Fiber_Reconstruction<float>(diffImage,bvecsFilename,bvalsFilename,diffBmask,ODFfilename,opts);
     else
         Multi_IntraVox_Fiber_Reconstruction<double>(diffImage,bvecsFilename,bvalsFilename,diffBmask,ODFfilename,opts);
 
-    BOOST_LOG_TRIVIAL(info) << "Finalize.";
+    LOG_INFO << "Finalize.";
   
     auto t2 = clk::now();    
     auto diff_milli = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
@@ -222,7 +227,6 @@ int main(int argc, char ** argv) {
  
     std::cout << "Time = " << diff_sec.count() << "." << diff_milli.count() << " seconds" << endl;
 
-  
     return 0;
 }
 
