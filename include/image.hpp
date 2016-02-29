@@ -1,7 +1,6 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 
-#include <boost/log/trivial.hpp>
 #include <itkImage.h>
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
@@ -74,7 +73,7 @@ namespace pfiber {
         try {
             reader->Update();
         } catch (itk::ExceptionObject &err) {
-            BOOST_LOG_TRIVIAL(error) << "ExceptionObject caught !";
+            LOG_ERROR << "ExceptionObject caught !";
             std::cerr <<  err << std::endl;
             std::cerr << "Error reading file " << filename << std::endl;
             
@@ -118,7 +117,7 @@ namespace pfiber {
         try {
             dwi_writer->Update();
         } catch (itk::ExceptionObject &err) {
-            BOOST_LOG_TRIVIAL(error) << "ExceptionObject caught !";
+            LOG_ERROR << "ExceptionObject caught !";
             std::cerr << err << std::endl;            
             std::cerr << "Error writting file " << filename  << std::endl;
         }
