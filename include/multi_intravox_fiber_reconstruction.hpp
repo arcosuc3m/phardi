@@ -205,6 +205,8 @@ namespace pfiber {
                    // diffSignal = Idiff(allIndexes + totalNvoxels*repmat([0:Ngrad-1]',[1 length(inda) ])); % Indexes in 4D
                    Mat<T> ind = allIndixes + (totalNvoxels *  repmat(linspace<Mat<T>>(0, Ngrad-1,Ngrad),1,inda.n_elem));
                    Mat<T> diffSignal(Ngrad,inda.n_elem);
+
+                   #pragma omp parallel for
                    for (int i = 0; i < Ngrad; ++i) {
                        for (size_t j = 0; j < inda.n_elem; ++j)
                            diffSignal(i,j) = Idiff.at(ind(i,j));
@@ -224,12 +226,12 @@ namespace pfiber {
 
                              LOG_INFO << "calling intravox_fiber_reconst_sphdeconv_rumba_sd";
                              // ODF = Intravox_Fiber_Reconst_sphdeconv_rumba_sd(diffSignal, Kernel, fODF0, opts.rumba_sd.Niter); % Intravoxel Fiber Reconstruction using RUMBA (Canales-Rodriguez, et al 2015)          
-                             ODF = intravox_fiber_reconst_sphdeconv_rumba_sd<T>(diffSignal, Kernel, fODF0, opts.rumba_sd.Niter);           
-
+                             ODF = intravox_fiber_reconst_sphdeconv_rumba_sd<T>(diffSignal, Kernel, fODF0, opts.rumba_sd.Niter);
+                             #pragma omp parallel for
                              for (int i = 0; i < inda.n_elem; ++i) {
                                  slicevf_CSF.at(inda(i)) = ODF(ODF.n_rows - 2 ,i);
                              }
-
+                             #pragma omp parallel for
                              for (int i = 0; i < inda.n_elem; ++i) {
                                  slicevf_GM.at(inda(i)) = ODF(ODF.n_rows - 1 ,i);
                              }
@@ -248,13 +250,14 @@ namespace pfiber {
                    Mat<T> ODFindexes = allIndexesODF + totalNvoxels * repmat(linspace<Mat<T>>(0, ODF.n_rows - 1, ODF.n_rows ),1,inda.n_elem); 
 
                    // globODFslice(ODFindexes(:)) = ODF(:);
+                   #pragma omp parallel for
                    for (int i = 0; i < ODF.n_rows; ++i) {
                        for (int j = 0; j < ODF.n_cols; ++j) {
                             globODFslice.at(ODFindexes(i,j)) = ODF(i ,j);
                        }
                    }
             }
-
+            #pragma omp parallel for
             for (int i = 0; i < xdiff; ++i) {
                 for (int j = 0; j < ydiff; ++j) {
                     Index3DType coord;
@@ -262,7 +265,7 @@ namespace pfiber {
                     imageCSF->SetPixel(coord, slicevf_CSF(i,j));
                 }
             }
-
+            #pragma omp parallel for
             for (int i = 0; i < xdiff; ++i) {
                 for (int j = 0; j < ydiff; ++j) {
                     Index3DType coord;
@@ -270,7 +273,7 @@ namespace pfiber {
                     imageGM->SetPixel(coord, slicevf_GM(i,j));
                 }
             }
-
+            #pragma omp parallel for
             for (int i = 0; i < xdiff; ++i) {
                 for (int j = 0; j < ydiff; ++j) {
                     for (int k = 0; k < Nd; ++k) {

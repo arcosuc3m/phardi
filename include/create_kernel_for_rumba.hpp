@@ -3,8 +3,8 @@
 
 
 #include "create_signal_multi_tensor.hpp"
-#include "logging.hpp"
 
+#include <plog/Log.h>
 #include <iostream>
 #include <math.h>
 #include <armadillo>

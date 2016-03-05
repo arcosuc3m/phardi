@@ -1,8 +1,7 @@
 #ifndef CREATE_SIGNAL_H
 #define CREATE_SIGNAL_H
 
-#include "logging.hpp"
-
+#include <plog/Log.h>
 #include <iostream>
 #include <math.h>
 #include <numeric>
