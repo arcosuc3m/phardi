@@ -1,8 +1,8 @@
 #ifndef INTRAVOX_H
 #define INTRAVOX_H
 
-#include "logging.hpp"
 
+#include <plog/Log.h>
 #include <armadillo>
 #include <iostream>
 #include <cmath>
