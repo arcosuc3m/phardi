@@ -4,11 +4,11 @@
 
 ### Requirements ###
 
-* Boost > 1.54
 * Armadillo 
 * ITK 4.9
 * GCC 4.9
 * OpenBLAS (for multicore parallelism)
+* LaPack
 
 ### How do I get set up? ###
 
