@@ -32,7 +32,7 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <math.h>
 #include <armadillo>
 
-namespace pfiber {
+namespace phardi {
 
   
     template <typename T>
@@ -57,7 +57,7 @@ namespace pfiber {
                                  T lambda_csf,
                                  T lambda_gm,
                                  arma::Mat<T> & Kernel,
-                                 const pfiber::options opts) {
+                                 const phardi::options opts) {
 
 
         using namespace arma;

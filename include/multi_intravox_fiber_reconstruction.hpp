@@ -37,7 +37,7 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <math.h>
 #include <algorithm>
 
-namespace pfiber {
+namespace phardi {
 
     const char kPathSeparator =
 #ifdef _WIN32
@@ -52,7 +52,7 @@ namespace pfiber {
                                              const std::string diffBvalsfilename,
                                              const std::string diffBmaskfilename,
                                              const std::string ODFfilename,
-                                             pfiber::options opts
+                                             phardi::options opts
                                              )  {
         using namespace arma;
         using namespace itk;

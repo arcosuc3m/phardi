@@ -26,7 +26,7 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <iostream>
 
-namespace pfiber {
+namespace phardi {
 
    enum recons {DOT, SPHDECONV, RUMBA_SD};
    enum datread {VOXELS, SLICES, VOLUME};

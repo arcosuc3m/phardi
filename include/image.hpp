@@ -33,7 +33,7 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <itkGDCMImageIO.h>
 #include <itkRGBAPixel.h>
 
-namespace pfiber {
+namespace phardi {
 
     typedef float                       PixelType;
     typedef itk::Image< PixelType, 2 >  Image2DType;

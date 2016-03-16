@@ -30,7 +30,7 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <iostream>
 #include <cmath>
 
-namespace pfiber {
+namespace phardi {
   
     template<typename T>
     arma::Mat<T> mBessel_ratio(T n, const arma::Mat<T> & x) {

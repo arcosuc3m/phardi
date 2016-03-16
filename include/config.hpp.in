@@ -24,9 +24,9 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef CONFIG_H
 #define CONFIG_H
 
-namespace pfiber {
-  #define VERSION_MAJOR @pfiber_VERSION_MAJOR@
-  #define VERSION_MINOR @pfiber_VERSION_MINOR@
+namespace phardi {
+  #define VERSION_MAJOR @phardi_VERSION_MAJOR@
+  #define VERSION_MINOR @phardi_VERSION_MINOR@
 }
 
 #endif

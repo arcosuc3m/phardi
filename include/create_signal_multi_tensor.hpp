@@ -30,7 +30,7 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <numeric>
 #include <armadillo>
 
-namespace pfiber {
+namespace phardi {
 
     template<typename T>
     arma::Mat<T> RotMatrix(T phi, T theta) {

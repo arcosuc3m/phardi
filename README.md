@@ -32,14 +32,17 @@ USAGE: pfiber [options]
 
 Options:
   --help             Print usage and exit.
-  --path, -p         Path of the input data.
+  --data, -k        Path of the input data.
+  --mask, -m        Path of the input mask.
+  --bvecs, -r       Path of the input bvecs.
+  --bvals, -b       Path of the input bvals.
   --odf, -o          Output file name.
   --precision, -p    Calculation precision (float|double).
   --iterations, -i   Iterations performed.
-  --lambda1, -l1     Lambda 1 value.
-  --lambda2, -l2     Lambda 2 value.
-  --lambda-csf, -lc  Lambda CSF value.
-  --lambda-gm, -lg   Lambda GM value.
+  --lambda1          Lambda 1 value.
+  --lambda2          Lambda 2 value.
+  --lambda-csf       Lambda CSF value.
+  --lambda-gm        Lambda GM value.
   --verbose, -v      Verbose execution details.
   --noise, -n        Add rician noise.
 

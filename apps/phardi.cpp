@@ -36,7 +36,7 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <armadillo>
 
 
-enum  optionIndex { UNKNOWN, HELP, PATH, ODF, PRECISION, NOISE, OP_ITER, OP_LAMBDA1, OP_LAMBDA2, OP_LAMBDA_CSF, OP_LAMBDA_GM,  DEBUG};
+enum  optionIndex { UNKNOWN, HELP, DATA, MASK, BVECS, BVALS, ODF, PRECISION, NOISE, OP_ITER, OP_LAMBDA1, OP_LAMBDA2, OP_LAMBDA_CSF, OP_LAMBDA_GM,  DEBUG};
 
 struct Arg: public option::Arg
 {
@@ -74,7 +74,7 @@ struct Arg: public option::Arg
     static option::ArgStatus Numeric(const option::Option& option, bool msg)
     {
         char* endptr = 0;
-        if (option.arg != 0 && strtol(option.arg, &endptr, 10)){};
+        if (option.arg != 0 && strtof(option.arg, &endptr)){};
         if (endptr != option.arg && *endptr == 0)
             return option::ARG_OK;
         
@@ -85,21 +85,24 @@ struct Arg: public option::Arg
 
 const option::Descriptor usage[] =
 {
-    {UNKNOWN, 0, "", "",option::Arg::None, "USAGE: pfiber [options]\n\n"
+    {UNKNOWN, 0, "", "",option::Arg::None, "USAGE: phardi [options]\n\n"
         "Options:" },
-    {HELP, 0,"", "help",option::Arg::None, "  --help  \tPrint usage and exit." },
-    {PATH, 0,"p","path",Arg::Required, "  --path, -p  \tPath of the input data." },
+    {HELP, 0,"h", "help",option::Arg::None, "  --help, -h  \tPrint usage and exit." },
+    {DATA, 0,"k","data",Arg::Required, "  --data, -k  \tPath of the input data." },
+    {MASK, 0,"m","mask",Arg::Required, "  --mask, -m  \tPath of the input mask." },
+    {BVECS, 0,"r","bvecs",Arg::Required, "  --bvecs, -r  \tPath of the input bvecs." },
+    {BVALS, 0,"b","bvals",Arg::Required, "  --bvals, -b  \tPath of the input bvals." },
     {ODF, 0,"o","odf",Arg::Required, "  --odf, -o  \tOutput file name." },
     {PRECISION, 0,"p","presicion",Arg::NonEmpty, "  --precision, -p  \tCalculation precision (float|double)." },
     {OP_ITER, 0,"i","iterations",Arg::Numeric, "  --iterations, -i  \tIterations performed." },
-    {OP_LAMBDA1, 0,"l1","lambda1",Arg::Numeric, "  --lambda1, -l1  \tLambda 1 value." },
-    {OP_LAMBDA2, 0,"l2","lambda2",Arg::Numeric, "  --lambda2, -l2  \tLambda 2 value." },
-    {OP_LAMBDA_CSF, 0,"lc","lambda-csf",Arg::Numeric, "  --lambda-csf, -lc  \tLambda CSF value." },
-    {OP_LAMBDA_GM, 0,"lg","lambda-gm",Arg::Numeric, "  --lambda-gm, -lg  \tLambda GM value." },
+    {OP_LAMBDA1, 0,"","lambda1",Arg::Numeric, "  --lambda1 \tLambda 1 value." },
+    {OP_LAMBDA2, 0,"","lambda2",Arg::Numeric, "  --lambda2 \tLambda 2 value." },
+    {OP_LAMBDA_CSF, 0,"","lambda-csf",Arg::Numeric, "  --lambda-csf  \tLambda CSF value." },
+    {OP_LAMBDA_GM, 0,"","lambda-gm",Arg::Numeric, "  --lambda-gm  \tLambda GM value." },
     {DEBUG, 0,"v","verbose",option::Arg::None, "  --verbose, -v  \tVerbose execution details." },
     {NOISE, 0,"n","noise",option::Arg::None, "  --noise, -n  \tAdd rician noise." },
     {UNKNOWN, 0, "", "",option::Arg::None, "\nExamples:\n"
-        "  pfiber --path data/ --odf  data_odf.nii.gz\n"
+        "  phardi --path data/ --odf  data_odf.nii.gz\n"
         "  " },
     {0,0,0,0,0,0}
 };
@@ -112,7 +115,7 @@ bool is_file_exist(const std::string fileName)
 
 int main(int argc, char ** argv) {
     using namespace std;
-    using namespace pfiber;
+    using namespace phardi;
     using namespace std::chrono;
     using namespace std::chrono;
     
@@ -134,26 +137,24 @@ int main(int argc, char ** argv) {
         return 0;
     }
     
-    pfiber::options opts;
+    phardi::options opts;
     
     if (options[DEBUG].count() > 0) {
        static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
        plog::init(plog::verbose, &consoleAppender);
     } else {
-       plog::init(plog::debug, "pfiber.log");
+       plog::init(plog::debug, "phardi.log");
     }
 
     for (option::Option* opt = options.front(); opt; opt = opt->next()) {
         LOG_INFO << "Option: " << opt->name <<  ": " <<  opt->arg;
     }
     
-    std::string inputDir = options[PATH].arg;
-    
-    std::string diffImage = inputDir + kPathSeparator + "data.nii.gz";
-    std::string bvecsFilename = inputDir + kPathSeparator + "bvecs";
-    std::string bvalsFilename = inputDir + kPathSeparator + "bvals";
-    std::string diffBmask = inputDir + kPathSeparator + "nodif_brain_mask.nii.gz";
-    std::string ODFfilename = inputDir + kPathSeparator + options[ODF].arg;
+    std::string diffImage     = options[DATA].arg;
+    std::string bvecsFilename = options[BVECS].arg;
+    std::string bvalsFilename = options[BVALS].arg;
+    std::string diffBmask     = options[MASK].arg;
+    std::string ODFfilename   = options[ODF].arg;
 
     if (!is_file_exist(diffImage))
     {
@@ -185,7 +186,7 @@ int main(int argc, char ** argv) {
     // opts.saveODF = 1; % Save or not the ODF
     opts.reconsMethod        = RUMBA_SD; // Reconstruction Method
     opts.datreadMethod       = SLICES;  //Reading Data
-    opts.inputDir            = inputDir;
+    opts.inputDir            = "";
     opts.add_noise           = false;
 
     opts.rumba_sd.Niter      = NITER;
@@ -194,8 +195,9 @@ int main(int argc, char ** argv) {
     opts.rumba_sd.lambda_csf = LAMBDA_CSF;
     opts.rumba_sd.lambda_gm  = LAMBDA_GM;
  
-    LOG_INFO << "pfiber "<< VERSION_MAJOR << "." << VERSION_MINOR;   
+    LOG_INFO << "phardi "<< VERSION_MAJOR << "." << VERSION_MINOR;   
     LOG_INFO << "Start.";   
+
 
 
     if (options[OP_ITER].count() > 0) {
