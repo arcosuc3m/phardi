@@ -59,7 +59,7 @@ namespace phardi {
 
         Mat<T> V;
         if (opts.ODFDirscheme.length() == 0)
-            opts.ODFDirscheme = opts.inputDir + kPathSeparator + "724_shell.txt";
+            opts.ODFDirscheme =  "./724_shell.txt";
 
 
         V.load(opts.ODFDirscheme, arma::raw_ascii);
@@ -121,7 +121,7 @@ namespace phardi {
                 Vdiff[w] = temp;
         }
 
-        LOG_INFO << "Diff " << imageDiff;
+        // LOG_INFO << "Diff " << imageDiff;
 
         Image3DType::Pointer imageMask = Image3DType::New();
 
@@ -163,7 +163,7 @@ namespace phardi {
 
         CreateImage<Image4DType>(imageODF, size4DODF, index4DODF, spacing4D, origin4D,direction4D);
         LOG_INFO << "created ODF image";
-        LOG_INFO << imageODF;
+        // LOG_INFO << imageODF;
 
         // %%  =====================================================================
 
@@ -181,8 +181,8 @@ namespace phardi {
 
         Cube<T> globODFslice (xdiff,ydiff,Nd,fill::zeros);
 
-        std::string filenameCSF = opts.inputDir + kPathSeparator + "data-vf_csf.nii.gz";
-        std::string filenameGM = opts.inputDir + kPathSeparator + "data-vf_gm.nii.gz";
+        std::string filenameCSF = opts.outputDir + kPathSeparator + "data-vf_csf.nii.gz";
+        std::string filenameGM = opts.outputDir + kPathSeparator + "data-vf_gm.nii.gz";
 
 
         size3D[0] = xdiff;   index3D[0] = 0;
@@ -309,11 +309,11 @@ namespace phardi {
         }
 
         LOG_INFO << "writting file " << filenameCSF;
-        LOG_INFO << imageCSF;
+        // LOG_INFO << imageCSF;
         WriteImage<Image3DType,NiftiType>(filenameCSF,imageCSF);
 
         LOG_INFO << "writting file " << filenameGM;
-        LOG_INFO <<  imageGM;
+        // LOG_INFO <<  imageGM;
         WriteImage<Image3DType,NiftiType>(filenameGM,imageGM);
 
         LOG_INFO << "writting file " << ODFfilename;

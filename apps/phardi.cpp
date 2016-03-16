@@ -92,17 +92,17 @@ const option::Descriptor usage[] =
     {MASK, 0,"m","mask",Arg::Required, "  --mask, -m  \tPath of the input mask." },
     {BVECS, 0,"r","bvecs",Arg::Required, "  --bvecs, -r  \tPath of the input bvecs." },
     {BVALS, 0,"b","bvals",Arg::Required, "  --bvals, -b  \tPath of the input bvals." },
-    {ODF, 0,"o","odf",Arg::Required, "  --odf, -o  \tOutput file name." },
+    {ODF, 0,"o","odf",Arg::Required, "  --odf, -o  \tOutput path." },
     {PRECISION, 0,"p","presicion",Arg::NonEmpty, "  --precision, -p  \tCalculation precision (float|double)." },
-    {OP_ITER, 0,"i","iterations",Arg::Numeric, "  --iterations, -i  \tIterations performed." },
-    {OP_LAMBDA1, 0,"","lambda1",Arg::Numeric, "  --lambda1 \tLambda 1 value." },
-    {OP_LAMBDA2, 0,"","lambda2",Arg::Numeric, "  --lambda2 \tLambda 2 value." },
-    {OP_LAMBDA_CSF, 0,"","lambda-csf",Arg::Numeric, "  --lambda-csf  \tLambda CSF value." },
-    {OP_LAMBDA_GM, 0,"","lambda-gm",Arg::Numeric, "  --lambda-gm  \tLambda GM value." },
+    {OP_ITER, 0,"i","iterations",Arg::Numeric, "  --iterations, -i  \tIterations performed (default 300)." },
+    {OP_LAMBDA1, 0,"","lambda1",Arg::Numeric, "  --lambda1 \tLambda 1 value (default 0.0017)." },
+    {OP_LAMBDA2, 0,"","lambda2",Arg::Numeric, "  --lambda2 \tLambda 2 value (default 0.0003)." },
+    {OP_LAMBDA_CSF, 0,"","lambda-csf",Arg::Numeric, "  --lambda-csf  \tLambda CSF value (default 0.0030)." },
+    {OP_LAMBDA_GM, 0,"","lambda-gm",Arg::Numeric, "  --lambda-gm  \tLambda GM value (default 0.0007)." },
     {DEBUG, 0,"v","verbose",option::Arg::None, "  --verbose, -v  \tVerbose execution details." },
     {NOISE, 0,"n","noise",option::Arg::None, "  --noise, -n  \tAdd rician noise." },
     {UNKNOWN, 0, "", "",option::Arg::None, "\nExamples:\n"
-        "  phardi --path data/ --odf  data_odf.nii.gz\n"
+        " phardi -k /data/data.nii.gz -m /data/nodif_brain_mask.nii.gz -r /data/bvecs -b /data/bvals --odf /result/ \n"
         "  " },
     {0,0,0,0,0,0}
 };
@@ -116,7 +116,6 @@ bool is_file_exist(const std::string fileName)
 int main(int argc, char ** argv) {
     using namespace std;
     using namespace phardi;
-    using namespace std::chrono;
     using namespace std::chrono;
     
     using clk = chrono::high_resolution_clock; 
@@ -155,6 +154,7 @@ int main(int argc, char ** argv) {
     std::string bvalsFilename = options[BVALS].arg;
     std::string diffBmask     = options[MASK].arg;
     std::string ODFfilename   = options[ODF].arg;
+    ODFfilename =  ODFfilename +  kPathSeparator + "data_odf.nii.gz";
 
     if (!is_file_exist(diffImage))
     {
@@ -179,6 +179,12 @@ int main(int argc, char ** argv) {
         LOG_ERROR << "Can't find " << diffBmask;
         return 1;
     }
+
+    if (!is_file_exist("./724_shell.txt"))
+    {
+        LOG_ERROR << "Can't find 724_shell.txt";
+        return 1;
+    }
     
     // %% Options
     // opts.reconsMethod = 'rumba_sd'; % Reconstruction Method
@@ -186,7 +192,7 @@ int main(int argc, char ** argv) {
     // opts.saveODF = 1; % Save or not the ODF
     opts.reconsMethod        = RUMBA_SD; // Reconstruction Method
     opts.datreadMethod       = SLICES;  //Reading Data
-    opts.inputDir            = "";
+    opts.outputDir            = options[ODF].arg;
     opts.add_noise           = false;
 
     opts.rumba_sd.Niter      = NITER;

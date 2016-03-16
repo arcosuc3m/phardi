@@ -42,7 +42,7 @@ namespace phardi {
    struct options {
        recons reconsMethod;   // Reconstruction method.
        datread datreadMethod;   // Data reading method.
-       std::string inputDir;
+       std::string outputDir;
        std::string ODFDirscheme;    // Directions scheme for reconstructing ODF.
        options_rumba rumba_sd;
        bool debug;
