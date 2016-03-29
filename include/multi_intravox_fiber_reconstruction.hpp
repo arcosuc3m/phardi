@@ -26,6 +26,7 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "options.hpp"
 #include "intravox_fiber_reconst_sphdeconv_rumba_sd.hpp"
+//#include "intravox_fiber_reconst_sphdeconv_rumba_sd_gpu.hpp"
 #include "image.hpp"
 #include "create_kernel_for_rumba.hpp"
 #include "constants.hpp"
@@ -59,7 +60,7 @@ namespace phardi {
 
         Mat<T> V;
         if (opts.ODFDirscheme.length() == 0)
-            opts.ODFDirscheme =  "./724_shell.txt";
+            opts.ODFDirscheme =  "./362_shell_semisphere.txt";
 
 
         V.load(opts.ODFDirscheme, arma::raw_ascii);
@@ -73,14 +74,37 @@ namespace phardi {
 
         size_t Ngrad = diffGrads.n_rows;
 
+	//  vector normalization: obtaining unit vectors (0-vectors are preserved) 
+	//norm_factor = sqrt(sum(diffGrads.^2,2));
+	Col<T> norm_factor = sqrt( sum(pow(diffGrads,2),1) ) + std::numeric_limits<double>::epsilon();
+	// diffGrads = diffGrads./repmat(norm_factor + eps,[1 3]);
+	diffGrads = diffGrads / repmat(norm_factor, 1, 3);
+
         Mat<T> diffBvalsM;
         diffBvalsM.load(diffBvalsfilename, arma::raw_ascii);
 
         Col<T> diffBvals (diffBvalsM.n_elem);
-        for (size_t i = 0; i < diffBvalsM.n_elem; ++i) diffBvals(i) = diffBvalsM(0,i);
+        for (size_t i = 0; i < diffBvalsM.n_elem; ++i) 
+		diffBvals(i) = diffBvalsM(0,i);
 
         LOG_INFO << "Reading diffBvals " << diffBvalsfilename << " [" << diffBvals.n_elem << "]";
+	LOG_INFO << "The measurement scheme contains " << Ngrad << " volumes";
+	LOG_INFO << "The max b-value is " << diffBvals.max() ;
 
+	// --- volumes where b-value = 0
+	// ind_S0 = find(diffBvals.*sum(diffGrads.^2,2) == 0);
+	uvec ind_S0_vec = find(diffBvals % sum(pow(diffGrads,2),1) == 0);
+        Mat<T> ind_S0 = conv_to<Mat<T>>::from(ind_S0_vec);
+
+	// display(['From the ' num2str(Ngrad) ' volumes, ' num2str(length(ind_S0)) ' are b0 images']);
+	LOG_INFO << "From the " << Ngrad << " volumes, " <<  ind_S0.n_elem  << " are b0 images";
+
+	// in rumba_sd the data will be modified/reordered
+      	//diffGrads(ind_S0,:) = [];
+      	//diffGrads = [0 0 0; diffGrads];
+      	//diffBvals(ind_S0) = [];
+      	//diffBvals = [0; diffBvals];
+      	//size_t Ngrad_mod = diffGrads.n_rows;
 
         Image4DType::Pointer imageDiff = Image4DType::New();
 
@@ -103,10 +127,11 @@ namespace phardi {
         int Nd = V.n_rows;
 
         std::vector<Cube<T>> Vdiff(regionDiff.GetSize()[3]);
-        Index4DType coord_4d;
 
+	#pragma omp parallel for
         for (int w = 0; w < regionDiff.GetSize()[3]; ++w) {
                 Cube<T> temp(regionDiff.GetSize()[0], regionDiff.GetSize()[1], regionDiff.GetSize()[2]);
+        	Index4DType coord_4d;
                 coord_4d[3]=w;
                 for (int x = 0; x < regionDiff.GetSize()[0]; ++x) {
                    coord_4d[0]=x;
@@ -138,8 +163,9 @@ namespace phardi {
 
         Cube<T> Vmask(regionMask.GetSize()[0],regionMask.GetSize()[1],regionMask.GetSize()[2]);
 
-        Index3DType coord_3d;
+	#pragma omp parallel for
         for (int x = 0; x < regionMask.GetSize()[0]; ++x) {
+           Index3DType coord_3d;
            coord_3d[0]=x;
            for (int y = 0; y < regionMask.GetSize()[1]; ++y) {
                coord_3d[1]=y;
@@ -178,11 +204,17 @@ namespace phardi {
 
         Mat<T> slicevf_CSF(xdiff,ydiff,fill::zeros);
         Mat<T> slicevf_GM(xdiff,ydiff,fill::zeros);
+        Mat<T> slicevf_WM(xdiff,ydiff,fill::zeros);
+        Mat<T> slicevf_GFA(xdiff,ydiff,fill::zeros);
+        Mat<T> volvf_WM(xdiff,ydiff,fill::zeros);
+	Row<T> ODF_iso(ydiff,fill::zeros);
 
         Cube<T> globODFslice (xdiff,ydiff,Nd,fill::zeros);
 
         std::string filenameCSF = opts.outputDir + kPathSeparator + "data-vf_csf.nii.gz";
         std::string filenameGM = opts.outputDir + kPathSeparator + "data-vf_gm.nii.gz";
+        std::string filenameWM = opts.outputDir + kPathSeparator + "data-vf_wm.nii.gz";
+        std::string filenameGFA = opts.outputDir + kPathSeparator + "data-vf_gfa.nii.gz";
 
 
         size3D[0] = xdiff;   index3D[0] = 0;
@@ -195,6 +227,12 @@ namespace phardi {
         Image3DType::Pointer imageGM = Image3DType::New();
         CreateImage<Image3DType>(imageGM, size3D, index3D, spacing3D, origin3D, direction3D);
 
+	Image3DType::Pointer imageWM = Image3DType::New();
+        CreateImage<Image3DType>(imageWM, size3D, index3D, spacing3D, origin3D, direction3D);
+
+	Image3DType::Pointer imageGFA = Image3DType::New();
+        CreateImage<Image3DType>(imageGFA, size3D, index3D, spacing3D, origin3D, direction3D);
+
         for (int slice = 0; slice < zdiff; ++slice) {
            LOG_INFO << "Processing slice number " << slice << " of " << zdiff;
 
@@ -205,6 +243,9 @@ namespace phardi {
            globODFslice.zeros();
            slicevf_CSF.zeros();
            slicevf_GM.zeros();
+           slicevf_WM.zeros();
+           slicevf_GFA.zeros();
+           volvf_WM.zeros();
 
            // if sum(Imask(:)) ~= 0
            Cube<T> Idiff(xdiff, ydiff, Ngrad);
@@ -213,8 +254,44 @@ namespace phardi {
                Idiff.slice(graddir) = Vdiff[graddir].slice(slice) % Vmask.slice(slice); // product-wise multiplication
            }
 
+           // isolating the b0 images                      
+	   // S0_est = squeeze( Idiff(:,:,ind_S0) );
+           Cube<T> S0_est (xdiff, ydiff, ind_S0.n_elem);
+           Mat<T> S0_est_M (xdiff, ydiff);
+
+	   for (int i = 0; i < ind_S0.n_elem; ++i) {
+		S0_est.slice(i) = Idiff.slice(ind_S0(i));
+	    }
+
+	   S0_est_M = mean(S0_est,2); 
+           // if there are several b0 images in the data, we compute the mean value
+           if (ind_S0.n_elem > 1) {
+		for (int i = 0; i < ind_S0.n_elem; ++i)
+           		S0_est.slice(i) = S0_est_M % Vmask.slice(slice);
+           }
+
+	   // reordering the data such that the b0 image appears first (see lines 152-166)
+	   // Idiff(:,:,ind_S0) = [];
+	   for (int i = 0; i < ind_S0.n_elem; ++i)
+		Idiff.shed_slice(ind_S0(i));  // TO FIX!!!!
+
+	   //?? Idiff = cat(3,S0_est,Idiff);
+	   Idiff = join_slices(S0_est,Idiff);
+
+	   //  normalize the signal S/S0
+	   //for graddir = 1:Ngrad_mod
+	   for (int graddir = 0; graddir < Ngrad; ++graddir) {
+		//Idiff(:,:,graddir) = squeeze(Idiff(:,:,graddir))./(S0_est + eps);
+		Idiff.slice(graddir) = Idiff.slice(graddir) / (S0_est_M + std::numeric_limits<double>::epsilon());
+	   }
+	   // Repair the signal
+	   // Idiff(Idiff>1) = 1;
+	   // Idiff(Idiff<0) = 0;
+	   Idiff.elem( find(Idiff > 1.0) ).ones();
+	   Idiff.elem( find(Idiff < 0.0) ).zeros();
+	 
            //inda = find(squeeze(Idiff(:,:,1))>0);
-           uvec inda_vec = find(Idiff.slice(0));
+           uvec inda_vec = find(Idiff.slice(0) > 0);
            Mat<T> inda = conv_to<Mat<T>>::from(inda_vec);
 
            //totalNvoxels = prod(size(Imask));
@@ -243,23 +320,51 @@ namespace phardi {
                        case RUMBA_SD:
                              // fODF0 = ones(size(Kernel,2),1);
                              Mat<T> fODF0(Kernel.n_cols,1);
+			     T mean_SNR;
 
                              // fODF0 = fODF0/sum(fODF0); % Normalizing ODFs values
                              fODF0.fill(1.0/fODF0.n_elem);
 
                              LOG_INFO << "calling intravox_fiber_reconst_sphdeconv_rumba_sd";
                              // ODF = Intravox_Fiber_Reconst_sphdeconv_rumba_sd(diffSignal, Kernel, fODF0, opts.rumba_sd.Niter); % Intravoxel Fiber Reconstruction using RUMBA (Canales-Rodriguez, et al 2015)          
-                             ODF = intravox_fiber_reconst_sphdeconv_rumba_sd<T>(diffSignal, Kernel, fODF0, opts.rumba_sd.Niter);
+                             ODF = intravox_fiber_reconst_sphdeconv_rumba_sd<T>(diffSignal, Kernel, fODF0, opts.rumba_sd.Niter, mean_SNR);
+                             // TODO ODF = intravox_fiber_reconst_sphdeconv_rumba_sd_gpu<T>(diffSignal, Kernel, fODF0, opts.rumba_sd.Niter);
+			     LOG_INFO << "Estimated mean SNR = " << mean_SNR;
+
                              #pragma omp parallel for
                              for (int i = 0; i < inda.n_elem; ++i) {
                                  slicevf_CSF.at(inda(i)) = ODF(ODF.n_rows - 2 ,i);
                              }
+
                              #pragma omp parallel for
                              for (int i = 0; i < inda.n_elem; ++i) {
                                  slicevf_GM.at(inda(i)) = ODF(ODF.n_rows - 1 ,i);
                              }
 
+			     //ODF_iso = ODF(end,:) + ODF(end-1,:); 
+                             ODF_iso = ODF.row(ODF.n_rows - 1) + ODF.row(ODF.n_rows - 2); 
+
+			     // ODF = ODF(1:end-2,:);
                              ODF.resize(ODF.n_rows - 2, ODF.n_cols);
+
+                             //volvf_WM(inda) = sum(ODF,1);    % Volume fraction of WM 
+			     Row<T> tsum = sum(ODF,0);
+			     #pragma omp parallel for
+                             for (int i = 0; i < inda.n_elem; ++i) {
+			         volvf_WM.at(inda(i)) = tsum(i);
+			     }
+
+			     // Adding the isotropic components to the ODF                  
+                             ODF = ODF + repmat( ODF_iso / ODF.n_rows , ODF.n_rows, 1 );  
+                             ODF = ODF / repmat( sum(ODF,0) + std::numeric_limits<double>::epsilon() , ODF.n_rows,  1 );      
+			
+
+			     // std(ODF,0,1)./( sqrt(mean(ODF.^2,1)) + eps )
+			     Row<T>  temp = stddev( ODF, 0, 0 ) / sqrt(mean(pow(ODF,2),0) + std::numeric_limits<double>::epsilon());
+		             #pragma omp parallel for
+                             for (int i = 0; i < inda.n_elem; ++i) {
+                                 slicevf_GFA.at(inda(i)) = temp(i);
+                             }
                         break;
                    }
                    // % Allocating memory to save the ODF
@@ -280,6 +385,7 @@ namespace phardi {
                        }
                    }
             }
+
             #pragma omp parallel for
             for (int i = 0; i < xdiff; ++i) {
                 for (int j = 0; j < ydiff; ++j) {
@@ -288,6 +394,7 @@ namespace phardi {
                     imageCSF->SetPixel(coord, slicevf_CSF(i,j));
                 }
             }
+
             #pragma omp parallel for
             for (int i = 0; i < xdiff; ++i) {
                 for (int j = 0; j < ydiff; ++j) {
@@ -296,6 +403,25 @@ namespace phardi {
                     imageGM->SetPixel(coord, slicevf_GM(i,j));
                 }
             }
+
+	    #pragma omp parallel for
+            for (int i = 0; i < xdiff; ++i) {
+                for (int j = 0; j < ydiff; ++j) {
+                    Index3DType coord;
+                    coord[0] = i; coord[1] = j; coord[2] = slice;
+                    imageWM->SetPixel(coord, slicevf_WM(i,j));
+                }
+            }
+
+	    #pragma omp parallel for
+            for (int i = 0; i < xdiff; ++i) {
+                for (int j = 0; j < ydiff; ++j) {
+                    Index3DType coord;
+                    coord[0] = i; coord[1] = j; coord[2] = slice;
+                    imageGFA->SetPixel(coord, slicevf_GFA(i,j));
+                }
+            }
+
             #pragma omp parallel for
             for (int i = 0; i < xdiff; ++i) {
                 for (int j = 0; j < ydiff; ++j) {
@@ -315,6 +441,15 @@ namespace phardi {
         LOG_INFO << "writting file " << filenameGM;
         // LOG_INFO <<  imageGM;
         WriteImage<Image3DType,NiftiType>(filenameGM,imageGM);
+
+	LOG_INFO << "writting file " << filenameWM;
+        // LOG_INFO <<  imageWM;
+        WriteImage<Image3DType,NiftiType>(filenameWM,imageWM);
+
+
+	LOG_INFO << "writting file " << filenameGFA;
+        // LOG_INFO <<  imageGFA;
+        WriteImage<Image3DType,NiftiType>(filenameGFA,imageGFA);
 
         LOG_INFO << "writting file " << ODFfilename;
         WriteImage<Image4DType,NiftiType>(ODFfilename,imageODF);

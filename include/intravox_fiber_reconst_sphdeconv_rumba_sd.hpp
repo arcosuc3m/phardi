@@ -53,7 +53,8 @@ namespace phardi {
     arma::Mat<T> intravox_fiber_reconst_sphdeconv_rumba_sd(const arma::Mat<T> & Signal,
                                                            const arma::Mat<T> & Kernel,
                                                            const arma::Mat<T> & fODF0,
-                                                           int Niter) {
+                                                           const int Niter,
+							   T & mean_SNR) {
         using namespace arma;
 
         Mat<T> fODF;
@@ -82,20 +83,18 @@ namespace phardi {
         T sigma0 = 1.0/15.0;
 
         // sigma2 = sigma0^2;
-        T sigma2 = std::pow(sigma0,2);
+        Mat<T> sigma2 (Signal.n_rows, Signal.n_cols);
+	sigma2.fill (std::pow(sigma0,2));
+
+        Row<T> sigma2_i;
 
         //N = Dim(1);
         int N = Signal.n_rows;
 
         // Reblurred_S = (Signal.*Reblurred)./sigma2;
         Mat<T> Reblurred_S(Signal.n_rows, Signal.n_cols);
-        //for (size_t i = 0; i < Signal.n_rows; ++i) {
-        //    for (size_t j = 0; j < Signal.n_cols; ++j) {
-        //        Reblurred_S(i,j) = (Signal(i,j) * Reblurred(i,j)) / sigma2;
-        //    }
-        //}
-        
         Reblurred_S = Signal % Reblurred / sigma2;
+
 
         Mat<T> fODFi;
         Mat<T> Ratio;
@@ -103,84 +102,42 @@ namespace phardi {
 
         // for i = 1:Niter
         for (size_t i = 0; i < Niter; ++i) {
-            T sigma2_i;
             // fODFi = fODF;
             fODFi = fODF;
 
             //Ratio = mBessel_ratio(n_order,Reblurred_S);
             Ratio = mBessel_ratio<T>(n_order,Reblurred_S);
 
-/*
-            // ( KernelT*(Reblurred) + eps)
-            mat tmp_matrix1(KernelT.n_rows,Reblurred.n_cols);
-            tmp_matrix1 =  KernelT * Reblurred;
-            for (auto j=0; j < tmp_matrix1.n_rows; ++j) {
-                for (auto l=0; l < tmp_matrix1.n_cols; ++l){
-                    tmp_matrix1(i,j) += std::numeric_limits<double>::epsilon();
-                }
-            }
-            
-            //( Signal.*( Ratio )
-            mat tmp_matrix2(Signal.n_rows,Signal.n_cols);
-            for (auto j=0; j < Signal.n_rows; ++j) {
-                for (auto l=0; l < Signal.n_cols; ++l){
-                    tmp_matrix2(j,l) = Signal(j,l) * Ratio(j,l);
-                }
-            }
-            
-            // KernelT*( Signal.*( Ratio ) )
-            tmp_matrix2 = KernelT * tmp_matrix2;
-            
-            // RL_factor = KernelT*( Signal.*( Ratio ) )./( KernelT*(Reblurred) + eps);
-            for (auto j=0; j < KernelT.n_rows; ++j) {
-                for (auto l=0; l < tmp_matrix2.n_cols; ++l){
-                    RL_factor(j,l) =  tmp_matrix2(j,l) / tmp_matrix1(j,l);
-                }
-            }
-            */
-
+	    // RL_factor = KernelT*( Signal.*( Ratio ) )./( KernelT*(Reblurred) + eps);
             RL_factor = KernelT * (Signal % Ratio) / ((KernelT * Reblurred) + std::numeric_limits<double>::epsilon());
 
             //fODF = fODFi.*RL_factor;
-            /*for (auto i = 0; i < fODF.n_rows; ++i) {
-                for (auto j = 0; j < fODF.n_cols; ++j) {
-                    fODF(i,j) = fODFi(i,j) * RL_factor(i,j);
-                }
-            }
-            */
-
             fODF = fODFi % RL_factor;
+
             //% --------------------- Update of variables ------------------------- %
             //Reblurred = Kernel*fODF;
             Reblurred = Kernel * fODF;
 
             //Reblurred_S = (Signal.*Reblurred)./sigma2;
-            /* for (auto i = 0; i < Signal.n_rows; ++i) {
-                for (auto j = 0; j < Signal.n_cols; ++j) {
-                    Reblurred_S(i,j) = (Signal(i,j) * Reblurred(i,j)) / sigma2;
-                }
-            } */
-
             Reblurred_S = (Signal % Reblurred) / sigma2;
 
             //% -------------------- Estimate the noise level  -------------------- %
             //sigma2_i = (1/N)*sum( (Signal.^2 + Reblurred.^2)/2 - (sigma2.*Reblurred_S).*Ratio, 1)./n_order;
-            T sum = 0.0;
+	    sigma2_i = (1.0/N) * sum( (pow(Signal,2) + pow(Reblurred,2))/2 - (sigma2 % Reblurred_S) % Ratio , 0) / n_order;
    
-            #pragma omp parallel for reduction (+:sum)
-            for (size_t i = 0; i < Signal.n_rows; ++i) {
-                for (size_t j = 0; j < Signal.n_cols; ++j) {
-                    sum += (std::pow<T>(Signal(i,j),2) + std::pow<T>(Reblurred(i,j),2)/2 - (sigma2*Reblurred_S(i,j)) * Ratio(i,j));
-                }
-            }
-            sigma2_i =(1.0/N) * sum / n_order;
-
             //sigma2_i = min((1/10)^2, max(sigma2_i,(1/50)^2)); % robust estimator on the interval sigma = [1/SNR_min, 1/SNR_max],
-            sigma2 = std::min<T>(std::pow<T>(1.0/10.0,2),std::max<T>(sigma2_i, std::pow<T>(1.0/50.0,2)));
+	    sigma2_i.transform( [](T val) { return std::min<T>(std::pow<T>(1.0/10.0,2),std::max<T>(val, std::pow<T>(1.0/50.0,2))); } );
 
             //% where SNR_min = 10 and SNR_max = 50
-            //sigma2 = repmat(sigma2_i,[N, 1]);
+            sigma2 = repmat(sigma2_i, N, 1);
         }
+
+	//mean_SNR = mean( 1./sqrt( sigma2_i ) );  
+	mean_SNR = mean (1.0 / sqrt(sigma2_i));
+
+	//Normalization
+	//fODF = fODF./repmat( sum(fODF,1) + eps, [size(fODF,1), 1] ); %  
+	fODF = fODF / repmat(sum(fODF,0) + std::numeric_limits<double>::epsilon(), fODF.n_rows  ,1);
 
         return fODF;
     }

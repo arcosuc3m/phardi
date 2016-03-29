@@ -73,6 +73,8 @@ namespace phardi {
             Cart2Sph(V(i,0),V(i,1),V(i,2),phi(i),theta(i));
         }
 
+	theta.transform( [](T val) { return (-val); } );
+
         //S0 = 1; % The Dictionary is created under the assumption S0 = 1;
         T S0 = 1;
         //fi = 1; % volume fraction
