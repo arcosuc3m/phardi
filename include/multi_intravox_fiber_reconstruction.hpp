@@ -107,7 +107,6 @@ namespace phardi {
       	//size_t Ngrad_mod = diffGrads.n_rows;
 
         Image4DType::Pointer imageDiff = Image4DType::New();
-
         ReadImage<Image4DType>(diffSignalfilename, imageDiff);
 
         Image4DType::RegionType regionDiff = imageDiff->GetBufferedRegion();
@@ -206,7 +205,6 @@ namespace phardi {
         Mat<T> slicevf_GM(xdiff,ydiff,fill::zeros);
         Mat<T> slicevf_WM(xdiff,ydiff,fill::zeros);
         Mat<T> slicevf_GFA(xdiff,ydiff,fill::zeros);
-        Mat<T> volvf_WM(xdiff,ydiff,fill::zeros);
 	Row<T> ODF_iso(ydiff,fill::zeros);
 
         Cube<T> globODFslice (xdiff,ydiff,Nd,fill::zeros);
@@ -245,7 +243,6 @@ namespace phardi {
            slicevf_GM.zeros();
            slicevf_WM.zeros();
            slicevf_GFA.zeros();
-           volvf_WM.zeros();
 
            // if sum(Imask(:)) ~= 0
            Cube<T> Idiff(xdiff, ydiff, Ngrad);
@@ -273,7 +270,7 @@ namespace phardi {
 	   // reordering the data such that the b0 image appears first (see lines 152-166)
 	   // Idiff(:,:,ind_S0) = [];
 	   for (int i = 0; i < ind_S0.n_elem; ++i)
-		Idiff.shed_slice(ind_S0(i));  // TO FIX!!!!
+		Idiff.shed_slice(ind_S0(i) - i); 
 
 	   //?? Idiff = cat(3,S0_est,Idiff);
 	   Idiff = join_slices(S0_est,Idiff);
@@ -351,13 +348,12 @@ namespace phardi {
 			     Row<T> tsum = sum(ODF,0);
 			     #pragma omp parallel for
                              for (int i = 0; i < inda.n_elem; ++i) {
-			         volvf_WM.at(inda(i)) = tsum(i);
+			         slicevf_WM.at(inda(i)) = tsum(i);
 			     }
 
 			     // Adding the isotropic components to the ODF                  
                              ODF = ODF + repmat( ODF_iso / ODF.n_rows , ODF.n_rows, 1 );  
                              ODF = ODF / repmat( sum(ODF,0) + std::numeric_limits<double>::epsilon() , ODF.n_rows,  1 );      
-			
 
 			     // std(ODF,0,1)./( sqrt(mean(ODF.^2,1)) + eps )
 			     Row<T>  temp = stddev( ODF, 0, 0 ) / sqrt(mean(pow(ODF,2),0) + std::numeric_limits<double>::epsilon());
@@ -445,7 +441,6 @@ namespace phardi {
 	LOG_INFO << "writting file " << filenameWM;
         // LOG_INFO <<  imageWM;
         WriteImage<Image3DType,NiftiType>(filenameWM,imageWM);
-
 
 	LOG_INFO << "writting file " << filenameGFA;
         // LOG_INFO <<  imageGFA;
