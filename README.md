@@ -31,20 +31,22 @@ make
 USAGE: phardi [options]
 
 Options:
-  --help, -h        Print usage and exit.
-  --data, -k        Path of the input data.
-  --mask, -m        Path of the input mask.
-  --bvecs, -r       Path of the input bvecs.
-  --bvals, -b       Path of the input bvals.
-  --odf, -o         Output path.
-  --precision, -p   Calculation precision (float|double).
-  --iterations, -i  Iterations performed (default 300).
-  --lambda1         Lambda 1 value (default 0.0017).
-  --lambda2         Lambda 2 value (default 0.0003).
-  --lambda-csf      Lambda CSF value (default 0.0030).
-  --lambda-gm       Lambda GM value (default 0.0007).
-  --verbose, -v     Verbose execution details.
-  --noise, -n       Add rician noise.
+Compulsory arguments (You MUST specify ALL arguments):
+  --data, -k         Data file
+  --mask, -m         Binary mask file
+  --bvecs, -r        b-vectors file
+  --bvals, -b        b-values file
+  --odf, -o          Output path
+
+Optional arguments (You may optionally specify one or more of):
+  --precision, -p    Calculation precision (float|double)
+  --iterations, -i   Number of iterations (default 300)
+  --lambda1          Longitudinal diffusivity value, in units of mm^2/s (default 0.0017)
+  --lambda2          Radial diffusivity value, in units of mm^2/s (default 0.0003)
+  --lambda-csf       Diffusivity value in CSF, in units of mm^2/s (default 0.0030)
+  --lambda-gm        Diffusivity value in GM, in units of mm^2/s (default 0.0007)
+  --verbose, -v      Verbose execution details
+  --help, -h         Print usage and exit
 
 Examples:
  phardi -k /data/data.nii.gz -m /data/nodif_brain_mask.nii.gz -r /data/bvecs -b /data/bvals --odf /result/ 
