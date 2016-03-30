@@ -27,6 +27,7 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "multi_intravox_fiber_reconstruction.hpp"
 #include "config.hpp"
 
+#include <arrayfire.h>
 #include <plog/Log.h>
 #include <plog/Appenders/ColorConsoleAppender.h>
 #include <iostream>
@@ -201,6 +202,10 @@ int main(int argc, char ** argv) {
     opts.rumba_sd.lambda_csf = LAMBDA_CSF;
     opts.rumba_sd.lambda_gm  = LAMBDA_GM;
  
+    af::setBackend(AF_BACKEND_CUDA);
+    af::setDevice(0);
+    af::info();
+
     LOG_INFO << "phardi "<< VERSION_MAJOR << "." << VERSION_MINOR;   
     LOG_INFO << "Start.";   
 
