@@ -26,17 +26,18 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "options.hpp"
 #include "intravox_fiber_reconst_sphdeconv_rumba_sd.hpp"
-//#include "intravox_fiber_reconst_sphdeconv_rumba_sd_gpu.hpp"
 #include "image.hpp"
 #include "create_kernel_for_rumba.hpp"
 #include "constants.hpp"
 
+#include <arrayfire.h>
 #include <plog/Log.h>
 #include <armadillo>
 #include <iostream>
 #include <fstream>
 #include <math.h>
 #include <algorithm>
+#include <omp.h>
 
 namespace phardi {
 
@@ -201,14 +202,6 @@ namespace phardi {
 
         create_Kernel_for_rumba<T>(V,diffGrads,diffBvals,opts.rumba_sd.lambda1, opts.rumba_sd.lambda2, opts.rumba_sd.lambda_csf, opts.rumba_sd.lambda_gm, Kernel, opts);
 
-        Mat<T> slicevf_CSF(xdiff,ydiff,fill::zeros);
-        Mat<T> slicevf_GM(xdiff,ydiff,fill::zeros);
-        Mat<T> slicevf_WM(xdiff,ydiff,fill::zeros);
-        Mat<T> slicevf_GFA(xdiff,ydiff,fill::zeros);
-	Row<T> ODF_iso(ydiff,fill::zeros);
-
-        Cube<T> globODFslice (xdiff,ydiff,Nd,fill::zeros);
-
         std::string filenameCSF = opts.outputDir + kPathSeparator + "data-vf_csf.nii.gz";
         std::string filenameGM = opts.outputDir + kPathSeparator + "data-vf_gm.nii.gz";
         std::string filenameWM = opts.outputDir + kPathSeparator + "data-vf_wm.nii.gz";
@@ -231,18 +224,24 @@ namespace phardi {
 	Image3DType::Pointer imageGFA = Image3DType::New();
         CreateImage<Image3DType>(imageGFA, size3D, index3D, spacing3D, origin3D, direction3D);
 
+	auto total_device = af::getDeviceCount();
+
+	#pragma omp parallel for num_threads(total_device)
         for (int slice = 0; slice < zdiff; ++slice) {
+	   af::setDevice(omp_get_thread_num());
+
+    	   Mat<T> slicevf_CSF(xdiff,ydiff,fill::zeros);
+           Mat<T> slicevf_GM(xdiff,ydiff,fill::zeros);
+           Mat<T> slicevf_WM(xdiff,ydiff,fill::zeros);
+           Mat<T> slicevf_GFA(xdiff,ydiff,fill::zeros);
+	   Row<T> ODF_iso(ydiff,fill::zeros);
+           Cube<T> globODFslice (xdiff,ydiff,Nd,fill::zeros);
+
            LOG_INFO << "Processing slice number " << slice << " of " << zdiff;
 
            Mat<T> ODF;
            // Imask  = squeeze(spm_slice_vol(Vmask,spm_matrix([0 0 slice]),Vmask.dim(1:2),0));
            //mat Imask = Vmask.slice(slice);
-
-           globODFslice.zeros();
-           slicevf_CSF.zeros();
-           slicevf_GM.zeros();
-           slicevf_WM.zeros();
-           slicevf_GFA.zeros();
 
            // if sum(Imask(:)) ~= 0
            Cube<T> Idiff(xdiff, ydiff, Ngrad);
