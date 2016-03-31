@@ -16,11 +16,32 @@
 ```
 #!bash
 
-mkdir build
-cd build
-cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/g++-4.9 -DCMAKE_BUILD_TYPE=Release
-make
+ mkdir build
+ cd build
+ cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/g++-4.9 -DCMAKE_BUILD_TYPE=Release
+ make
 ```
+
+### Accelerated version with CUDA ###
+
+pHARDI CUDA version depends on Arrayfire for its compilation and execution. Please repeat the following step to configure it (tested on Ubuntu 14.04):
+
+```
+#!bash 
+
+ git fetch && git checkout af
+
+ sudo apt-add-repository ppa:keithw/glfw3
+ sudo apt-get update
+ sudo apt-get install -y mesa-utils freeglut3-dev libfftw3-dev libglew-dev libglewmx-dev liblapacke-dev libghc-glfw-dev glfw3
+
+```
+
+If you wish to use CUDA, please download the latest version of CUDA and install it on your system.
+
+Next download ArrayFire. After you have the file, run the installer.
+
+./arrayfire_*_Linux_x86_64.sh --exclude-subdir --prefix=/usr/local
 
 ### Execution ###
 

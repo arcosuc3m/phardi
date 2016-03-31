@@ -252,34 +252,34 @@ namespace phardi {
 
            // isolating the b0 images                      
 	   // S0_est = squeeze( Idiff(:,:,ind_S0) );
-           Cube<T> S0_est (xdiff, ydiff, ind_S0.n_elem);
-           Mat<T> S0_est_M (xdiff, ydiff);
+	   Cube<T> S0_est (xdiff, ydiff, ind_S0.n_elem);
+	   Mat<T> S0_est_M (xdiff, ydiff);
 
 	   for (int i = 0; i < ind_S0.n_elem; ++i) {
 		S0_est.slice(i) = Idiff.slice(ind_S0(i));
-	    }
+	   }
 
 	   S0_est_M = mean(S0_est,2); 
-           // if there are several b0 images in the data, we compute the mean value
-           if (ind_S0.n_elem > 1) {
+	   // if there are several b0 images in the data, we compute the mean value
+	   if (ind_S0.n_elem > 1) {
 		for (int i = 0; i < ind_S0.n_elem; ++i)
-           		S0_est.slice(i) = S0_est_M % Vmask.slice(slice);
-           }
+			S0_est.slice(i) = S0_est_M % Vmask.slice(slice);
+	   }
 
 	   // reordering the data such that the b0 image appears first (see lines 152-166)
 	   // Idiff(:,:,ind_S0) = [];
 	   for (int i = 0; i < ind_S0.n_elem; ++i)
 		Idiff.shed_slice(ind_S0(i) - i); 
 
-	   //?? Idiff = cat(3,S0_est,Idiff);
+   	   // Idiff = cat(3,S0_est,Idiff);
 	   Idiff = join_slices(S0_est,Idiff);
-
 	   //  normalize the signal S/S0
 	   //for graddir = 1:Ngrad_mod
 	   for (int graddir = 0; graddir < Ngrad; ++graddir) {
 		//Idiff(:,:,graddir) = squeeze(Idiff(:,:,graddir))./(S0_est + eps);
 		Idiff.slice(graddir) = Idiff.slice(graddir) / (S0_est_M + std::numeric_limits<double>::epsilon());
 	   }
+
 	   // Repair the signal
 	   // Idiff(Idiff>1) = 1;
 	   // Idiff(Idiff<0) = 0;
@@ -324,7 +324,6 @@ namespace phardi {
                              LOG_INFO << "calling intravox_fiber_reconst_sphdeconv_rumba_sd";
                              // ODF = Intravox_Fiber_Reconst_sphdeconv_rumba_sd(diffSignal, Kernel, fODF0, opts.rumba_sd.Niter); % Intravoxel Fiber Reconstruction using RUMBA (Canales-Rodriguez, et al 2015)          
                              ODF = intravox_fiber_reconst_sphdeconv_rumba_sd<T>(diffSignal, Kernel, fODF0, opts.rumba_sd.Niter, mean_SNR);
-                             // TODO ODF = intravox_fiber_reconst_sphdeconv_rumba_sd_gpu<T>(diffSignal, Kernel, fODF0, opts.rumba_sd.Niter);
 			     LOG_INFO << "Estimated mean SNR = " << mean_SNR;
 
                              #pragma omp parallel for
