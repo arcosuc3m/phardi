@@ -36,7 +36,7 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <armadillo>
 
 
-enum  optionIndex { UNKNOWN, HELP, DATA, MASK, BVECS, BVALS, ODF, PRECISION, NOISE, OP_ITER, OP_LAMBDA1, OP_LAMBDA2, OP_LAMBDA_CSF, OP_LAMBDA_GM,  DEBUG};
+enum  optionIndex { UNKNOWN, HELP, READ, DATA, MASK, BVECS, BVALS, ODF, PRECISION, NOISE, OP_ITER, OP_LAMBDA1, OP_LAMBDA2, OP_LAMBDA_CSF, OP_LAMBDA_GM,  DEBUG};
 
 struct Arg: public option::Arg
 {
@@ -88,6 +88,7 @@ const option::Descriptor usage[] =
     {UNKNOWN, 0, "", "",option::Arg::None, "USAGE: phardi [options]\n\n"
         "Options:" },
     {HELP, 0,"h", "help",option::Arg::None, "  --help, -h  \tPrint usage and exit." },
+    {READ, 0,"d", "dataread",Arg::NonEmpty, "  --dataread, -d \tData reading method (slices|volume)." },
     {DATA, 0,"k","data",Arg::Required, "  --data, -k  \tData file." },
     {MASK, 0,"m","mask",Arg::Required, "  --mask, -m  \tBinary mask file." },
     {BVECS, 0,"r","bvecs",Arg::Required, "  --bvecs, -r  \tb-vectors file." },
@@ -180,9 +181,9 @@ int main(int argc, char ** argv) {
         return 1;
     }
 
-    if (!is_file_exist("./724_shell.txt"))
+    if (!is_file_exist("./362_shell_semisphere.txt"))
     {
-        LOG_ERROR << "Can't find 724_shell.txt";
+        LOG_ERROR << "Can't find 362_shell_semisphere.txt";
         return 1;
     }
     
@@ -192,7 +193,7 @@ int main(int argc, char ** argv) {
     // opts.saveODF = 1; % Save or not the ODF
     opts.reconsMethod        = RUMBA_SD; // Reconstruction Method
     opts.datreadMethod       = SLICES;  //Reading Data
-    opts.outputDir            = options[ODF].arg;
+    opts.outputDir           = options[ODF].arg;
     opts.add_noise           = false;
 
     opts.rumba_sd.Niter      = NITER;
@@ -203,8 +204,6 @@ int main(int argc, char ** argv) {
  
     LOG_INFO << "phardi "<< VERSION_MAJOR << "." << VERSION_MINOR;   
     LOG_INFO << "Start.";   
-
-
 
     if (options[OP_ITER].count() > 0) {
         opts.rumba_sd.Niter = std::stof(options[OP_ITER].arg);  
@@ -228,36 +227,47 @@ int main(int argc, char ** argv) {
     if (options[NOISE].count() > 0) {
         opts.add_noise =  true;
     }
-   
-    LOG_INFO << "Configuration details:";   
-    LOG_INFO << "    Iterations    = " << opts.rumba_sd.Niter;   
-    LOG_INFO << "    Lambda 1      = " << opts.rumba_sd.lambda1;   
-    LOG_INFO << "    Lambda 2      = " << opts.rumba_sd.lambda2;   
-    LOG_INFO << "    Lambda CSF    = " << opts.rumba_sd.lambda_csf;   
-    LOG_INFO << "    Lambda GM     = " << opts.rumba_sd.lambda_gm;   
-    LOG_INFO << "    diffImage     = " << diffImage;   
-    LOG_INFO << "    bvecsFilename = " << bvecsFilename;   
-    LOG_INFO << "    bvalsFilename = " << bvalsFilename;   
-    LOG_INFO << "    diffBmask     = " << diffBmask;   
-    LOG_INFO << "    ODFfilename   = " << ODFfilename;   
-    if (options[PRECISION].arg == "float")
-    LOG_INFO << "    Precision     = float";   
-    else
-    LOG_INFO << "    Precision     = double";   
 
-    if (options[PRECISION].arg == "float")
+    std::string readmethod = "slices";
+   
+    if (options[READ].count() > 0) {
+	readmethod = std::string(options[READ].arg);
+	if (readmethod == "volume") opts.datreadMethod = VOLUME;
+	if (readmethod == "slices") opts.datreadMethod = SLICES;
+    }
+
+    std::string precision = "float";
+
+    if (options[PRECISION].count() > 0) {
+         precision = std::string(options[PRECISION].arg);
+    }
+
+    LOG_INFO << "Configuration details:";
+    LOG_INFO << "    Iterations    = " << opts.rumba_sd.Niter;
+    LOG_INFO << "    Lambda 1      = " << opts.rumba_sd.lambda1;
+    LOG_INFO << "    Lambda 2      = " << opts.rumba_sd.lambda2;
+    LOG_INFO << "    Lambda CSF    = " << opts.rumba_sd.lambda_csf;
+    LOG_INFO << "    Lambda GM     = " << opts.rumba_sd.lambda_gm;
+    LOG_INFO << "    diffImage     = " << diffImage;
+    LOG_INFO << "    bvecsFilename = " << bvecsFilename;
+    LOG_INFO << "    bvalsFilename = " << bvalsFilename;
+    LOG_INFO << "    diffBmask     = " << diffBmask;
+    LOG_INFO << "    ODFfilename   = " << ODFfilename;
+    LOG_INFO << "    Precision     = " << precision;
+    LOG_INFO << "    Read method   = " << readmethod;
+
+    if (precision == "float")
         Multi_IntraVox_Fiber_Reconstruction<float>(diffImage,bvecsFilename,bvalsFilename,diffBmask,ODFfilename,opts);
     else
         Multi_IntraVox_Fiber_Reconstruction<double>(diffImage,bvecsFilename,bvalsFilename,diffBmask,ODFfilename,opts);
 
     LOG_INFO << "Finalize.";
-  
-    auto t2 = clk::now();    
+
+    auto t2 = clk::now();
     auto diff_milli = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
     auto diff_sec = std::chrono::duration_cast<std::chrono::seconds>(t2 - t1);
- 
+
     std::cout << "Time = " << diff_sec.count() << "." << diff_milli.count() << " seconds" << endl;
 
     return 0;
 }
-
