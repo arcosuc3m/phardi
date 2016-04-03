@@ -72,6 +72,8 @@ namespace phardi {
         // sigma0 = 1/15;
         T sigma0 = 1.0/15.0;
 
+	size_t cols = Signal.n_cols;
+
         //N = Dim(1);
         int N = Signal.n_rows;
 
@@ -121,8 +123,10 @@ namespace phardi {
 	    sigma2_i_cuda = (1.0/N) * af::sum( (af::pow(Signal_cuda,2) + af::pow(Reblurred_cuda,2))/2 - (sigma2_cuda * Reblurred_S_cuda) * Ratio_cuda , 0) / n_order;
    
             //sigma2_i = min((1/10)^2, max(sigma2_i,(1/50)^2)); % robust estimator on the interval sigma = [1/SNR_min, 1/SNR_max],
-	    gfor(seq j, Signal.n_cols)
-	    	sigma2_i_cuda(j) =  af::min(std::pow<T>(1.0/10.0,2), af::max(sigma2_i_cuda(j), std::pow<T>(1.0/50.0,2)));
+	    for (size_t kk = 0; kk < cols; kk += cols/2) {
+ 		 gfor (array j, kk, kk+(cols/2) -1)
+	    	     sigma2_i_cuda(j) =  af::min(std::pow<T>(1.0/10.0,2), af::max(sigma2_i_cuda(j), std::pow<T>(1.0/50.0,2)));
+	    }
 
             //% where SNR_min = 10 and SNR_max = 50
 	    gfor(seq j, N)
@@ -147,4 +151,3 @@ namespace phardi {
 }
 
 #endif
-
