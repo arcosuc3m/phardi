@@ -342,6 +342,7 @@ namespace phardi {
 					 slicevf_GM.at(inda(i)) = ODF(ODF.n_rows - 1 ,i);
 				     }
 
+
 				     //ODF_iso = ODF(end,:) + ODF(end-1,:); 
 				     ODF_iso = ODF.row(ODF.n_rows - 1) + ODF.row(ODF.n_rows - 2); 
 
@@ -634,7 +635,6 @@ namespace phardi {
 			for (int j = 0; j < ydiff; ++j) {
 			    coord[1] = j;
 			    for (int k = 0; k < zdiff; ++k) {
-			    	Index3DType coord;
 				T temp = slicevf_GM(i,j,k);
 			    	coord[2] = k;
 			    	imageGM->SetPixel(coord, temp);
