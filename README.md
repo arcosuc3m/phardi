@@ -4,7 +4,7 @@
 
 ### Requirements ###
 
-* Armadillo 
+* Armadillo 6.7
 * ITK 4.9
 * GCC 4.9
 * OpenBLAS (for multicore parallelism)
