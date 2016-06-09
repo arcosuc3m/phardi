@@ -342,6 +342,7 @@ namespace phardi {
 					 slicevf_GM.at(inda(i)) = ODF(ODF.n_rows - 1 ,i);
 				     }
 
+
 				     //ODF_iso = ODF(end,:) + ODF(end-1,:); 
 				     ODF_iso = ODF.row(ODF.n_rows - 1) + ODF.row(ODF.n_rows - 2); 
 

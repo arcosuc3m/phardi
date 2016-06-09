@@ -193,7 +193,7 @@ int main(int argc, char ** argv) {
     // opts.datreadMethod = 'slices'; % Reading Data
     // opts.saveODF = 1; % Save or not the ODF
     opts.reconsMethod        = RUMBA_SD; // Reconstruction Method
-    opts.datreadMethod       = VOLUME;  //Reading Data
+    opts.datreadMethod       = SLICES;  //Reading Data
     opts.outputDir           = options[ODF].arg;
     opts.add_noise           = false;
 
@@ -238,7 +238,8 @@ int main(int argc, char ** argv) {
     if (options[READ].count() > 0) {
         readmethod = std::string(options[READ].arg);
         if (readmethod == "volume") opts.datreadMethod = VOLUME;
-        if (readmethod == "slices") opts.datreadMethod = SLICES;
+        else if (readmethod == "slices") opts.datreadMethod = SLICES;
+	else opts.datreadMethod = SLICES;
     }
 
     std::string precision = "float";
