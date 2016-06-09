@@ -38,10 +38,7 @@ namespace phardi {
 	using namespace af;
 
         af::array y(x.dims(0),x.dims(1));
-
-        // y = x./( (2*n + x) - ( 2*x.*(n+1/2)./ ( 2*n + 1 + 2*x - ( 2*x.*(n+3/2)./ ( 2*n + 2 + 2*x - ( 2*x.*(n+5/2)./ ( 2*n + 3 + 2*x ) ) ) ) ) ) );
         y = x/( (2*n + x) - ( 2*x*(n+1.0/2.0)/ ( 2.0*n + 1.0 + 2.0*x - ( 2.0*x*(n+3.0/2.0) / ( 2.0*n + 2.0 + 2.0*x - ( 2.0*x*(n+5.0/2.0) / ( 2.0*n + 3.0 + 2.0*x ) ) ) ) ) ) );
-
         return y;
     }
 
@@ -99,40 +96,23 @@ namespace phardi {
 
         // for i = 1:Niter
         for (size_t i = 0; i < Niter; ++i) {
-            // fODFi = fODF;
-            fODFi_cuda = fODF_cuda;
-
-            //Ratio = mBessel_ratio(n_order,Reblurred_S);
             Ratio_cuda = mBessel_ratio<T>(n_order,Reblurred_S_cuda);
 
-	    // RL_factor = KernelT*( Signal.*( Ratio ) )./( KernelT*(Reblurred) + eps);
-            RL_factor_cuda = matmul(KernelT_cuda, (Signal_cuda * Ratio_cuda)) / (matmul(KernelT_cuda, Reblurred_cuda) + std::numeric_limits<double>::epsilon());
+            fODF_cuda = fODF_cuda * matmul(KernelT_cuda, (Signal_cuda * Ratio_cuda)) / (matmul(KernelT_cuda, Reblurred_cuda) + std::numeric_limits<double>::epsilon());
 
-            //fODF = fODFi.*RL_factor;
-            fODF_cuda = fODFi_cuda * RL_factor_cuda;
-
-            //% --------------------- Update of variables ------------------------- %
-            //Reblurred = Kernel*fODF;
             Reblurred_cuda = matmul(Kernel_cuda, fODF_cuda);
 
-            //Reblurred_S = (Signal.*Reblurred)./sigma2;
             Reblurred_S_cuda = (Signal_cuda * Reblurred_cuda) / sigma2_cuda;
 
-            //% -------------------- Estimate the noise level  -------------------- %
-            //sigma2_i = (1/N)*sum( (Signal.^2 + Reblurred.^2)/2 - (sigma2.*Reblurred_S).*Ratio, 1)./n_order;
 	    sigma2_i_cuda = (1.0/N) * af::sum( (af::pow(Signal_cuda,2) + af::pow(Reblurred_cuda,2))/2 - (sigma2_cuda * Reblurred_S_cuda) * Ratio_cuda , 0) / n_order;
    
-            //sigma2_i = min((1/10)^2, max(sigma2_i,(1/50)^2)); % robust estimator on the interval sigma = [1/SNR_min, 1/SNR_max],
-	    for (size_t kk = 0; kk < cols; kk += cols/2) {
- 		 gfor (array j, kk, kk+(cols/2) -1)
+	    for (size_t kk = 0; kk < cols; kk += cols/8) {
+ 		 gfor (array j, kk, kk+(cols/8) -1)
 	    	     sigma2_i_cuda(j) =  af::min(std::pow<T>(1.0/10.0,2), af::max(sigma2_i_cuda(j), std::pow<T>(1.0/50.0,2)));
 	    }
 
-            //% where SNR_min = 10 and SNR_max = 50
 	    gfor(seq j, N)
 		sigma2_cuda(j,af::span) = sigma2_i_cuda(af::span);
-		
-
         }
 
 	//mean_SNR = mean( 1./sqrt( sigma2_i ) );  
@@ -146,8 +126,6 @@ namespace phardi {
 
         return fODF;
     }
-
-    
 }
 
 #endif

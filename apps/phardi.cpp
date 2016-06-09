@@ -259,7 +259,10 @@ int main(int argc, char ** argv) {
     LOG_INFO << "    diffBmask     = " << diffBmask;
     LOG_INFO << "    ODFfilename   = " << ODFfilename;
     LOG_INFO << "    Precision     = " << precision;
-    LOG_INFO << "    Read method   = " << readmethod;
+    if (opts.datreadMethod == VOLUME)
+        LOG_INFO << "    Read method   = volume";
+    else 
+        LOG_INFO << "    Read method   = slices";
 
     if (precision == "float")
         Multi_IntraVox_Fiber_Reconstruction<float>(diffImage,bvecsFilename,bvalsFilename,diffBmask,ODFfilename,opts);

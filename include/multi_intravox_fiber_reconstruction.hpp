@@ -26,7 +26,6 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "options.hpp"
 #include "intravox_fiber_reconst_sphdeconv_rumba_sd.hpp"
-//#include "intravox_fiber_reconst_sphdeconv_rumba_sd_gpu.hpp"
 #include "image.hpp"
 #include "create_kernel_for_rumba.hpp"
 #include "constants.hpp"
@@ -238,7 +237,6 @@ namespace phardi {
 		for (int slice = 0; slice < zdiff; ++slice) {
 		   LOG_INFO << "Processing slice number " << slice << " of " << zdiff;
 
-		   Mat<T> ODF;
 		   // Imask  = squeeze(spm_slice_vol(Vmask,spm_matrix([0 0 slice]),Vmask.dim(1:2),0));
 		   //mat Imask = Vmask.slice(slice);
 
@@ -298,6 +296,8 @@ namespace phardi {
 		   //totalNvoxels = prod(size(Imask));
 		   size_t  totalNvoxels = Vmask.slice(slice).n_elem;
 
+		   Mat<T> ODF;
+		   
 		   if (inda.n_elem > 0) {
 			   //allIndexes = repmat(inda(:)',[Ngrad 1]); 
 			   Mat<T> allIndixes = repmat(inda.t(),Ngrad,1);
@@ -445,7 +445,6 @@ namespace phardi {
 
 	    case VOLUME:
 		{
-		Mat<T> ODF;
 		
 		Cube<T> slicevf_CSF(xdiff,ydiff,zdiff,fill::zeros);
         	Cube<T> slicevf_GM(xdiff,ydiff,zdiff,fill::zeros);
@@ -539,6 +538,7 @@ namespace phardi {
 				   diffSignal(i,j) = Vdiff[i].at( inda_vec(j)  );  //Vdiff[i].at(ind(i,j));
 			}
 
+			Mat<T> ODF;
 			switch (opts.reconsMethod) {
 			    case DOT:
 				  break;
@@ -557,6 +557,7 @@ namespace phardi {
 				  ODF = intravox_fiber_reconst_sphdeconv_rumba_sd<T>(diffSignal, Kernel, fODF0, opts.rumba_sd.Niter, mean_SNR);
 				  // TODO ODF = intravox_fiber_reconst_sphdeconv_rumba_sd_gpu<T>(diffSignal, Kernel, fODF0, opts.rumba_sd.Niter);
 				  LOG_INFO << "Estimated mean SNR = " << mean_SNR;
+
 
 				  #pragma omp parallel for
 				  for (int i = 0; i < inda.n_elem; ++i) {
@@ -634,7 +635,6 @@ namespace phardi {
 			for (int j = 0; j < ydiff; ++j) {
 			    coord[1] = j;
 			    for (int k = 0; k < zdiff; ++k) {
-			    	Index3DType coord;
 				T temp = slicevf_GM(i,j,k);
 			    	coord[2] = k;
 			    	imageGM->SetPixel(coord, temp);
