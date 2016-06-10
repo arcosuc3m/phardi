@@ -265,6 +265,7 @@ namespace phardi {
 		   S0_est_M = mean(S0_est,2); 
 		   // if there are several b0 images in the data, we compute the mean value
 		   if (ind_S0.n_elem > 1) {
+			#pragma omp parallel for
 			for (int i = 0; i < ind_S0.n_elem; ++i)
 				S0_est.slice(i) = S0_est_M % Vmask.slice(slice);
 		   }
@@ -308,10 +309,9 @@ namespace phardi {
 			   Mat<T> diffSignal(Ngrad,inda.n_elem);
 
 			   #pragma omp parallel for
-			   for (int i = 0; i < Ngrad; ++i) {
-			       for (size_t j = 0; j < inda.n_elem; ++j)
+			   for (size_t j = 0; j < inda.n_elem; ++j)
+			   	for (int i = 0; i < Ngrad; ++i) 
 				   diffSignal(i,j) = Idiff.at(ind(i,j));
-			   }
 
 			   switch (opts.reconsMethod) {
 			       case DOT:
@@ -380,50 +380,50 @@ namespace phardi {
 
 			   // globODFslice(ODFindexes(:)) = ODF(:);
 			   #pragma omp parallel for
-			   for (int i = 0; i < ODF.n_rows; ++i) {
-			       for (int j = 0; j < ODF.n_cols; ++j) {
+			   for (int j = 0; j < ODF.n_cols; ++j) {
+			       for (int i = 0; i < ODF.n_rows; ++i) {
 				    globODFslice.at(ODFindexes(i,j)) = ODF(i ,j);
 			       }
 			   }
 		    }
 
 		    #pragma omp parallel for
-		    for (int i = 0; i < xdiff; ++i) {
+		    for (int j = 0; j < ydiff; ++j) {
 			Index3DType coord;
-			coord[0] = i; coord[2] = slice;
-			for (int j = 0; j < ydiff; ++j) {
-			    coord[1] = j;
+			coord[1] = j; coord[2] = slice;
+		        for (int i = 0; i < xdiff; ++i) {
+			    coord[0] = i;
 			    imageCSF->SetPixel(coord, slicevf_CSF(i,j));
 			}
 		    }
 
 		    #pragma omp parallel for
-		    for (int i = 0; i < xdiff; ++i) {
+		    for (int j = 0; j < ydiff; ++j) {
 			Index3DType coord;
-			coord[0] = i;
+			coord[1] = j;
 			coord[2] = slice;
-			for (int j = 0; j < ydiff; ++j) {
-			    coord[1] = j; 
+		        for (int i = 0; i < xdiff; ++i) {
+			    coord[0] = i; 
 			    imageGM->SetPixel(coord, slicevf_GM(i,j));
 			}
 		    }
 
 		    #pragma omp parallel for
-		    for (int i = 0; i < xdiff; ++i) {
+		    for (int j = 0; j < ydiff; ++j) {
 			Index3DType coord;
-			coord[0] = i; coord[2] = slice;
-			for (int j = 0; j < ydiff; ++j) {
-			    coord[1] = j; 
+			coord[1] = j; coord[2] = slice;
+		    	for (int i = 0; i < xdiff; ++i) {
+			    coord[0] = i; 
 			    imageWM->SetPixel(coord, slicevf_WM(i,j));
 			}
 		    }
 
 		    #pragma omp parallel for
-		    for (int i = 0; i < xdiff; ++i) {
+		    for (int j = 0; j < ydiff; ++j) {
 			Index3DType coord;
-			coord[0] = i; coord[2] = slice;
-			for (int j = 0; j < ydiff; ++j) {
-			    coord[1] = j;
+			coord[1] = j; coord[2] = slice;
+		        for (int i = 0; i < xdiff; ++i) {
+			    coord[0] = i;
 			    imageGFA->SetPixel(coord, slicevf_GFA(i,j));
 			}
 		    }
@@ -534,10 +534,9 @@ namespace phardi {
 			Mat<T> diffSignal(Ngrad,inda.n_elem);
 
 			#pragma omp parallel for
-			for (int i = 0; i < Ngrad; ++i) {
-			       for (size_t j = 0; j < inda.n_elem; ++j)
+			for (size_t j = 0; j < inda.n_elem; ++j)
+			   for (int i = 0; i < Ngrad; ++i) 
 				   diffSignal(i,j) = Vdiff[i].at( inda_vec(j)  );  //Vdiff[i].at(ind(i,j));
-			}
 
 			Mat<T> ODF;
 			switch (opts.reconsMethod) {
@@ -607,8 +606,8 @@ namespace phardi {
 
 			// globODFslice(ODFindexes(:)) = ODF(:);
 			#pragma omp parallel for
-			for (int i = 0; i < ODF.n_rows; ++i) {
-			       for (int j = 0; j < ODF.n_cols; ++j) {
+			for (int j = 0; j < ODF.n_cols; ++j) {
+			       for (int i = 0; i < ODF.n_rows; ++i) {
 				    //globODFslice[i].at(ODFindexes(j)) = ODF(i ,j);
 				    globODFslice[i].at(j) = ODF(i ,j);
 			       }
