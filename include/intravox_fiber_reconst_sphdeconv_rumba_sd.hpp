@@ -32,6 +32,12 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace phardi {
   
+    template<class ty> af::dtype get_dtype();
+    template<> 
+    af::dtype get_dtype<float>() { return f32; }
+    template<> 
+    af::dtype get_dtype<double>() { return f64; }
+
     template<typename T>
     af::array mBessel_ratio(T n, const af::array & x) {
         using namespace arma;
@@ -79,7 +85,7 @@ namespace phardi {
         af::array RL_factor_cuda;
 
         // sigma2 = sigma0^2;
-	af::array sigma2_cuda = af::constant(std::pow(sigma0,2), dim4(Signal.n_rows, Signal.n_cols)); 
+	af::array sigma2_cuda = af::constant(std::pow(sigma0,2), dim4(Signal.n_rows, Signal.n_cols),get_dtype<T>()); 
 	af::array sigma2_i_cuda;
 
 	af::array fODF_cuda = af::array(fODF.n_rows,fODF.n_cols,fODF.memptr());
@@ -93,7 +99,6 @@ namespace phardi {
 
 	af::array Reblurred_S_cuda = Signal_cuda * Reblurred_cuda / sigma2_cuda;
 
-
         // for i = 1:Niter
         for (size_t i = 0; i < Niter; ++i) {
             Ratio_cuda = mBessel_ratio<T>(n_order,Reblurred_S_cuda);
@@ -106,10 +111,7 @@ namespace phardi {
 
 	    sigma2_i_cuda = (1.0/N) * af::sum( (af::pow(Signal_cuda,2) + af::pow(Reblurred_cuda,2))/2 - (sigma2_cuda * Reblurred_S_cuda) * Ratio_cuda , 0) / n_order;
    
-	    for (size_t kk = 0; kk < cols; kk += cols/8) {
- 		 gfor (array j, kk, kk+(cols/8) -1)
-	    	     sigma2_i_cuda(j) =  af::min(std::pow<T>(1.0/10.0,2), af::max(sigma2_i_cuda(j), std::pow<T>(1.0/50.0,2)));
-	    }
+	    sigma2_i_cuda =  af::min(std::pow<T>(1.0/10.0,2), af::max(sigma2_i_cuda, std::pow<T>(1.0/50.0,2)));
 
 	    gfor(seq j, N)
 		sigma2_cuda(j,af::span) = sigma2_i_cuda(af::span);
