@@ -69,6 +69,8 @@ namespace phardi {
         // [phi, theta] = cart2sph(V(:,1),V(:,2),V(:,3)); % set of directions
         Col<T> phi(V.n_rows);
         Col<T> theta(V.n_rows);
+
+	#pragma omp parallel for
         for (int i = 0; i < V.n_rows; ++i) {
             Cart2Sph(V(i,0),V(i,1),V(i,2),phi(i),theta(i));
         }
@@ -107,7 +109,7 @@ namespace phardi {
         v3(0) = lambda_csf; v3(1) = lambda_csf;  v3(2) = lambda_csf;
         create_signal_multi_tensor<T>(v2, fi, v3, diffBvals, diffGrads, S0, SNR, add_rician_noise, S, D);
 
-
+	#pragma omp parallel for
         for (size_t i = 0; i<S.n_elem; ++i) {
             Kernel(phi.n_elem  ,i) = S(i);
         }
@@ -117,6 +119,7 @@ namespace phardi {
         v3(0) = lambda_gm; v3(1) = lambda_gm;  v3(2) = lambda_gm;
         create_signal_multi_tensor<T>(v2, fi, v3, diffBvals, diffGrads, S0, SNR, add_rician_noise, S, D);
 
+	#pragma omp parallel for
         for (size_t i = 0; i<S.n_elem; ++i) {
             Kernel(phi.n_elem + 1 ,i) = S(i);
         }

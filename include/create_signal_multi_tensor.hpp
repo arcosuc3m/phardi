@@ -114,12 +114,14 @@ namespace phardi {
             Mat<T> temp_mat = grad * D * grad.t();
             Col<T> temp = temp_mat.diag();
 
+	    #pragma omp simd
             for (size_t j = 0; j < S.n_elem; ++j)
                 S(j) += fa(i) * std::exp(-b(j)*temp(j));
 
         }
 
         // S = S0*S;
+	#pragma omp simd
         for (size_t i  = 0; i < S.n_elem; ++i)
                 S(i) = S(i) * S0;
 
@@ -135,6 +137,7 @@ namespace phardi {
             Col<T> er2(S.n_elem,fill::randu);
 
             //S = sqrt((S + er1).^2 + er2.^2); % Signal with Rician noise
+	    #pragma omp simd
             for (size_t i  = 0; i < S.n_elem; ++i)
                 S(i) = std::sqrt( std::pow(S(i) + er1(i),2) + std::pow(er2(i),2));
         }
