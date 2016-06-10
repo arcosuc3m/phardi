@@ -33,7 +33,7 @@ pHARDI CUDA version depends on Arrayfire for its compilation and execution. Plea
 
  sudo apt-add-repository ppa:keithw/glfw3
  sudo apt-get update
- sudo apt-get install -y mesa-utils freeglut3-dev libfftw3-dev libglew-dev libglewmx-dev liblapacke-dev libghc-glfw-dev glfw3
+ sudo apt-get install -y mesa-utils freeglut3-dev libfftw3-dev libglew-dev libglewmx-dev liblapacke-dev libghc-glfw-dev glfw3 libjpeg62-dev liblapacke-dev
 
 ```
 
