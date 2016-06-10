@@ -7,8 +7,8 @@
 * Armadillo 
 * ITK 4.9
 * GCC 4.9
-* OpenBLAS (for multicore parallelism)
 * LaPack
+* ArrayFire
 
 ### How do I get set up? ###
 
