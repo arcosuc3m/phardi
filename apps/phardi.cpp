@@ -27,6 +27,7 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "multi_intravox_fiber_reconstruction.hpp"
 #include "config.hpp"
 
+#include <arrayfire.h>
 #include <plog/Log.h>
 #include <plog/Appenders/ColorConsoleAppender.h>
 #include <iostream>
@@ -227,13 +228,14 @@ int main(int argc, char ** argv) {
     if (options[NOISE].count() > 0) {
         opts.add_noise =  true;
     }
-
-    std::string readmethod = "slices";
    
+    std::string readmethod = "slices";
+
     if (options[READ].count() > 0) {
-	readmethod = std::string(options[READ].arg);
-	if (readmethod == "volume") opts.datreadMethod = VOLUME;
-	if (readmethod == "slices") opts.datreadMethod = SLICES;
+        readmethod = std::string(options[READ].arg);
+        if (readmethod == "volume") opts.datreadMethod = VOLUME;
+        else if (readmethod == "slices") opts.datreadMethod = SLICES;
+	else opts.datreadMethod = SLICES;
     }
 
     std::string precision = "float";
@@ -254,7 +256,10 @@ int main(int argc, char ** argv) {
     LOG_INFO << "    diffBmask     = " << diffBmask;
     LOG_INFO << "    ODFfilename   = " << ODFfilename;
     LOG_INFO << "    Precision     = " << precision;
-    LOG_INFO << "    Read method   = " << readmethod;
+    if (opts.datreadMethod == VOLUME)
+        LOG_INFO << "    Read method   = volume";
+    else 
+        LOG_INFO << "    Read method   = slices";
 
     if (precision == "float")
         Multi_IntraVox_Fiber_Reconstruction<float>(diffImage,bvecsFilename,bvalsFilename,diffBmask,ODFfilename,opts);
