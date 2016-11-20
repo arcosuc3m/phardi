@@ -37,6 +37,11 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <math.h>
 #include <algorithm>
 
+#include <ppi/pipeline.hpp>
+#include <ppi/farm.hpp>
+#include <tuple>
+
+
 namespace phardi {
 
     const char kPathSeparator =
@@ -126,7 +131,6 @@ namespace phardi {
 
         std::vector<Cube<T>> Vdiff(regionDiff.GetSize()[3]);
 
-	#pragma omp parallel for
         for (int w = 0; w < regionDiff.GetSize()[3]; ++w) {
                 Cube<T> temp(regionDiff.GetSize()[0], regionDiff.GetSize()[1], regionDiff.GetSize()[2]);
         	Index4DType coord_4d;
@@ -162,7 +166,6 @@ namespace phardi {
 
         Cube<T> Vmask(regionMask.GetSize()[0],regionMask.GetSize()[1],regionMask.GetSize()[2]);
 
-	#pragma omp parallel for
         for (int x = 0; x < regionMask.GetSize()[0]; ++x) {
            Index3DType coord_3d;
            coord_3d[0]=x;
@@ -226,221 +229,198 @@ namespace phardi {
 	switch (opts.datreadMethod) {
 	    case SLICES:
                 {
-		Mat<T> slicevf_CSF(xdiff,ydiff,fill::zeros);
-        	Mat<T> slicevf_GM(xdiff,ydiff,fill::zeros);
-        	Mat<T> slicevf_WM(xdiff,ydiff,fill::zeros);
-        	Mat<T> slicevf_GFA(xdiff,ydiff,fill::zeros);
-        	Row<T> ODF_iso(ydiff,fill::zeros);
+		using paramStage0 = std::tuple<int,Mat<T>,Cube<T>>; 
+		using paramStage1 = std::tuple<int, Cube<T>, Mat<T>, Mat<T>, Mat<T>, Mat<T>>; 
 
-        	Cube<T> globODFslice (xdiff,ydiff,Nd,fill::zeros);
+		int nslice = 0;
 
-		for (int slice = 0; slice < zdiff; ++slice) {
-		   LOG_INFO << "Processing slice number " << slice << " of " << zdiff;
-
-		   // Imask  = squeeze(spm_slice_vol(Vmask,spm_matrix([0 0 slice]),Vmask.dim(1:2),0));
-		   //mat Imask = Vmask.slice(slice);
-
-		   globODFslice.zeros();
-		   slicevf_CSF.zeros();
-		   slicevf_GM.zeros();
-		   slicevf_WM.zeros();
-		   slicevf_GFA.zeros();
-
-		   // if sum(Imask(:)) ~= 0
-		   Cube<T> Idiff(xdiff, ydiff, Ngrad);
-		   for (int graddir = 0; graddir < Ngrad; ++graddir) {
-		       // Idiff(:,:,graddir)  = spm_slice_vol(Vdiff(graddir),spm_matrix([0 0 slice]),Vdiff(graddir).dim(1:2),0).*logical(Imask);
-		       Idiff.slice(graddir) = Vdiff[graddir].slice(slice) % Vmask.slice(slice); // product-wise multiplication
-		   }
-
-		   // isolating the b0 images                      
-		   // S0_est = squeeze( Idiff(:,:,ind_S0) );
-		   Cube<T> S0_est (xdiff, ydiff, ind_S0.n_elem);
-		   Mat<T> S0_est_M (xdiff, ydiff);
-
-		   for (int i = 0; i < ind_S0.n_elem; ++i) {
-			S0_est.slice(i) = Idiff.slice(ind_S0(i));
-		    }
-
-		   S0_est_M = mean(S0_est,2); 
-		   // if there are several b0 images in the data, we compute the mean value
-		   if (ind_S0.n_elem > 1) {
-			#pragma omp parallel for
-			for (int i = 0; i < ind_S0.n_elem; ++i)
-				S0_est.slice(i) = S0_est_M % Vmask.slice(slice);
-		   }
-
-		   // reordering the data such that the b0 image appears first (see lines 152-166)
-		   // Idiff(:,:,ind_S0) = [];
-		   for (int i = ind_S0.n_elem - 1; i >= 0; --i)
-			Idiff.shed_slice(ind_S0(i)); 
-
-		   //?? Idiff = cat(3,S0_est,Idiff);
-		   Idiff = join_slices(S0_est,Idiff);
-
-		   //  normalize the signal S/S0
-		   //for graddir = 1:Ngrad_mod
-		   for (int graddir = 0; graddir < Ngrad; ++graddir) {
-			//Idiff(:,:,graddir) = squeeze(Idiff(:,:,graddir))./(S0_est + eps);
-			Idiff.slice(graddir) = Idiff.slice(graddir) / (S0_est_M + std::numeric_limits<double>::epsilon());
-		   }
-		   // Repair the signal
-		   // Idiff(Idiff>1) = 1;
-		   // Idiff(Idiff<0) = 0;
-		   Idiff.elem( find(Idiff > 1.0) ).ones();
-		   Idiff.elem( find(Idiff < 0.0) ).zeros();
-		 
-		   //inda = find(squeeze(Idiff(:,:,1))>0);
-		   uvec inda_vec = find(Idiff.slice(0) > 0);
-		   Mat<T> inda = conv_to<Mat<T>>::from(inda_vec);
-
-		   //totalNvoxels = prod(size(Imask));
-		   size_t  totalNvoxels = Vmask.slice(slice).n_elem;
-
-		   Mat<T> ODF;
-		   
-		   if (inda.n_elem > 0) {
-			   //allIndexes = repmat(inda(:)',[Ngrad 1]); 
-			   Mat<T> allIndixes = repmat(inda.t(),Ngrad,1);
-			   //allIndixes.save("inda.txt",arma::raw_ascii);
-
-			   // diffSignal = Idiff(allIndexes + totalNvoxels*repmat([0:Ngrad-1]',[1 length(inda) ])); % Indexes in 4D
-			   Mat<T> ind = allIndixes + (totalNvoxels *  repmat(linspace<Mat<T>>(0, Ngrad-1,Ngrad),1,inda.n_elem));
-			   Mat<T> diffSignal(Ngrad,inda.n_elem);
-
-			   #pragma omp parallel for
-			   for (size_t j = 0; j < inda.n_elem; ++j)
-			   	for (int i = 0; i < Ngrad; ++i) 
-				   diffSignal(i,j) = Idiff.at(ind(i,j));
-
-			   switch (opts.reconsMethod) {
-			       case DOT:
-				     break;
-			       case SPHDECONV:
-				     break;
-			       case RUMBA_SD:
-				     // fODF0 = ones(size(Kernel,2),1);
-				     Mat<T> fODF0(Kernel.n_cols,1);
-				     T mean_SNR;
-
-				     // fODF0 = fODF0/sum(fODF0); % Normalizing ODFs values
-				     fODF0.fill(1.0/fODF0.n_elem);
-
-				     LOG_INFO << "calling intravox_fiber_reconst_sphdeconv_rumba_sd";
-				     // ODF = Intravox_Fiber_Reconst_sphdeconv_rumba_sd(diffSignal, Kernel, fODF0, opts.rumba_sd.Niter); % Intravoxel Fiber Reconstruction using RUMBA (Canales-Rodriguez, et al 2015)          
-				     ODF = intravox_fiber_reconst_sphdeconv_rumba_sd<T>(diffSignal, Kernel, fODF0, opts.rumba_sd.Niter, mean_SNR);
-				     // TODO ODF = intravox_fiber_reconst_sphdeconv_rumba_sd_gpu<T>(diffSignal, Kernel, fODF0, opts.rumba_sd.Niter);
-				     LOG_INFO << "Estimated mean SNR = " << mean_SNR;
-
-				     #pragma omp parallel for
-				     for (int i = 0; i < inda.n_elem; ++i) {
-					 slicevf_CSF.at(inda(i)) = ODF(ODF.n_rows - 2 ,i);
-				     }
-
-				     #pragma omp parallel for
-				     for (int i = 0; i < inda.n_elem; ++i) {
-					 slicevf_GM.at(inda(i)) = ODF(ODF.n_rows - 1 ,i);
-				     }
-
-
-				     //ODF_iso = ODF(end,:) + ODF(end-1,:); 
-				     ODF_iso = ODF.row(ODF.n_rows - 1) + ODF.row(ODF.n_rows - 2); 
-
-				     // ODF = ODF(1:end-2,:);
-				     ODF.resize(ODF.n_rows - 2, ODF.n_cols);
-
-				     //volvf_WM(inda) = sum(ODF,1);    % Volume fraction of WM 
-				     Row<T> tsum = sum(ODF,0);
-				     #pragma omp parallel for
-				     for (int i = 0; i < inda.n_elem; ++i) {
-					 slicevf_WM.at(inda(i)) = tsum(i);
-				     }
-
-				     // Adding the isotropic components to the ODF                  
-				     ODF = ODF + repmat( ODF_iso / ODF.n_rows , ODF.n_rows, 1 );  
-				     ODF = ODF / repmat( sum(ODF,0) + std::numeric_limits<double>::epsilon() , ODF.n_rows,  1 );      
-
-				     // std(ODF,0,1)./( sqrt(mean(ODF.^2,1)) + eps )
-				     Row<T>  temp = stddev( ODF, 0, 0 ) / sqrt(mean(pow(ODF,2),0) + std::numeric_limits<double>::epsilon());
-				     #pragma omp parallel for
-				     for (int i = 0; i < inda.n_elem; ++i) {
-					 slicevf_GFA.at(inda(i)) = temp(i);
-				     }
-				break;
+		parallel_execution_thr p{1};
+		parallel_execution_thr f{};
+		Pipeline( p,
+        	    // Pipeline stage 0
+        	    [&]() {		
+			   LOG_INFO << "Processing Stage 0: Slice " << nslice ;
+			   if (nslice == zdiff)
+				return optional<paramStage0>();
+			   else {
+				Cube<T> Idiff(xdiff, ydiff, Ngrad);
+                   		for (int graddir = 0; graddir < Ngrad; ++graddir) {
+                       			Idiff.slice(graddir) = Vdiff[graddir].slice(nslice) % Vmask.slice(nslice); // product-wise multiplication
+                   		}
+				paramStage0 tupleIdiff = std::make_tuple(nslice, Vmask.slice(nslice), Idiff);
+			   	nslice++;
+				return optional<paramStage0>(tupleIdiff);
+			
 			   }
-			   // % Allocating memory to save the ODF
-			   // globODFslice = zeros(xdiff,ydiff,Nd);
+		    },
 
-			   // % Reordering ODF
-			   //  allIndexesODF = repmat(inda(:)',[size(ODF,1) 1]); % Image indexes
-			   Mat<T> allIndexesODF = repmat(inda.t(),ODF.n_rows,1);
+		    Farm(f,
+		    [=](paramStage0 tupleIdiff) {
 
-			   // ODFindexes = allIndexesODF + totalNvoxels*repmat([0:size(ODF,1)-1]',[1 length(inda) ]); % Indexes in 4D
-			   Mat<T> ODFindexes = allIndexesODF + totalNvoxels * repmat(linspace<Mat<T>>(0, ODF.n_rows - 1, ODF.n_rows ),1,inda.n_elem); 
+			   int     slice        = std::get<0>(tupleIdiff);
+			   Mat<T> Vmasks        = std::get<1>(tupleIdiff); 
+			   Cube<T> Idiff        = std::get<2>(tupleIdiff);
 
-			   // globODFslice(ODFindexes(:)) = ODF(:);
-			   #pragma omp parallel for
-			   for (int j = 0; j < ODF.n_cols; ++j) {
-			       for (int i = 0; i < ODF.n_rows; ++i) {
-				    globODFslice.at(ODFindexes(i,j)) = ODF(i ,j);
-			       }
-			   }
-		    }
+			   LOG_INFO << "Processing Stage 1: Slice " << std::get<0>(tupleIdiff);
 
-		    #pragma omp parallel for
-		    for (int j = 0; j < ydiff; ++j) {
-			Index3DType coord;
-			coord[1] = j; coord[2] = slice;
-		        for (int i = 0; i < xdiff; ++i) {
-			    coord[0] = i;
-			    imageCSF->SetPixel(coord, slicevf_CSF(i,j));
-			}
-		    }
+			   size_t  totalNvoxels = Vmasks.n_elem;
 
-		    #pragma omp parallel for
-		    for (int j = 0; j < ydiff; ++j) {
-			Index3DType coord;
-			coord[1] = j;
-			coord[2] = slice;
-		        for (int i = 0; i < xdiff; ++i) {
-			    coord[0] = i; 
-			    imageGM->SetPixel(coord, slicevf_GM(i,j));
-			}
-		    }
+        		   Cube<T> globODFslice (xdiff,ydiff,Nd,fill::zeros);
+			   Mat<T> slicevf_CSF(xdiff,ydiff,fill::zeros);
+                	   Mat<T> slicevf_GM(xdiff,ydiff,fill::zeros);
+                	   Mat<T> slicevf_WM(xdiff,ydiff,fill::zeros);
+                	   Mat<T> slicevf_GFA(xdiff,ydiff,fill::zeros);
+                	   Row<T> ODF_iso(ydiff,fill::zeros);
 
-		    #pragma omp parallel for
-		    for (int j = 0; j < ydiff; ++j) {
-			Index3DType coord;
-			coord[1] = j; coord[2] = slice;
-		    	for (int i = 0; i < xdiff; ++i) {
-			    coord[0] = i; 
-			    imageWM->SetPixel(coord, slicevf_WM(i,j));
-			}
-		    }
+			   Cube<T> S0_est (xdiff, ydiff, ind_S0.n_elem);
+			   Mat<T> S0_est_M (xdiff, ydiff);
 
-		    #pragma omp parallel for
-		    for (int j = 0; j < ydiff; ++j) {
-			Index3DType coord;
-			coord[1] = j; coord[2] = slice;
-		        for (int i = 0; i < xdiff; ++i) {
-			    coord[0] = i;
-			    imageGFA->SetPixel(coord, slicevf_GFA(i,j));
-			}
-		    }
-
-		    #pragma omp parallel for
-		    for (int i = 0; i < xdiff; ++i) {
-			Index4DType coord;
-			coord[0] = i; coord[2] = slice; 
-			for (int j = 0; j < ydiff; ++j) {
-			    coord[1] = j;
-			    for (int k = 0; k < Nd; ++k) {
-				coord[3] = k;
-				imageODF->SetPixel(coord, globODFslice(i,j,k));
+			   for (int i = 0; i < ind_S0.n_elem; ++i) {
+				S0_est.slice(i) = Idiff.slice(ind_S0(i));
 			    }
-			}
-		    }
-		}
+
+			   S0_est_M = mean(S0_est,2); 
+			   if (ind_S0.n_elem > 1) {
+				for (int i = 0; i < ind_S0.n_elem; ++i)
+					S0_est.slice(i) = S0_est_M % Vmasks;
+			   }
+
+			   for (int i = ind_S0.n_elem - 1; i >= 0; --i)
+				Idiff.shed_slice(ind_S0(i)); 
+
+			   Idiff = join_slices(S0_est,Idiff);
+
+			   for (int graddir = 0; graddir < Ngrad; ++graddir) {
+				Idiff.slice(graddir) = Idiff.slice(graddir) / (S0_est_M + std::numeric_limits<double>::epsilon());
+			   }
+			   Idiff.elem( find(Idiff > 1.0) ).ones();
+			   Idiff.elem( find(Idiff < 0.0) ).zeros();
+			 
+			   uvec inda_vec = find(Idiff.slice(0) > 0);
+			   Mat<T> inda = conv_to<Mat<T>>::from(inda_vec);
+
+
+			   Mat<T> ODF;
+			   
+			   if (inda.n_elem > 0) {
+				   Mat<T> allIndixes = repmat(inda.t(),Ngrad,1);
+				   Mat<T> ind = allIndixes + (totalNvoxels *  repmat(linspace<Mat<T>>(0, Ngrad-1,Ngrad),1,inda.n_elem));
+				   Mat<T> diffSignal(Ngrad,inda.n_elem);
+
+				   for (size_t j = 0; j < inda.n_elem; ++j)
+					for (int i = 0; i < Ngrad; ++i) 
+					   diffSignal(i,j) = Idiff.at(ind(i,j));
+
+				   switch (opts.reconsMethod) {
+				       case DOT:
+					     break;
+				       case SPHDECONV:
+					     break;
+				       case RUMBA_SD:
+					     Mat<T> fODF0(Kernel.n_cols,1);
+					     T mean_SNR;
+
+					     fODF0.fill(1.0/fODF0.n_elem);
+
+					     //LOG_INFO << "calling intravox_fiber_reconst_sphdeconv_rumba_sd";
+					     ODF = intravox_fiber_reconst_sphdeconv_rumba_sd<T>(diffSignal, Kernel, fODF0, opts.rumba_sd.Niter, mean_SNR);
+					     LOG_INFO << "Processing Stage 1: Slice " << slice  << ": Estimated mean SNR = " << mean_SNR;
+
+					     for (int i = 0; i < inda.n_elem; ++i) {
+						 slicevf_CSF.at(inda(i)) = ODF(ODF.n_rows - 2 ,i);
+					     }
+
+					     for (int i = 0; i < inda.n_elem; ++i) {
+						 slicevf_GM.at(inda(i)) = ODF(ODF.n_rows - 1 ,i);
+					     }
+
+					     ODF_iso = ODF.row(ODF.n_rows - 1) + ODF.row(ODF.n_rows - 2); 
+					     ODF.resize(ODF.n_rows - 2, ODF.n_cols);
+					     Row<T> tsum = sum(ODF,0);
+					     for (int i = 0; i < inda.n_elem; ++i) {
+						 slicevf_WM.at(inda(i)) = tsum(i);
+					     }
+
+					     ODF = ODF + repmat( ODF_iso / ODF.n_rows , ODF.n_rows, 1 );  
+					     ODF = ODF / repmat( sum(ODF,0) + std::numeric_limits<double>::epsilon() , ODF.n_rows,  1 );      
+
+					     Row<T>  temp = stddev( ODF, 0, 0 ) / sqrt(mean(pow(ODF,2),0) + std::numeric_limits<double>::epsilon());
+					     for (int i = 0; i < inda.n_elem; ++i) {
+						 slicevf_GFA.at(inda(i)) = temp(i);
+					     }
+					break;
+				   }
+
+				   Mat<T> allIndexesODF = repmat(inda.t(),ODF.n_rows,1);
+				   Mat<T> ODFindexes = allIndexesODF + totalNvoxels * repmat(linspace<Mat<T>>(0, ODF.n_rows - 1, ODF.n_rows ),1,inda.n_elem); 
+				   for (int j = 0; j < ODF.n_cols; ++j) {
+				       for (int i = 0; i < ODF.n_rows; ++i) {
+					    globODFslice.at(ODFindexes(i,j)) = ODF(i ,j);
+				       }
+				   }
+			    }
+			    return std::make_tuple(slice, globODFslice, slicevf_CSF, slicevf_GM, slicevf_WM, slicevf_GFA);
+		    }),
+
+		    [&]( paramStage1 tupleRes ) {
+			    int slice            = std::get<0>(tupleRes);
+			    Cube<T> globODFslice = std::get<1>(tupleRes);
+                            Mat<T> slicevf_CSF   = std::get<2>(tupleRes);
+                            Mat<T> slicevf_GM    = std::get<3>(tupleRes);
+                            Mat<T> slicevf_WM    = std::get<4>(tupleRes);
+                            Mat<T> slicevf_GFA   = std::get<5>(tupleRes);
+
+			    for (int j = 0; j < ydiff; ++j) {
+				Index3DType coord;
+				coord[1] = j; coord[2] = slice;
+				for (int i = 0; i < xdiff; ++i) {
+				    coord[0] = i;
+				    imageCSF->SetPixel(coord, slicevf_CSF(i,j));
+				}
+			    }
+
+			    for (int j = 0; j < ydiff; ++j) {
+				Index3DType coord;
+				coord[1] = j;
+				coord[2] = slice;
+				for (int i = 0; i < xdiff; ++i) {
+				    coord[0] = i; 
+				    imageGM->SetPixel(coord, slicevf_GM(i,j));
+				}
+			    }
+
+			    for (int j = 0; j < ydiff; ++j) {
+				Index3DType coord;
+				coord[1] = j; coord[2] = slice;
+				for (int i = 0; i < xdiff; ++i) {
+				    coord[0] = i; 
+				    imageWM->SetPixel(coord, slicevf_WM(i,j));
+				}
+			    }
+
+			    for (int j = 0; j < ydiff; ++j) {
+				Index3DType coord;
+				coord[1] = j; coord[2] = slice;
+				for (int i = 0; i < xdiff; ++i) {
+				    coord[0] = i;
+				    imageGFA->SetPixel(coord, slicevf_GFA(i,j));
+				}
+			    }
+
+			    for (int i = 0; i < xdiff; ++i) {
+				Index4DType coord;
+				coord[0] = i; coord[2] = slice; 
+				for (int j = 0; j < ydiff; ++j) {
+				    coord[1] = j;
+				    for (int k = 0; k < Nd; ++k) {
+					coord[3] = k;
+					imageODF->SetPixel(coord, globODFslice(i,j,k));
+				    }
+				}
+			    }
+        	    }
+                );
+
 		}
 		break;
 
@@ -504,7 +484,6 @@ namespace phardi {
 
 			// normalize the signal S/S0
 			// for graddir = 1:Ngrad_mod
-			#pragma omp parallel for
 			for (int graddir = 0; graddir < Ngrad; ++graddir) {
 				//Idiff(:,:,:,graddir) = squeeze(Idiff(:,:,:,graddir).* Imask)./(S0_est + eps);
 		    		Vdiff[graddir] =  Vdiff[graddir] / (S0_est_M + std::numeric_limits<double>::epsilon());
@@ -513,7 +492,6 @@ namespace phardi {
 			// Repair the signal
 			// Idiff(Idiff>1) = 1;
 			// Idiff(Idiff<0) = 0;
-			#pragma omp parallel for
 			for (int graddir = 0; graddir < Ngrad; ++graddir) {
 				Vdiff[graddir].elem( find(Vdiff[graddir] > 1.0) ).ones();
 				Vdiff[graddir].elem( find(Vdiff[graddir] < 0.0) ).zeros();
@@ -533,7 +511,6 @@ namespace phardi {
 			Mat<T> ind = allIndixes + (totalNvoxels *  repmat(linspace<Mat<T>>(0, Ngrad-1,Ngrad),1,inda.n_elem));
 			Mat<T> diffSignal(Ngrad,inda.n_elem);
 
-			#pragma omp parallel for
 			for (size_t j = 0; j < inda.n_elem; ++j)
 			   for (int i = 0; i < Ngrad; ++i) 
 				   diffSignal(i,j) = Vdiff[i].at( inda_vec(j)  );  //Vdiff[i].at(ind(i,j));
@@ -559,12 +536,10 @@ namespace phardi {
 				  LOG_INFO << "Estimated mean SNR = " << mean_SNR;
 
 
-				  #pragma omp parallel for
 				  for (int i = 0; i < inda.n_elem; ++i) {
 					 slicevf_CSF.at(inda(i)) = ODF(ODF.n_rows - 2 ,i);
 				  }
 
-				  #pragma omp parallel for
 				  for (int i = 0; i < inda.n_elem; ++i) {
 					slicevf_GM.at(inda(i)) = ODF(ODF.n_rows - 1 ,i);
 				  }
@@ -577,7 +552,6 @@ namespace phardi {
 
 				  //volvf_WM(inda) = sum(ODF,1);    % Volume fraction of WM 
 				  Row<T> tsum = sum(ODF,0);
-				  #pragma omp parallel for
 				  for (int i = 0; i < inda.n_elem; ++i) {
 					 slicevf_WM.at(inda(i)) = tsum(i);
 				  }
@@ -588,7 +562,6 @@ namespace phardi {
 
 				  // std(ODF,0,1)./( sqrt(mean(ODF.^2,1)) + eps )
 				  Row<T>  temp = stddev( ODF, 0, 0 ) / sqrt(mean(pow(ODF,2),0) + std::numeric_limits<double>::epsilon());
-				  #pragma omp parallel for
 				  for (int i = 0; i < inda.n_elem; ++i) {
 					 slicevf_GFA.at(inda(i)) = temp(i);
 				  }
@@ -605,7 +578,6 @@ namespace phardi {
 			Mat<T> ODFindexes = allIndexesODF + totalNvoxels * repmat(linspace<Mat<T>>(0, ODF.n_rows - 1, ODF.n_rows ),1,inda.n_elem); 
 
 			// globODFslice(ODFindexes(:)) = ODF(:);
-			#pragma omp parallel for
 			for (int j = 0; j < ODF.n_cols; ++j) {
 			       for (int i = 0; i < ODF.n_rows; ++i) {
 				    //globODFslice[i].at(ODFindexes(j)) = ODF(i ,j);
@@ -614,7 +586,6 @@ namespace phardi {
 			}
 		 }
 
-		 #pragma omp parallel for
 		 for (int i = 0; i < xdiff; ++i) {
 			Index3DType coord;
 			coord[0] = i;
@@ -628,7 +599,6 @@ namespace phardi {
 			}
 		 }
 
-		 #pragma omp parallel for
 		 for (int i = 0; i < xdiff; ++i) {
 			Index3DType coord;
 			coord[0] = i;
@@ -642,7 +612,6 @@ namespace phardi {
 			}
 		 }
 
-		 #pragma omp parallel for
 		 for (int i = 0; i < xdiff; ++i) {
 			Index3DType coord;
 			coord[0] = i;
@@ -656,7 +625,6 @@ namespace phardi {
 			}
 		 }
 
-		 #pragma omp parallel for
 		 for (int i = 0; i < xdiff; ++i) {
 			Index3DType coord;
 			coord[0] = i;
@@ -670,7 +638,6 @@ namespace phardi {
 			}
 		 }
 
-		 #pragma omp parallel for
 		 for (int n = 0; n < Nd; ++n) {
 			Cube<T> tempc = globODFslice[n];
 			Index4DType coord;

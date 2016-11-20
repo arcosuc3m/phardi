@@ -39,7 +39,6 @@ namespace phardi {
         Mat<T> y(x.n_rows,x.n_cols);
 
 //         y = x./( (2*n + x) - ( 2*x.*(n+1/2)./ ( 2*n + 1 + 2*x - ( 2*x.*(n+3/2)./ ( 2*n + 2 + 2*x - ( 2*x.*(n+5/2)./ ( 2*n + 3 + 2*x ) ) ) ) ) ) );
-        #pragma omp parallel for simd
         for (size_t j = 0; j < x.n_cols; ++j) {
             for (size_t i = 0; i < x.n_rows; ++i) {
                 y(i,j) = x(i,j) / ((2*n + x(i,j)) - (2*x(i,j)*(n+1.0/2.0) / (2*n + 1 +2*x(i,j) - (2*x(i,j)*(n+3.0/2.0) / (2*n + 2 + 2*x(i,j) - (2*x(i,j)*(n+5.0/2.0) / (2*n +3 +2 *x(i,j))))))));
@@ -108,7 +107,6 @@ namespace phardi {
         for (size_t i = 0; i < Niter; ++i) {
             Ratio = mBessel_ratio<T>(n_order,Reblurred_S);
 
-	    #pragma omp parallel for simd
             for (size_t k = 0; k < SR.n_cols; ++k ) {
                 for (size_t j = 0; j < SR.n_rows; ++j) {
                         SR(j,k) = Signal(j,k) * Ratio(j,k);
@@ -119,14 +117,12 @@ namespace phardi {
 	    KTRB = KernelT * Reblurred;
 
             // RL_factor = KernelT * SR / ((KernelT * Reblurred) + std::numeric_limits<double>::epsilon());
-	    #pragma omp parallel for simd
             for (size_t k = 0; k < RL_factor.n_cols; ++k ) {
                 for (size_t j = 0; j < RL_factor.n_rows; ++j) {
 			RL_factor(j,k) = KTSR(j,k) / (KTRB(j,k) + std::numeric_limits<double>::epsilon());
 		}
 	    }
 
-	    #pragma omp parallel for simd
 	    for (size_t k = 0; k < fODF.n_cols; ++k ) {
 	        for (size_t j = 0; j < fODF.n_rows; ++j) {
 			fODF(j,k) = fODF(j,k) * RL_factor(j,k);
@@ -135,14 +131,12 @@ namespace phardi {
 
             Reblurred = Kernel * fODF;
 
-	    #pragma omp parallel for simd
             for (size_t k = 0; k < Reblurred_S.n_cols; ++k ) {
                 for (size_t j = 0; j < Reblurred_S.n_rows; ++j) {
 			Reblurred_S(j,k) = (Signal(j,k) * Reblurred(j,k)) / sigma2(j,k);
 		}
 	    }
 
-	    #pragma omp parallel for simd
             for (size_t k = 0; k < Signal.n_cols; ++k ) {
                 for (size_t j = 0; j < Signal.n_rows; ++j) {
                         SUM(j,k) = (pow(Signal(j,k),2) + pow(Reblurred(j,k),2))/2 - (sigma2(j,k) * Reblurred_S(j,k)) * Ratio(j,k) ;
@@ -151,7 +145,6 @@ namespace phardi {
 
 	    sigma2_i = (1.0/N) * sum( SUM , 0) / n_order;
 
-	    #pragma omp parallel for
 	    for (size_t k = 0; k < sigma2_i.n_elem; ++k ) {
 		sigma2_i(k) = std::min<T>(std::pow<T>(1.0/10.0,2),std::max<T>(sigma2_i(k), std::pow<T>(1.0/50.0,2)));
 	    }
