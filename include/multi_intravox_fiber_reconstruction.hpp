@@ -255,11 +255,11 @@ namespace phardi {
 		    },
 
 		    Farm(f,
-		    [=](paramStage0 tupleIdiff) {
+		    [=, &Kernel, &ind_S0](paramStage0 tupleIdiff) {
 
-			   int     slice        = std::get<0>(tupleIdiff);
-			   Mat<T> Vmasks        = std::get<1>(tupleIdiff); 
-			   Cube<T> Idiff        = std::get<2>(tupleIdiff);
+			   int slice     = std::get<0>(tupleIdiff);
+			   Mat<T> Vmasks = std::get<1>(tupleIdiff); 
+			   Cube<T> Idiff = std::get<2>(tupleIdiff);
 
 			   LOG_INFO << "Processing Stage 1: Slice " << std::get<0>(tupleIdiff);
 
@@ -290,6 +290,7 @@ namespace phardi {
 
 			   Idiff = join_slices(S0_est,Idiff);
 
+
 			   for (int graddir = 0; graddir < Ngrad; ++graddir) {
 				Idiff.slice(graddir) = Idiff.slice(graddir) / (S0_est_M + std::numeric_limits<double>::epsilon());
 			   }
@@ -298,7 +299,6 @@ namespace phardi {
 			 
 			   uvec inda_vec = find(Idiff.slice(0) > 0);
 			   Mat<T> inda = conv_to<Mat<T>>::from(inda_vec);
-
 
 			   Mat<T> ODF;
 			   
