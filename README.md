@@ -18,7 +18,7 @@
 
 mkdir build
 cd build
-cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/g++-4.9 -DCMAKE_BUILD_TYPE=Release
+cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/g++-5 -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-std=c++1y"
 make
 ```
 
