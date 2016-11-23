@@ -7,6 +7,8 @@ SET (${PROJECT_NAME_STR}_VERSION_MAJOR 0)
 SET (${PROJECT_NAME_STR}_VERSION_MINOR 1)
 
 SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
+SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake.modules ${PROJECT_SOURCE_DIR} )
+
 
 # default built type
 IF(NOT CMAKE_BUILD_TYPE)
@@ -45,6 +47,11 @@ ELSE()
     MESSAGE(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a dIFferent C++ compiler.")
 ENDIF()
 
+find_package(TBB REQUIRED)
+include_directories(${TBB_INCLUDE_DIRS})
+
+find_package( Boost 1.44 COMPONENTS system thread REQUIRED )
+include_directories( ${Boost_INCLUDE_DIR} )
 
 FIND_PACKAGE(OpenMP)
 IF (OPENMP_FOUND)

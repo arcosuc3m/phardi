@@ -234,8 +234,8 @@ namespace phardi {
 
 		int nslice = 0;
 
-		parallel_execution_thr p{1};
-		parallel_execution_thr f{};
+		parallel_execution_omp p{};
+		parallel_execution_omp f{};
 		Pipeline( p,
         	    // Pipeline stage 0
         	    [&]() {		
@@ -256,7 +256,6 @@ namespace phardi {
 
 		    Farm(f,
 		    [=, &Kernel, &ind_S0](paramStage0 tupleIdiff) {
-
 			   int slice     = std::get<0>(tupleIdiff);
 			   Mat<T> Vmasks = std::get<1>(tupleIdiff); 
 			   Cube<T> Idiff = std::get<2>(tupleIdiff);
@@ -370,6 +369,8 @@ namespace phardi {
                             Mat<T> slicevf_WM    = std::get<4>(tupleRes);
                             Mat<T> slicevf_GFA   = std::get<5>(tupleRes);
 
+			    LOG_INFO << "Processing Stage 2: Slice " << slice ;
+			    
 			    for (int j = 0; j < ydiff; ++j) {
 				Index3DType coord;
 				coord[1] = j; coord[2] = slice;
@@ -418,6 +419,11 @@ namespace phardi {
 				    }
 				}
 			    }
+			    WriteImage<Image4DType,Image3DType, NiftiType>(ODFfilename,imageODF, slice);
+        		    WriteImage<Image3DType,Image2DType,NiftiType>(filenameCSF,imageCSF,slice);
+        		    WriteImage<Image3DType,Image2DType,NiftiType>(filenameGM,imageGM,slice);
+        		    WriteImage<Image3DType,Image2DType,NiftiType>(filenameWM,imageWM,slice);
+        		    WriteImage<Image3DType,Image2DType,NiftiType>(filenameGFA,imageGFA,slice);
         	    }
                 );
 
@@ -654,28 +660,24 @@ namespace phardi {
 				}
 		 	}
 		}	
+
+		LOG_INFO << "writting file " << filenameCSF;
+        	WriteImage<Image3DType,NiftiType>(filenameCSF,imageCSF);
+
+        	LOG_INFO << "writting file " << filenameGM;
+        	WriteImage<Image3DType,NiftiType>(filenameGM,imageGM);
+
+        	LOG_INFO << "writting file " << filenameWM;
+        	WriteImage<Image3DType,NiftiType>(filenameWM,imageWM);
+
+        	LOG_INFO << "writting file " << filenameGFA;
+        	WriteImage<Image3DType,NiftiType>(filenameGFA,imageGFA);
+
+        	LOG_INFO << "writting file " << ODFfilename;
+        	WriteImage<Image4DType,NiftiType>(ODFfilename,imageODF);
 		}	
 		break;
 	}
-
-        LOG_INFO << "writting file " << filenameCSF;
-        // LOG_INFO << imageCSF;
-        WriteImage<Image3DType,NiftiType>(filenameCSF,imageCSF);
-
-        LOG_INFO << "writting file " << filenameGM;
-        // LOG_INFO <<  imageGM;
-        WriteImage<Image3DType,NiftiType>(filenameGM,imageGM);
-
-	LOG_INFO << "writting file " << filenameWM;
-        // LOG_INFO <<  imageWM;
-        WriteImage<Image3DType,NiftiType>(filenameWM,imageWM);
-
-	LOG_INFO << "writting file " << filenameGFA;
-        // LOG_INFO <<  imageGFA;
-        WriteImage<Image3DType,NiftiType>(filenameGFA,imageGFA);
-
-        LOG_INFO << "writting file " << ODFfilename;
-        WriteImage<Image4DType,NiftiType>(ODFfilename,imageODF);
     }
 }
 
