@@ -37,7 +37,7 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <armadillo>
 
 
-enum  optionIndex { UNKNOWN, HELP, READ, DATA, MASK, BVECS, BVALS, ODF, PRECISION, NOISE, OP_ITER, OP_LAMBDA1, OP_LAMBDA2, OP_LAMBDA_CSF, OP_LAMBDA_GM,  DEBUG};
+enum  optionIndex { UNKNOWN, HELP, READ, DATA, RECONS, MASK, BVECS, BVALS, ODF, PRECISION, NOISE, OP_ITER, OP_LAMBDA1, OP_LAMBDA2, OP_LAMBDA_CSF, OP_LAMBDA_GM,  DEBUG};
 
 struct Arg: public option::Arg
 {
@@ -89,6 +89,7 @@ const option::Descriptor usage[] =
     {UNKNOWN, 0, "", "",option::Arg::None, "USAGE: phardi [options]\n\n"
         "Options:" },
     {HELP, 0,"h", "help",option::Arg::None, "  --help, -h  \tPrint usage and exit." },
+    {RECONS, 0,"a","alg",Arg::Required, "  --alg, -a  \tReconstruction method (rumba, dsi, qbi, gqi_l1, gpi_l2, dotr2, csa)." },
     {READ, 0,"d", "dataread",Arg::NonEmpty, "  --dataread, -d \tData reading method (slices|volume)." },
     {DATA, 0,"k","data",Arg::Required, "  --data, -k  \tData file." },
     {MASK, 0,"m","mask",Arg::Required, "  --mask, -m  \tBinary mask file." },
@@ -104,7 +105,7 @@ const option::Descriptor usage[] =
     {DEBUG, 0,"v","verbose",option::Arg::None, "  --verbose, -v  \tVerbose execution details." },
   //  {NOISE, 0,"n","noise",option::Arg::None, "  --noise, -n  \tAdd rician noise." },
     {UNKNOWN, 0, "", "",option::Arg::None, "\nExamples:\n"
-        " phardi -k /data/data.nii.gz -m /data/nodif_brain_mask.nii.gz -r /data/bvecs -b /data/bvals --odf /result/ \n"
+        " phardi -a rumba -k /data/data.nii.gz -m /data/nodif_brain_mask.nii.gz -r /data/bvecs -b /data/bvals --odf /result/ \n"
         "  " },
     {0,0,0,0,0,0}
 };
@@ -156,6 +157,8 @@ int main(int argc, char ** argv) {
     std::string bvalsFilename = options[BVALS].arg;
     std::string diffBmask     = options[MASK].arg;
     std::string ODFfilename   = options[ODF].arg;
+    std::string recons        = options[RECONS].arg;
+
     ODFfilename =  ODFfilename +  kPathSeparator + "data_odf.nii.gz";
 
     if (!is_file_exist(diffImage))
@@ -187,7 +190,8 @@ int main(int argc, char ** argv) {
         LOG_ERROR << "Can't find 362_shell_semisphere.txt";
         return 1;
     }
-    
+
+
     // %% Options
     // opts.reconsMethod = 'rumba_sd'; % Reconstruction Method
     // opts.datreadMethod = 'slices'; % Reading Data
@@ -195,15 +199,52 @@ int main(int argc, char ** argv) {
     opts.reconsMethod        = RUMBA_SD; // Reconstruction Method
     opts.datreadMethod       = SLICES;  //Reading Data
     opts.outputDir           = options[ODF].arg;
-    opts.add_noise           = false;
 
-    opts.rumba_sd.Niter      = NITER;
-    opts.rumba_sd.lambda1    = LAMBDA1;
-    opts.rumba_sd.lambda2    = LAMBDA2;
-    opts.rumba_sd.lambda_csf = LAMBDA_CSF;
-    opts.rumba_sd.lambda_gm  = LAMBDA_GM;
- 
-    LOG_INFO << "phardi "<< VERSION_MAJOR << "." << VERSION_MINOR;   
+    opts.rumba_sd.add_noise  = false;
+    opts.rumba_sd.Niter      = RUMBA_NITER;
+    opts.rumba_sd.lambda1    = RUMBA_LAMBDA1;
+    opts.rumba_sd.lambda2    = RUMBA_LAMBDA2;
+    opts.rumba_sd.lambda_csf = RUMBA_LAMBDA_CSF;
+    opts.rumba_sd.lambda_gm  = RUMBA_LAMBDA_GM;
+
+    opts.dsi.lmax            = DSI_LMAX;
+    opts.dsi.resolution      = DSI_RESOLUTION;
+    opts.dsi.rmin            = DSI_RMIN;
+    opts.dsi.lreg            = DSI_LREG;
+    opts.dsi.boxhalfwidth    = DSI_BOXHALFWIDTH;
+
+    opts.qbi.lambda          = QBI_LAMBDA;
+
+    opts.gqi.mean_diffusion_distance_ratio = GQI_MEANDIFFDIST;
+    opts.gqi.lambda          = GQI_LAMBDA;
+
+    opts.dotr2.lambda        = DOTR2_LAMBDA;
+    opts.dotr2.t             = DOTR2_T;
+    opts.dotr2.eulerGamma    = DOTR2_EULERGAMMA;
+
+    opts.csa.lambda          = CSA_LAMBDA;
+
+    if (recons == "rumba")
+        opts.reconsMethod        = RUMBA_SD;
+    else if (recons == "dsi")
+        opts.reconsMethod        = DSI;
+    else if (recons == "dotr2")
+        opts.reconsMethod        = QBI_DOTR2;
+    else if (recons == "csa")
+        opts.reconsMethod        = QBI_CSA;
+    else if (recons == "qbi")
+        opts.reconsMethod        = QBI;
+    else if (recons == "gpi_l1")
+        opts.reconsMethod        = GQI_L1;
+    else if (recons == "gpi_l2")
+        opts.reconsMethod        = GQI_L2;
+    else  {
+        LOG_ERROR << "Method not recognized";
+        return 1;
+    }
+
+
+    LOG_INFO << "phardi "<< VERSION_MAJOR << "." << VERSION_MINOR;
     LOG_INFO << "Start.";   
 
     if (options[OP_ITER].count() > 0) {
@@ -226,7 +267,7 @@ int main(int argc, char ** argv) {
     }
 
     if (options[NOISE].count() > 0) {
-        opts.add_noise =  true;
+        opts.rumba_sd.add_noise =  true;
     }
    
     std::string readmethod = "slices";

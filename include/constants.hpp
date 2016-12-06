@@ -24,18 +24,34 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+#include <armadillo>
 
 namespace phardi {
 
-   const double PI         = 3.14159; 
+    const double PI                    = 3.14159;
 
-   const int NITER         = 300;
+    const int    RUMBA_NITER           = 300;
+    const double RUMBA_LAMBDA1         = 1.7e-3;
+    const double RUMBA_LAMBDA2         = 0.3e-3;
+    const double RUMBA_LAMBDA_CSF      = 3.0e-3;
+    const double RUMBA_LAMBDA_GM       =  0.7e-3;
 
-   const double LAMBDA1    = 1.7e-3;
-   const double LAMBDA2    = 0.3e-3;
-   const double LAMBDA_CSF = 3.0e-3;
-   const double LAMBDA_GM  =  0.7e-3;
+    const arma::uword DSI_LMAX         = 10;
+    const arma::uword DSI_RESOLUTION   = 35;
+    const arma::uword DSI_RMIN         = 1;
+    const double DSI_LREG              = 0.004;
+    const arma::uword DSI_BOXHALFWIDTH = 5;
 
+    const double QBI_LAMBDA            = 0.006;
+
+    const double GQI_MEANDIFFDIST      = 1.2;
+    const double GQI_LAMBDA            = 1.2;
+
+    const double DOTR2_LAMBDA          = 0.006;
+    const double DOTR2_T               = 20.0e-3;
+    const double DOTR2_EULERGAMMA      = 0.577216;
+
+    const double CSA_LAMBDA            = 0.006;
 }
 
 #endif
