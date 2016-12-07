@@ -62,8 +62,6 @@ Related to each reconstruction method:
 
   DOTR2
   --dotr2-lambda      Regularization parameter (default 0.006).
-  --dotr2-t           T value  (default 20.0e-3).
-  --dotr2-eulergamma  Euler Gamma  (default 0.577216).
 
   CSA
   --csa-lambda        Regularization parameter (default 0.006).

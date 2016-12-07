@@ -386,7 +386,7 @@ namespace phardi {
         //  ---
         // fd = fx+fy+fz;
 
-        return fd;
+        // return fd;
 
 /*
         TYPE Px, Py, Pz, fd, fx, fy, fz ;
@@ -409,7 +409,7 @@ namespace phardi {
     }
 
     // grad - gradient operator
-    TYPE grad(const arma::Cube<T>& M)
+/*    TYPE grad(const arma::Cube<T>& M)
     {
         using namespace arma;
 
@@ -429,7 +429,7 @@ namespace phardi {
         fxyz = cat(4, fx, fy, fz) ;
         return fxyz ;
     }
-
+*/
 
 }
 

@@ -110,8 +110,8 @@ const option::Descriptor usage[] =
     {OP_GQI_MDDR, 0,"","gqi-meandiffdist ",Arg::Numeric, "  --gqi-meandiffdist  \tGQI: Mean diffusion distance ratio (default 1.2)." },
 
     {OP_DOTR2_LAMBDA, 0,"","dotr2-lambda",Arg::Numeric, "  --dotr2-lambda  \tDOTR2: Regularization parameter  (default 0.006)." },
-    {OP_DOTR2_T, 0,"","dotr2-t",Arg::Numeric, "  --dotr2-t  \tDOTR2: T value  (default 20.0e-3)." },
-    {OP_DOTR2_EULER, 0,"","dotr2-eulergamma",Arg::Numeric, "  --dotr2-eulergamma  \tDOTR2: Euler Gamma  (default 0.577216)." },
+ //   {OP_DOTR2_T, 0,"","dotr2-t",Arg::Numeric, "  --dotr2-t  \tDOTR2: T value  (default 20.0e-3)." },
+ //   {OP_DOTR2_EULER, 0,"","dotr2-eulergamma",Arg::Numeric, "  --dotr2-eulergamma  \tDOTR2: Euler Gamma  (default 0.577216)." },
 
     {OP_CSA_LAMBDA, 0,"","csa-lambda",Arg::Numeric, "  --csa-lambda \tCSA: Regularization parameter  (default 0.006)." },
 
