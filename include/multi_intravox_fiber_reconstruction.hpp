@@ -234,11 +234,12 @@ namespace phardi {
 
 		int nslice = 0;
 
-		parallel_execution_omp p{};
-		parallel_execution_omp f{};
+		parallel_execution_tbb p{};
+		parallel_execution_tbb f{};
 		Pipeline( p,
         	    // Pipeline stage 0
-        	    [&]() {		
+        	    //[&]() {		
+        	    [=, &Vmask, &Vdiff, &nslice]() {		
 			   LOG_INFO << "Processing Stage 0: Slice " << nslice ;
 			   if (nslice == zdiff)
 				return optional<paramStage0>();
@@ -257,10 +258,11 @@ namespace phardi {
 		    Farm(f,
 		    [=, &Kernel, &ind_S0](paramStage0 tupleIdiff) {
 			   int slice     = std::get<0>(tupleIdiff);
+			   LOG_INFO << "Processing Stage 1: Slice " << std::get<0>(tupleIdiff);
 			   Mat<T> Vmasks = std::get<1>(tupleIdiff); 
 			   Cube<T> Idiff = std::get<2>(tupleIdiff);
 
-			   LOG_INFO << "Processing Stage 1: Slice " << std::get<0>(tupleIdiff);
+			   std::cout << Vmasks.size() << std::endl;
 
 			   size_t  totalNvoxels = Vmasks.n_elem;
 

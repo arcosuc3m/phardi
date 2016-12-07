@@ -28,8 +28,10 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
 #include <itkImageRegionIterator.h>
+#include <itkExtractImageFilter.h>
 #include <itkOrientImageFilter.h>
 #include <itkNiftiImageIO.h>
+#include <itkImageIOBase.h>
 #include <itkGDCMImageIO.h>
 #include <itkRGBAPixel.h>
 
@@ -56,8 +58,9 @@ namespace phardi {
     typedef Image3DType::SpacingType    Spacing3DType;
     typedef Image3DType::PointType      Origin3DType;
     typedef Image3DType::DirectionType  Direction3DType;
-  
+
     typedef Image4DType::IndexType      Index4DType;
+    typedef Image4DType::RegionType     Region4DType;
     typedef Image4DType::SizeType       Size4DType;
     typedef Image4DType::SpacingType    Spacing4DType;
     typedef Image4DType::PointType      Origin4DType;
@@ -145,6 +148,47 @@ namespace phardi {
             std::cerr << "Error writting file " << filename  << std::endl;
         }
     }
+
+    template<typename TImageTypeIN,  typename TImageTypeOUT, typename TImageIO>
+    void WriteImage(std::string filename,  typename TImageTypeIN::Pointer image, int slice){
+        using namespace itk;
+
+        typename TImageIO::Pointer nifti_io = TImageIO::New();
+        nifti_io->SetPixelType(itk::ImageIOBase::SCALAR);
+        nifti_io->SetComponentType(itk::ImageIOBase::FLOAT);
+
+	typename itk::ExtractImageFilter<TImageTypeIN, TImageTypeOUT>::Pointer extractFilter = itk::ExtractImageFilter<TImageTypeIN, TImageTypeOUT>::New();
+
+
+	typename TImageTypeIN::RegionType region = image->GetLargestPossibleRegion();
+	typename TImageTypeIN::SizeType size = region.GetSize();
+	typename TImageTypeIN::IndexType index = region.GetIndex();
+
+	size[2] = 0;
+	index[2] = slice;
+        region.SetSize(size);
+        region.SetIndex(index);
+
+        typename itk::ImageFileWriter<TImageTypeOUT>::Pointer dwi_writer = itk::ImageFileWriter<TImageTypeOUT>::New();
+        dwi_writer->SetFileName(filename);
+
+        extractFilter->SetExtractionRegion(region);
+	extractFilter->SetDirectionCollapseToIdentity();
+	extractFilter->InPlaceOn();
+        extractFilter->SetInput(image);
+        dwi_writer->SetInput(extractFilter->GetOutput());
+	dwi_writer->SetNumberOfStreamDivisions( 200 );
+        dwi_writer->SetImageIO(nifti_io);
+        try {
+            dwi_writer->Update();
+        } catch (itk::ExceptionObject &err) {
+            LOG_ERROR << "ExceptionObject caught !";
+            std::cerr << err << std::endl;
+            std::cerr << "Error writting file " << filename  << std::endl;
+        }
+    }
+
+
 }
 
 #endif
