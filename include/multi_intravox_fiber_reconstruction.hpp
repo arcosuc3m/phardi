@@ -205,25 +205,29 @@ namespace phardi {
 		LOG_INFO << "Kernel size: " << size(Kernel);
 		Kernel.fill(0.0);
 
-		LOG_INFO << "calling create_Kernel";
+
 
 		switch (opts.reconsMethod) {
 			case RUMBA_SD:
 				create_Kernel_for_rumba<T>(V, diffGrads, diffBvals, Kernel, opts);
+				LOG_INFO << "Created kernel for RUMBA";
 				break;
             case QBI_DOTR2:
             case QBI_CSA:
                 create_Kernel_for_dotr2<T>(V, diffGrads, diffBvals, Kernel, basisV, K_dot_r2, K_csa, opts);
+				LOG_INFO << "Created kernel for CSA/DOTR2";
                 break;
 			case DSI:
 //				create_Kernel_for_dsi<T>(V, diffGrads, diffBvals, Kernel, opts);
 				break;
 			case QBI:
 				create_Kernel_for_qbi<T>(V, diffGrads, diffBvals, Kernel, basisV, K, opts);
+				LOG_INFO << "Created kernel for QBI";
 				break;
 			case GQI_L1:
 			case GQI_L2:
 				create_Kernel_for_gqi<T>(V, diffGrads, diffBvals, Kernel, opts);
+				LOG_INFO << "Created kernel for GQI_L1/GQI_L2";
 				break;
 		}
 		std::string filenameCSF = opts.outputDir + kPathSeparator + "data-vf_csf.nii.gz";
@@ -522,7 +526,7 @@ namespace phardi {
                                 coeff = Kernel * diffSignal.rows(indb1);
 
                                 // ss = coeff.*repmat(K,[1 size(coeff,2)]);
-                                ss = coeff % repmat(K, 1, size(coeff,2));
+                                ss = coeff % repmat(K, 1, size(coeff,1));
 
                                 // ODF = basisV*ss;
                                 ODF = basisV * ss;

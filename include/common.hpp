@@ -54,11 +54,18 @@ namespace phardi {
 
     template <typename T>
     inline T span(size_t a, size_t b) {
-        T s((arma::uword)0);
-        size_t n = b - a;
-        s.set_size(n + 1);
-        for (size_t ii = 0; ii <= n; ++ii)
-            s(ii) = ii + a;
+        T s((arma::uword) 0);
+
+        if (a > b) {
+            s.set_size(1);
+            s(0) = 1;
+        }
+        else {
+            arma::uword n = b - a;
+            s.set_size(n + 1);
+            for (size_t ii = 0; ii <= n; ++ii)
+                s(ii) = ii + a;
+        }
         return s;
     }
 
@@ -66,7 +73,7 @@ namespace phardi {
     inline T span(size_t a, size_t step, size_t b)
     {
         T s;
-        size_t n = (b - a + step) / step;
+        arma::uword n = (b - a + step) / step;
         s.set_size(n);
         for (int ii = 0; ii < n; ii++)
         {
