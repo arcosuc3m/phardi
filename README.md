@@ -7,6 +7,7 @@
 * Armadillo 6.7
 * ITK 4.9
 * GCC 4.9
+* Boost 1.40 (component math: usage of legendre)
 * OpenBLAS (for multicore parallelism)
 * LaPack
 
@@ -32,6 +33,7 @@ USAGE: phardi [options]
 
 Options:
 Compulsory arguments (You MUST specify ALL arguments):
+  --alg, -a          Reconstruction method (rumba, qbi, gqi_l1, gqi_l2, dotr2, csa)
   --data, -k         Data file
   --mask, -m         Binary mask file
   --bvecs, -r        b-vectors file
@@ -49,5 +51,5 @@ Optional arguments (You may optionally specify one or more of):
   --help, -h         Print usage and exit
 
 Examples:
- phardi -k /data/data.nii.gz -m /data/nodif_brain_mask.nii.gz -r /data/bvecs -b /data/bvals --odf /result/ 
+ phardi -a rumba -k /data/data.nii.gz -m /data/nodif_brain_mask.nii.gz -r /data/bvecs -b /data/bvals --odf /result/
 ```

@@ -116,6 +116,8 @@ namespace phardi {
 
         phi.resize(n);
         theta.resize(n);
+
+#pragma omp parallel for
         for (uword i = 0; i < n; ++i) {
             // [phi, theta] = cart2sph(sphere_points(:,1),sphere_points(:,2),sphere_points(:,3));
             Cart2Sph<T>(sphere_points(i,0), sphere_points(i,1), sphere_points(i,2), phi(i), theta(i)) ;
@@ -138,6 +140,8 @@ namespace phardi {
         for (l=0; l < degree; l+=dl)
         {
             Col<T> Pm(theta.n_elem);
+
+#pragma omp parallel for
             for (uword i = 0; i < Pm.n_elem; ++i) {
                 // Pm = legendre(l,cos(theta')); % legendre part
                 Pm(i) = boost::math::legendre_p(l, std::cos(theta(i)));
@@ -174,11 +178,13 @@ namespace phardi {
                     }
 
                     // Y(:, center + m) = sqrt(2)*precoeff*Pm(:,m+1).*cos(m*phi);
+#pragma omp parallel for
                     for (uword i = 0; i < phi.n_elem; ++i) {
                         Y(i, center + m) = std::sqrt(2) * precoeff * Pm(m + 1) * std::cos(m * phi(i));
                     }
 
                     // Y(:, center - m) = sqrt(2)*precoeff*Pm(:,m+1).*sin(m*phi);
+#pragma omp parallel for
                     for (uword i = 0; i < phi.n_elem; ++i) {
                         Y(i, center - m) = std::sqrt(2) * precoeff * Pm(m + 1) * std::sin(m * phi(i));
                     }
@@ -248,7 +254,6 @@ namespace phardi {
 
         // Nmin = sum(1:4:2*Lmax+1);
         Nmin = arma::sum(span<Row<T>>(0, 4, 2*Lmax)) ;
-
     }
 
 
@@ -293,6 +298,7 @@ namespace phardi {
         //n = length(qc);
         uword n = qc.n_rows;
 
+#pragma omp parallel for
         for (uword i=0; i < n; ++i)
         {
             // Sampling_grid(qc(i,1),qc(i,2),qc(i,3)) = 1;

@@ -45,7 +45,6 @@ namespace phardi {
 
         using namespace arma;
 
-
         Mat<T> basisG,  Laplac;
         Col<T> Laplac2;
 
@@ -53,6 +52,9 @@ namespace phardi {
         uword Lmax, Nmin;
         T factor1;
         sword m, L;
+
+        std::vector<T> K_v;
+        std::vector<T> Laplac2_v;
 
         obtain_Lmax(diffGrads, Lmax, Nmin);
 
@@ -74,15 +76,21 @@ namespace phardi {
             for (m = -(L); m <= L; ++m)
             {
                 factor1 = boost::math::legendre_p(L, 0.0f) ;
-                K << factor1;
-                Laplac2 << (pow(L, 2))*pow((L+1), 2);
+                K_v.push_back(factor1);
+                Laplac2_v.push_back(pow(L, 2) * pow((L+1.0f), 2));
             }
         }
+
+        Laplac2.set_size(Laplac2_v.size());
+        K.set_size(K_v.size());
+
+        K = conv_to<Col<T>>::from(K_v);
+        Laplac2 = conv_to<Col<T>>::from(Laplac2_v);
+
         Laplac = diagmat(Laplac2);
 
         Kernel = recon_matrix<T>(basisG, Laplac, opts.qbi.lambda);
-        return ;
-
+        return;
     }
 }
 
