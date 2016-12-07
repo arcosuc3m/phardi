@@ -1,7 +1,5 @@
 # README #
 
-
-
 ### Requirements ###
 
 * Armadillo 6.7
@@ -42,13 +40,35 @@ Compulsory arguments (You MUST specify ALL arguments):
 
 Optional arguments (You may optionally specify one or more of):
   --precision, -p    Calculation precision (float|double)
-  --iterations, -i   Number of iterations (default 300)
-  --lambda1          Longitudinal diffusivity value, in units of mm^2/s (default 0.0017)
-  --lambda2          Radial diffusivity value, in units of mm^2/s (default 0.0003)
-  --lambda-csf       Diffusivity value in CSF, in units of mm^2/s (default 0.0030)
-  --lambda-gm        Diffusivity value in GM, in units of mm^2/s (default 0.0007)
   --verbose, -v      Verbose execution details
   --help, -h         Print usage and exit
+
+Related to each reconstruction method:
+
+  RUMBA:
+  --rumba-iterations  RUMBA: Iterations performed (default 300).
+  --rumba-lambda1     RUMBA: Longitudinal diffusivity value, in units of mm^2/s (default 0.0017).
+  --rumba-lambda2     RUMBA: Radial diffusivity value, in units of mm^2/s (default 0.0003).
+  --rumba-lambda-csf  RUMBA: Diffusivity value in CSF, in units of mm^2/s (default 0.0030).
+  --rumba-lambda-gm   RUMBA: Diffusivity value in GM, in units of mm^2/s (default 0.0007).
+  --rumba-noise       RUMBA: Add rician noise.
+
+  QBI:
+  --qbi-lambda        Diffusivity value, in units of mm^2/s  (default 0.006).
+
+  GQI (L1/L2)
+  --gqi-lambda        Diffusivity value, in units of mm^2/s  (default 1.2).
+  --gqi-meandiffdist  Mean diffusion distance ratio (default 1.2).
+
+  DOTR2
+  --dotr2-lambda      Diffusivity value, in units of mm^2/s  (default 0.006).
+  --dotr2-t           T value  (default 20.0e-3).
+  --dotr2-eulergamma  Euler Gamma  (default 0.577216).
+
+  CSA
+  --csa-lambda        Diffusivity value, in units of mm^2/s  (default 0.006).
+
+
 
 Examples:
  phardi -a rumba -k /data/data.nii.gz -m /data/nodif_brain_mask.nii.gz -r /data/bvecs -b /data/bvals --odf /result/
