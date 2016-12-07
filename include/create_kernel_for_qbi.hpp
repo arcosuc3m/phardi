@@ -52,7 +52,7 @@ namespace phardi {
         Col<T> thetaG, thetaV, phiG, phiV;
         uword Lmax, Nmin;
         T factor1;
-        uword m, L;
+        sword m, L;
 
         obtain_Lmax(diffGrads, Lmax, Nmin);
 
@@ -61,17 +61,17 @@ namespace phardi {
             Lmax = 8;
         }
 
-        uvec indb0 = find(sum(diffGrads, 2)==0);
-        uvec indb1 = find(sum(diffGrads, 2)!=0);
+        uvec indb0 = find(sum(diffGrads, 1)==0);
+        uvec indb1 = find(sum(diffGrads, 1)!=0);
 
         construct_SH_basis<T>(Lmax, diffGrads.rows(indb1), 2, "real", thetaG, phiG, basisG);
         construct_SH_basis<T>(Lmax, V, 2, "real", thetaV, phiV, basisV);
 
         K.reset();
         Laplac2.reset();
-        for (L = 0; L < Lmax; L+=2)
+        for (L = 0; L <= Lmax; L+=2)
         {
-            for (m=-(L); m<=L; m++)
+            for (m = -(L); m <= L; ++m)
             {
                 factor1 = boost::math::legendre_p(L, 0.0f) ;
                 K << factor1;

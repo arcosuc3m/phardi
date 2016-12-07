@@ -46,10 +46,10 @@ namespace phardi {
         uvec indb0, indb1 ;
 
         // indb0 = find(sum(diffGrads,2) == 0);
-        indb0 = find(arma::sum(diffGrads, 2)==0);
+        indb0 = find(arma::sum(diffGrads, 1)==0);
 
         //indb1 = find(sum(diffGrads,2) ~= 0);
-        indb1 = find(arma::sum(diffGrads, 2)!=0);
+        indb1 = find(arma::sum(diffGrads, 1)!=0);
 
         if (opts.reconsMethod == GQI_L1)
         {
@@ -70,7 +70,7 @@ namespace phardi {
             x = V * b_matrix.t();
 
             //Kernel = (( (2*cos(x))./x.^2 ) + ( (x.^2-2).*sin(x) )./(x+eps).^3);
-            Kernel = (((2*arma::cos(x))/pow(x, 2))+((pow(x, 2)-2)%arma::sin(x))/pow((x+datum::eps), 3)) ;
+            Kernel = (((2*arma::cos(x))/pow(x, 2))+((pow(x, 2)-2) % sin(x)) / pow((x+datum::eps), 3)) ;
         }
 
         return;

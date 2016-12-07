@@ -297,7 +297,7 @@ namespace phardi {
 
 					// reordering the data such that the b0 image appears first (see lines 152-166)
 					// Idiff(:,:,ind_S0) = [];
-					for (uword i = ind_S0.n_elem - 1; i >= 0; --i)
+					for (sword i = ind_S0.n_elem - 1; i >= 0; --i)
 						Idiff.shed_slice(ind_S0(i));
 
 					//?? Idiff = cat(3,S0_est,Idiff);
@@ -343,10 +343,10 @@ namespace phardi {
                             {
                                 uvec indb0, indb1;
                                 //indb0 = find(sum(diffGrads,2) == 0);
-                                indb0 = find(sum(diffGrads, 2) == 0);
+                                indb0 = find(sum(diffGrads, 1) == 0);
 
                                 //indb1 = find(sum(diffGrads,2) ~= 0);
-                                indb1 = find(sum(diffGrads, 2) != 0);
+                                indb1 = find(sum(diffGrads, 1) != 0);
 
                                 //tempSignal = diffSignal(indb1,:);
                                 Mat<T> tempSignal = diffSignal.rows(indb1);
@@ -354,15 +354,14 @@ namespace phardi {
                                 //if length(indb0)>1
                                 if (indb0.n_elem > 1)
                                     //tempS0 = repmat(mean(diffSignal(indb0,:)),[length(indb1) 1]); % Signal from B0
-                                    tempS0 = repmat(mean(diffSignal.rows(indb1)), indb1.n_elem, 1);
+                                    tempS0 = repmat(mean(diffSignal.rows(indb0)), indb1.n_elem, 1);
                                     //else
                                 else
                                     //tempS0 = repmat(diffSignal(indb0,:),[length(indb1) 1]); % Signal from B0
-                                    tempS0 = repmat(diffSignal.rows(indb1), indb1.n_elem, 1);
+                                    tempS0 = repmat(diffSignal.rows(indb0), indb1.n_elem, 1);
 
                                 // tempVar = -log(tempSignal./tempS0)./repmat(diffBvals(indb1),[1 size(tempSignal,2)]);
-                                Mat<T> tempVar = -log(tempSignal / tempS0) /
-                                                 repmat(diffBvals.rows(indb1), 1, size(tempSignal, 2));
+                                Mat<T> tempVar = -log(tempSignal / tempS0) / repmat(diffBvals.rows(indb1), 1, size(tempSignal, 1));
 
                                 // ADC = abs(tempVar);
                                 Mat<T> ADC = abs(tempVar);
@@ -371,38 +370,38 @@ namespace phardi {
                                 Mat<T> Dt_nonoise = ADC * opts.dotr2.t;
 
                                 //Signal_profile = opts.qbi_dotr2.eulerGamma + log(1./Dt_nonoise);
-                                Mat<T> Signal_profile = opts.dotr2.eulerGamma + log(1 / Dt_nonoise);
+                                Mat<T> Signal_profile = opts.dotr2.eulerGamma + log(1.0 / Dt_nonoise);
 
                                 //coeff0 = Kernel*Signal_profile;
                                 Mat<T> coeff0 = Kernel * Signal_profile;
 
                                 // coeff0 = coeff0./repmat(coeff0(1,:),[size(coeff0,1) 1]);
-                                coeff0 = coeff0 / repmat(coeff0.row(0), size(coeff0, 1), 1);
+                                coeff0 = coeff0 / repmat(coeff0.row(0), size(coeff0, 0), 1);
 
                                 //K_dot_r2(1) = (4/pi)*(2*sqrt(pi))/16;
                                 K_dot_r2(0) = (4 / datum::pi) * (2 * std::sqrt(datum::pi)) / 16.0;
 
                                 //ss = coeff0.*repmat(K_dot_r2,[1 size(coeff0,2)]);
-                                Mat<T> ss = coeff0 % repmat(K_dot_r2, 1, size(coeff0, 2));
+                                Mat<T> ss = coeff0 % repmat(K_dot_r2, 1, size(coeff0, 1));
 
                                 // ODF = basisV*ss;
                                 ODF = basisV * ss;
 
                                 // ODF = ODF - repmat(min(ODF),size(V,1),1);
-                                ODF = ODF - repmat(min(ODF), size(V, 1), 1);
+                                ODF = ODF - repmat(min(ODF,0), size(V, 0), 1);
 
                                 // ODF = ODF./repmat(sum(ODF),size(V,1),1); % normalization
-                                ODF = ODF / repmat(sum(ODF), size(V, 1), 1);
+                                ODF = ODF / repmat(sum(ODF,0), size(V, 0), 1);
                             }
                                 break;
                             case QBI_CSA:
                             {
                                 uvec indb0, indb1;
                                 //indb0 = find(sum(diffGrads,2) == 0);
-                                indb0 = find(sum(diffGrads, 2)==0);
+                                indb0 = find(sum(diffGrads, 1)==0);
 
                                 //indb1 = find(sum(diffGrads,2) ~= 0);
-                                indb1 = find(sum(diffGrads, 2)!=0);
+                                indb1 = find(sum(diffGrads, 1)!=0);
 
                                 //tempSignal = diffSignal(indb1,:);
                                 Mat<T> tempSignal = diffSignal.rows(indb1) ;
@@ -410,11 +409,11 @@ namespace phardi {
                                 //if length(indb0)>1
                                 if (indb0.n_elem > 1)
                                     //tempS0 = repmat(mean(diffSignal(indb0,:)),[length(indb1) 1]); % Signal from B0
-                                    tempS0 = repmat(mean(diffSignal.rows(indb1)), indb1.n_elem, 1);
+                                    tempS0 = repmat(mean(diffSignal.rows(indb0)), indb1.n_elem, 1);
                                     //else
                                 else
                                     //tempS0 = repmat(diffSignal(indb0,:),[length(indb1) 1]); % Signal from B0
-                                    tempS0 = repmat(diffSignal.rows(indb1), indb1.n_elem, 1);
+                                    tempS0 = repmat(diffSignal.rows(indb0), indb1.n_elem, 1);
 
                                 // Signal_profile = log(-log(tempSignal./tempS0));
                                 Mat <T> Signal_profile = log(-log(tempSignal / tempS0));
@@ -423,19 +422,19 @@ namespace phardi {
                                 Mat<T> coeff0 = Kernel * Signal_profile;
 
                                 //coeff0(1,:) = ones(1,size(coeff0,2));
-                                coeff0.row(0) = ones<Row<T>>(size(coeff0, 2));
+                                coeff0.row(0) = ones<Row<T>>(size(coeff0, 1));
 
                                 // ss = coeff0.*repmat(K_csa,[1 size(coeff0,2)]);
-                                Mat<T> ss = coeff0 % repmat (K_csa ,1 , size(coeff0, 2));
+                                Mat<T> ss = coeff0 % repmat (K_csa ,1 , size(coeff0, 1));
 
                                 // ODF = basisV*ss;
                                 ODF = basisV * ss;
 
                                 // ODF = ODF - repmat(min(ODF),size(V,1),1);
-                                ODF = ODF - repmat(min(ODF), size(V, 1), 1);
+                                ODF = ODF - repmat(min(ODF,0), size(V, 0), 1);
 
                                 // ODF = ODF./repmat(sum(ODF),size(V,1),1); % normalization
-                                ODF = ODF/repmat(sum(ODF), size(V, 1), 1);
+                                ODF = ODF/repmat(sum(ODF,0), size(V, 0), 1);
                             }
                                 break;
 							case DSI:
@@ -444,10 +443,10 @@ namespace phardi {
 							{
 								uvec indb0, indb1;
 								//indb0 = find(sum(diffGrads,2) == 0);
-								indb0 = find(sum(diffGrads, 2)==0);
+								indb0 = find(sum(diffGrads, 1)==0);
 
 								//indb1 = find(sum(diffGrads,2) ~= 0);
-								indb1 = find(sum(diffGrads, 2)!=0);
+								indb1 = find(sum(diffGrads, 1)!=0);
 
 								//tempSignal = diffSignal(indb1,:);
 								Mat<T> tempSignal = diffSignal.rows(indb1) ;
@@ -455,11 +454,11 @@ namespace phardi {
 								//if length(indb0)>1
 								if (indb0.n_elem > 1)
 								    //tempS0 = repmat(mean(diffSignal(indb0,:)),[length(indb1) 1]); % Signal from B0
-									tempS0 = repmat(mean(diffSignal.rows(indb1)), indb1.n_elem, 1);
+									tempS0 = repmat(mean(diffSignal.rows(indb0)), indb1.n_elem, 1);
 								//else
 								else
 								    //tempS0 = repmat(diffSignal(indb0,:),[length(indb1) 1]); % Signal from B0
-									tempS0 = repmat(diffSignal.rows(indb1), indb1.n_elem, 1);
+									tempS0 = repmat(diffSignal.rows(indb0), indb1.n_elem, 1);
 								//end
 								//tempSignal = tempSignal./tempS0;
 								tempSignal = tempSignal / tempS0;
@@ -468,20 +467,20 @@ namespace phardi {
 								ODF = Kernel * tempSignal;
 
 								//ODF = ODF - repmat(min(ODF),size(V,1),1);
-								ODF = ODF - repmat(min(ODF), size(V, 1), 1);
+								ODF = ODF - repmat(min(ODF, 0), size(V, 0), 1);
 
 								//ODF = ODF./repmat(sum(ODF),size(V,1),1); % normalization
-								ODF = ODF/repmat(sum(ODF), size(V, 1), 1);
+								ODF = ODF/repmat(sum(ODF, 0), size(V, 0), 1);
 							}
 								break;
                             case GQI_L2:
 							{
 								uvec indb0, indb1;
 								//indb0 = find(sum(diffGrads,2) == 0);
-								indb0 = find(sum(diffGrads, 2)==0);
+								indb0 = find(sum(diffGrads, 1)==0);
 
 								//indb1 = find(sum(diffGrads,2) ~= 0);
-								indb1 = find(sum(diffGrads, 2)!=0);
+								indb1 = find(sum(diffGrads, 1)!=0);
 
 								//tempSignal = diffSignal(indb1,:);
 								Mat<T> tempSignal = diffSignal.rows(indb1) ;
@@ -489,23 +488,23 @@ namespace phardi {
 								//if length(indb0)>1
 								if (indb0.n_elem > 1)
 									//tempS0 = repmat(mean(diffSignal(indb0,:)),[length(indb1) 1]); % Signal from B0
-									tempS0 = repmat(mean(diffSignal.rows(indb1)), indb1.n_elem, 1);
+									tempS0 = repmat(mean(diffSignal.rows(indb0)), indb1.n_elem, 1);
 									//else
 								else
 									//tempS0 = repmat(diffSignal(indb0,:),[length(indb1) 1]); % Signal from B0
-									tempS0 = repmat(diffSignal.rows(indb1), indb1.n_elem, 1);
+									tempS0 = repmat(diffSignal.rows(indb0), indb1.n_elem, 1);
 								//end
 								//tempSignal = tempSignal./tempS0;
 								tempSignal = tempSignal / tempS0;
 
-								//ODF = Kernel*tempSignal;
+								//ODF = Kernel*tempSignal*opts.gqi_l2.lambda^3/pi;
 								ODF = Kernel * tempSignal * pow(opts.gqi.lambda, 3) / datum::pi;
 
 								//ODF = ODF - repmat(min(ODF),size(V,1),1);
-								ODF = ODF - repmat(min(ODF), size(V, 1), 1);
+								ODF = ODF - repmat(min(ODF,0), size(V, 0), 1);
 
 								//ODF = ODF./repmat(sum(ODF),size(V,1),1); % normalization
-								ODF = ODF/repmat(sum(ODF), size(V, 1), 1);
+								ODF = ODF/repmat(sum(ODF,0), size(V, 0), 1);
 							}
                                 break;
                             case QBI:
@@ -514,10 +513,10 @@ namespace phardi {
                                 Mat<T> coeff, ss;
 
                                 // indb0 = find(sum(diffGrads,2) == 0);
-                                indb0 = find(sum(diffGrads, 2)==0);
+                                indb0 = find(sum(diffGrads, 1)==0);
 
                                 // indb1 = find(sum(diffGrads,2) ~= 0);
-                                indb1 = find(sum(diffGrads, 2)!=0);
+                                indb1 = find(sum(diffGrads, 1)!=0);
 
                                 // coeff = Kernel*diffSignal(indb1,:);
                                 coeff = Kernel * diffSignal.rows(indb1);
@@ -529,10 +528,10 @@ namespace phardi {
                                 ODF = basisV * ss;
 
                                 // ODF = ODF - repmat(min(ODF),size(V,1),1);
-                                ODF = ODF - repmat(min(ODF), size(V, 1), 1);
+                                ODF = ODF - repmat(min(ODF,0), size(V, 0), 1);
 
                                 // ODF = ODF./repmat(sum(ODF),size(V,1),1); % normalization
-                                ODF = ODF/repmat(sum(ODF), size(V, 1), 1);
+                                ODF = ODF/repmat(sum(ODF,0), size(V, 0), 1);
                             }
                                 break;
 							case RUMBA_SD:
@@ -757,13 +756,201 @@ namespace phardi {
 
 					Mat<T> ODF;
 					switch (opts.reconsMethod) {
-                        case DSI:
-                            break;
-                        case GQI_L1:
-                        case GQI_L2:
-                            break;
-                        case QBI:
-                            break;
+						case QBI_DOTR2:
+						{
+							uvec indb0, indb1;
+							//indb0 = find(sum(diffGrads,2) == 0);
+							indb0 = find(sum(diffGrads, 1) == 0);
+
+							//indb1 = find(sum(diffGrads,2) ~= 0);
+							indb1 = find(sum(diffGrads, 1) != 0);
+
+							//tempSignal = diffSignal(indb1,:);
+							Mat<T> tempSignal = diffSignal.rows(indb1);
+							Mat<T> tempS0;
+							//if length(indb0)>1
+							if (indb0.n_elem > 1)
+								//tempS0 = repmat(mean(diffSignal(indb0,:)),[length(indb1) 1]); % Signal from B0
+								tempS0 = repmat(mean(diffSignal.rows(indb0)), indb1.n_elem, 1);
+								//else
+							else
+								//tempS0 = repmat(diffSignal(indb0,:),[length(indb1) 1]); % Signal from B0
+								tempS0 = repmat(diffSignal.rows(indb0), indb1.n_elem, 1);
+
+							// tempVar = -log(tempSignal./tempS0)./repmat(diffBvals(indb1),[1 size(tempSignal,2)]);
+							Mat<T> tempVar = -log(tempSignal / tempS0) / repmat(diffBvals.rows(indb1), 1, size(tempSignal, 1));
+
+							// ADC = abs(tempVar);
+							Mat<T> ADC = abs(tempVar);
+
+							//Dt_nonoise = ADC*opts.qbi_dotr2.t;
+							Mat<T> Dt_nonoise = ADC * opts.dotr2.t;
+
+							//Signal_profile = opts.qbi_dotr2.eulerGamma + log(1./Dt_nonoise);
+							Mat<T> Signal_profile = opts.dotr2.eulerGamma + log(1.0 / Dt_nonoise);
+
+							//coeff0 = Kernel*Signal_profile;
+							Mat<T> coeff0 = Kernel * Signal_profile;
+
+							// coeff0 = coeff0./repmat(coeff0(1,:),[size(coeff0,1) 1]);
+							coeff0 = coeff0 / repmat(coeff0.row(0), size(coeff0, 0), 1);
+
+							//K_dot_r2(1) = (4/pi)*(2*sqrt(pi))/16;
+							K_dot_r2(0) = (4 / datum::pi) * (2 * std::sqrt(datum::pi)) / 16.0;
+
+							//ss = coeff0.*repmat(K_dot_r2,[1 size(coeff0,2)]);
+							Mat<T> ss = coeff0 % repmat(K_dot_r2, 1, size(coeff0, 1));
+
+							// ODF = basisV*ss;
+							ODF = basisV * ss;
+
+							// ODF = ODF - repmat(min(ODF),size(V,1),1);
+							ODF = ODF - repmat(min(ODF,0), size(V, 0), 1);
+
+							// ODF = ODF./repmat(sum(ODF),size(V,1),1); % normalization
+							ODF = ODF / repmat(sum(ODF,0), size(V, 0), 1);
+						}
+							break;
+						case QBI_CSA:
+						{
+							uvec indb0, indb1;
+							//indb0 = find(sum(diffGrads,2) == 0);
+							indb0 = find(sum(diffGrads, 1)==0);
+
+							//indb1 = find(sum(diffGrads,2) ~= 0);
+							indb1 = find(sum(diffGrads, 1)!=0);
+
+							//tempSignal = diffSignal(indb1,:);
+							Mat<T> tempSignal = diffSignal.rows(indb1) ;
+							Mat<T> tempS0;
+							//if length(indb0)>1
+							if (indb0.n_elem > 1)
+								//tempS0 = repmat(mean(diffSignal(indb0,:)),[length(indb1) 1]); % Signal from B0
+								tempS0 = repmat(mean(diffSignal.rows(indb0)), indb1.n_elem, 1);
+								//else
+							else
+								//tempS0 = repmat(diffSignal(indb0,:),[length(indb1) 1]); % Signal from B0
+								tempS0 = repmat(diffSignal.rows(indb0), indb1.n_elem, 1);
+
+							// Signal_profile = log(-log(tempSignal./tempS0));
+							Mat <T> Signal_profile = log(-log(tempSignal / tempS0));
+
+							// coeff0 = Kernel*Signal_profile;
+							Mat<T> coeff0 = Kernel * Signal_profile;
+
+							//coeff0(1,:) = ones(1,size(coeff0,2));
+							coeff0.row(0) = ones<Row<T>>(size(coeff0, 1));
+
+							// ss = coeff0.*repmat(K_csa,[1 size(coeff0,2)]);
+							Mat<T> ss = coeff0 % repmat (K_csa ,1 , size(coeff0, 1));
+
+							// ODF = basisV*ss;
+							ODF = basisV * ss;
+
+							// ODF = ODF - repmat(min(ODF),size(V,1),1);
+							ODF = ODF - repmat(min(ODF,0), size(V, 0), 1);
+
+							// ODF = ODF./repmat(sum(ODF),size(V,1),1); % normalization
+							ODF = ODF/repmat(sum(ODF,0), size(V, 0), 1);
+						}
+							break;
+						case DSI:
+							break;
+						case GQI_L1:
+						{
+							uvec indb0, indb1;
+							//indb0 = find(sum(diffGrads,2) == 0);
+							indb0 = find(sum(diffGrads, 1)==0);
+
+							//indb1 = find(sum(diffGrads,2) ~= 0);
+							indb1 = find(sum(diffGrads, 1)!=0);
+
+							//tempSignal = diffSignal(indb1,:);
+							Mat<T> tempSignal = diffSignal.rows(indb1) ;
+							Mat<T> tempS0;
+							//if length(indb0)>1
+							if (indb0.n_elem > 1)
+								//tempS0 = repmat(mean(diffSignal(indb0,:)),[length(indb1) 1]); % Signal from B0
+								tempS0 = repmat(mean(diffSignal.rows(indb0)), indb1.n_elem, 1);
+								//else
+							else
+								//tempS0 = repmat(diffSignal(indb0,:),[length(indb1) 1]); % Signal from B0
+								tempS0 = repmat(diffSignal.rows(indb0), indb1.n_elem, 1);
+							//end
+							//tempSignal = tempSignal./tempS0;
+							tempSignal = tempSignal / tempS0;
+
+							//ODF = Kernel*tempSignal;
+							ODF = Kernel * tempSignal;
+
+							//ODF = ODF - repmat(min(ODF),size(V,1),1);
+							ODF = ODF - repmat(min(ODF, 0), size(V, 0), 1);
+
+							//ODF = ODF./repmat(sum(ODF),size(V,1),1); % normalization
+							ODF = ODF/repmat(sum(ODF, 0), size(V, 0), 1);
+						}
+							break;
+						case GQI_L2:
+						{
+							uvec indb0, indb1;
+							//indb0 = find(sum(diffGrads,2) == 0);
+							indb0 = find(sum(diffGrads, 1)==0);
+
+							//indb1 = find(sum(diffGrads,2) ~= 0);
+							indb1 = find(sum(diffGrads, 1)!=0);
+
+							//tempSignal = diffSignal(indb1,:);
+							Mat<T> tempSignal = diffSignal.rows(indb1) ;
+							Mat<T> tempS0;
+							//if length(indb0)>1
+							if (indb0.n_elem > 1)
+								//tempS0 = repmat(mean(diffSignal(indb0,:)),[length(indb1) 1]); % Signal from B0
+								tempS0 = repmat(mean(diffSignal.rows(indb0)), indb1.n_elem, 1);
+								//else
+							else
+								//tempS0 = repmat(diffSignal(indb0,:),[length(indb1) 1]); % Signal from B0
+								tempS0 = repmat(diffSignal.rows(indb0), indb1.n_elem, 1);
+							//end
+							//tempSignal = tempSignal./tempS0;
+							tempSignal = tempSignal / tempS0;
+
+							//ODF = Kernel*tempSignal*opts.gqi_l2.lambda^3/pi;
+							ODF = Kernel * tempSignal * pow(opts.gqi.lambda, 3) / datum::pi;
+
+							//ODF = ODF - repmat(min(ODF),size(V,1),1);
+							ODF = ODF - repmat(min(ODF,0), size(V, 0), 1);
+
+							//ODF = ODF./repmat(sum(ODF),size(V,1),1); % normalization
+							ODF = ODF/repmat(sum(ODF,0), size(V, 0), 1);
+						}
+							break;
+						case QBI:
+						{
+							uvec indb0, indb1;
+							Mat<T> coeff, ss;
+
+							// indb0 = find(sum(diffGrads,2) == 0);
+							indb0 = find(sum(diffGrads, 1)==0);
+
+							// indb1 = find(sum(diffGrads,2) ~= 0);
+							indb1 = find(sum(diffGrads, 1)!=0);
+
+							// coeff = Kernel*diffSignal(indb1,:);
+							coeff = Kernel * diffSignal.rows(indb1);
+
+							// ss = coeff.*repmat(K,[1 size(coeff,2)]);
+							ss = coeff % repmat(K, 1, size(coeff,2));
+
+							// ODF = basisV*ss;
+							ODF = basisV * ss;
+
+							// ODF = ODF - repmat(min(ODF),size(V,1),1);
+							ODF = ODF - repmat(min(ODF,0), size(V, 0), 1);
+
+							// ODF = ODF./repmat(sum(ODF),size(V,1),1); % normalization
+							ODF = ODF/repmat(sum(ODF,0), size(V, 0), 1);
+						}
+							break;
 						case RUMBA_SD:
 							// fODF0 = ones(size(Kernel,2),1);
 							Mat<T> fODF0(Kernel.n_cols,1);

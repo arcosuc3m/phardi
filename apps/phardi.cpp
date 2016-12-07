@@ -26,8 +26,8 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constants.hpp"
 #include "multi_intravox_fiber_reconstruction.hpp"
 #include "config.hpp"
+#include <stdlib.h>
 
-#include <arrayfire.h>
 #include <plog/Log.h>
 #include <plog/Appenders/ColorConsoleAppender.h>
 #include <iostream>
@@ -89,7 +89,7 @@ const option::Descriptor usage[] =
     {UNKNOWN, 0, "", "",option::Arg::None, "USAGE: phardi [options]\n\n"
         "Options:" },
     {HELP, 0,"h", "help",option::Arg::None, "  --help, -h  \tPrint usage and exit." },
-    {RECONS, 0,"a","alg",Arg::Required, "  --alg, -a  \tReconstruction method (rumba, dsi, qbi, gqi_l1, gpi_l2, dotr2, csa)." },
+    {RECONS, 0,"a","alg",Arg::Required, "  --alg, -a  \tReconstruction method (rumba, dsi, qbi, gqi_l1, gqi_l2, dotr2, csa)." },
     {READ, 0,"d", "dataread",Arg::NonEmpty, "  --dataread, -d \tData reading method (slices|volume)." },
     {DATA, 0,"k","data",Arg::Required, "  --data, -k  \tData file." },
     {MASK, 0,"m","mask",Arg::Required, "  --mask, -m  \tBinary mask file." },
@@ -234,9 +234,9 @@ int main(int argc, char ** argv) {
         opts.reconsMethod        = QBI_CSA;
     else if (recons == "qbi")
         opts.reconsMethod        = QBI;
-    else if (recons == "gpi_l1")
+    else if (recons == "gqi_l1")
         opts.reconsMethod        = GQI_L1;
-    else if (recons == "gpi_l2")
+    else if (recons == "gqi_l2")
         opts.reconsMethod        = GQI_L2;
     else  {
         LOG_ERROR << "Method not recognized";

@@ -112,7 +112,7 @@ namespace phardi {
         uword n, l, m;
 
         // n = size(sphere_points,1);  % number of points
-        n = size(sphere_points, 1);
+        n = size(sphere_points, 0);
 
         phi.resize(n);
         theta.resize(n);
@@ -339,14 +339,13 @@ namespace phardi {
         YY = Y.t() * Y;
 
         // N = size(Y,1);
-        N = size(Y, 1);
+        //N = size(YY, 0);
 
-        //I = diag(ones(N,1));
-        I = diagmat(ones<Col<T>>(N));
+        // I = diag(ones(N,1));
+        //I = diagmat(ones<uvec>(N));
 
         // A = (YY + Lambda*L)\Y';
-        A = solve (YY + Lambda * L, Y.t());
-
+        A = solve (YY + Lambda * L, Y.t(), solve_opts::equilibrate);
         return A ;
     }
 }

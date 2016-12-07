@@ -107,9 +107,9 @@ namespace phardi {
         // end
 
         Laplac2.reset() ;
-        for (size_t L=0; L < opts.dsi.lmax; L+=2)
+        for (sword L=0; L <= opts.dsi.lmax; L+=2)
         {
-            for (size_t m=-(L); m < L; ++m)
+            for (sword m=-(L); m <= L; ++m)
             {
                 Laplac2 << (pow(L, 2))*pow((L+1), 2);
             }
