@@ -939,7 +939,7 @@ namespace phardi {
 							coeff = Kernel * diffSignal.rows(indb1);
 
 							// ss = coeff.*repmat(K,[1 size(coeff,2)]);
-							ss = coeff % repmat(K, 1, size(coeff,2));
+							ss = coeff % repmat(K, 1, size(coeff,1));
 
 							// ODF = basisV*ss;
 							ODF = basisV * ss;
