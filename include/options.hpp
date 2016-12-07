@@ -43,7 +43,7 @@ namespace phardi {
         arma::uword rmin;
         arma::uword resolution;
         arma::uword lmax;
-        arma::uword lreg;
+        double lreg;
         arma::uword boxhalfwidth;
     };
 
