@@ -103,18 +103,17 @@ const option::Descriptor usage[] =
     {OP_RUMBA_LAMBDA2, 0,"","rumba-lambda2",Arg::Numeric, "  --rumba-lambda2 \tRUMBA: Radial diffusivity value, in units of mm^2/s (default 0.0003)." },
     {OP_RUMBA_LAMBDA_CSF, 0,"","rumba-lambda-csf",Arg::Numeric, "  --rumba-lambda-csf  \tRUMBA: Diffusivity value in CSF, in units of mm^2/s  (default 0.0030)." },
     {OP_RUMBA_LAMBDA_GM, 0,"","rumba-lambda-gm",Arg::Numeric, "  --rumba-lambda-gm \tRUMBA: Diffusivity value in GM, in units of mm^2/s  (default 0.0007)." },
-    {OP_RUMBA_NOISE, 0,"","rumba-noise",option::Arg::None, "  --rumba-noise \tRUMBA: Add rician noise." },
 
-    {OP_QBI_LAMBDA, 0,"","qbi-lambda",Arg::Numeric, "  --qbi-lambda  \tQBI: Diffusivity value, in units of mm^2/s  (default 0.006)." },
+    {OP_QBI_LAMBDA, 0,"","qbi-lambda",Arg::Numeric, "  --qbi-lambda  \tQBI: Regularization parameter  (default 0.006)." },
 
-    {OP_GQI_LAMBDA, 0,"","gqi-lambda",Arg::Numeric, "  --gqi-lambda  \tGQI: Diffusivity value, in units of mm^2/s  (default 1.2)." },
+    {OP_GQI_LAMBDA, 0,"","gqi-lambda",Arg::Numeric, "  --gqi-lambda  \tGQI: Regularization parameter  (default 1.2)." },
     {OP_GQI_MDDR, 0,"","gqi-meandiffdist ",Arg::Numeric, "  --gqi-meandiffdist  \tGQI: Mean diffusion distance ratio (default 1.2)." },
 
-    {OP_DOTR2_LAMBDA, 0,"","dotr2-lambda",Arg::Numeric, "  --dotr2-lambda  \tDOTR2: Diffusivity value, in units of mm^2/s  (default 0.006)." },
+    {OP_DOTR2_LAMBDA, 0,"","dotr2-lambda",Arg::Numeric, "  --dotr2-lambda  \tDOTR2: Regularization parameter  (default 0.006)." },
     {OP_DOTR2_T, 0,"","dotr2-t",Arg::Numeric, "  --dotr2-t  \tDOTR2: T value  (default 20.0e-3)." },
     {OP_DOTR2_EULER, 0,"","dotr2-eulergamma",Arg::Numeric, "  --dotr2-eulergamma  \tDOTR2: Euler Gamma  (default 0.577216)." },
 
-    {OP_CSA_LAMBDA, 0,"","csa-lambda",Arg::Numeric, "  --csa-lambda \tCSA: Diffusivity value, in units of mm^2/s  (default 0.006)." },
+    {OP_CSA_LAMBDA, 0,"","csa-lambda",Arg::Numeric, "  --csa-lambda \tCSA: Regularization parameter  (default 0.006)." },
 
     {DEBUG, 0,"v","verbose",option::Arg::None, "  --verbose, -v  \tVerbose execution details." },
 

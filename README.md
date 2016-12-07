@@ -31,17 +31,17 @@ USAGE: phardi [options]
 
 Options:
 Compulsory arguments (You MUST specify ALL arguments):
-  --alg, -a          Reconstruction method (rumba, qbi, gqi_l1, gqi_l2, dotr2, csa)
-  --data, -k         Data file
-  --mask, -m         Binary mask file
-  --bvecs, -r        b-vectors file
-  --bvals, -b        b-values file
-  --odf, -o          Output path
+  --alg, -a           Reconstruction method (rumba, qbi, gqi_l1, gqi_l2, dotr2, csa)
+  --data, -k          Data file
+  --mask, -m          Binary mask file
+  --bvecs, -r         b-vectors file
+  --bvals, -b         b-values file
+  --odf, -o           Output path
 
 Optional arguments (You may optionally specify one or more of):
-  --precision, -p    Calculation precision (float|double)
-  --verbose, -v      Verbose execution details
-  --help, -h         Print usage and exit
+  --precision, -p     Calculation precision (float|double)
+  --verbose, -v       Verbose execution details
+  --help, -h          Print usage and exit
 
 Related to each reconstruction method:
 
@@ -54,19 +54,19 @@ Related to each reconstruction method:
   --rumba-noise       Add rician noise.
 
   QBI:
-  --qbi-lambda        Diffusivity value, in units of mm^2/s  (default 0.006).
+  --qbi-lambda        Regularization parameter (default 0.006).
 
   GQI (L1/L2)
-  --gqi-lambda        Diffusivity value, in units of mm^2/s  (default 1.2).
+  --gqi-lambda        Regularization parameter (default 1.2).
   --gqi-meandiffdist  Mean diffusion distance ratio (default 1.2).
 
   DOTR2
-  --dotr2-lambda      Diffusivity value, in units of mm^2/s  (default 0.006).
+  --dotr2-lambda      Regularization parameter (default 0.006).
   --dotr2-t           T value  (default 20.0e-3).
   --dotr2-eulergamma  Euler Gamma  (default 0.577216).
 
   CSA
-  --csa-lambda        Diffusivity value, in units of mm^2/s  (default 0.006).
+  --csa-lambda        Regularization parameter (default 0.006).
 
 
 

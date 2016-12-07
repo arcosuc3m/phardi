@@ -361,6 +361,76 @@ namespace phardi {
         A = solve (YY + Lambda * L, Y.t(), solve_opts::equilibrate);
         return A ;
     }
+
+    // div - divergence operator
+    template <typename T>
+    arma::Mat<T> div(const arma::Cube<T>& P)
+    {
+
+
+        // Px = squeeze(P(:,:,:,1));
+        // Py = squeeze(P(:,:,:,2));
+        // Pz = squeeze(P(:,:,:,3));
+
+        // fx = Px-Px([1 1:end-1],:,:);
+        // fx(1,:,:)   = Px(1,:,:);    % boundary
+        // fx(end,:,:) = -Px(end-1,:,:);
+        // ---
+        // fy = Py-Py(:,[1 1:end-1],:);
+        // fy(:,1,:)   = Py(:,1,:);    % boundary
+        // fy(:,end,:) = -Py(:,end-1,:);
+        // ---
+        // fz = Pz-Pz(:,:,[1 1:end-1]);
+        // fz(:,:,1)   = Pz(:,:,1);    % boundary
+        // fz(:,:,end) = -Pz(:,:,end-1);
+        //  ---
+        // fd = fx+fy+fz;
+
+        return fd;
+
+/*
+        TYPE Px, Py, Pz, fd, fx, fy, fz ;
+        Px = squeeze(P(m2cpp::span<uvec>(0, P.n_rows-1), m2cpp::span<uvec>(0, P.n_cols-1), m2cpp::span<uvec>(0, P.n_slices-1), 1)) ;
+        Py = squeeze(P(m2cpp::span<uvec>(0, P.n_rows-1), m2cpp::span<uvec>(0, P.n_cols-1), m2cpp::span<uvec>(0, P.n_slices-1), 2)) ;
+        Pz = squeeze(P(m2cpp::span<uvec>(0, P.n_rows-1), m2cpp::span<uvec>(0, P.n_cols-1), m2cpp::span<uvec>(0, P.n_slices-1), 3)) ;
+
+
+        fx = Px-Px(arma::join_rows(m2cpp::srow<double>(1), m2cpp::span<rowvec>(1, Px.n_cols-1)), m2cpp::span<uvec>(0, Px.n_cols-1), m2cpp::span<uvec>(0, Px.n_slices-1)) ;
+        fx(1, m2cpp::span<uvec>(0, fx.n_cols-1), m2cpp::span<uvec>(0, fx.n_slices-1)) = Px(1, m2cpp::span<uvec>(0, Px.n_cols-1), m2cpp::span<uvec>(0, Px.n_slices-1)) ;
+        fx(fx.n_rows, m2cpp::span<uvec>(0, fx.n_cols-1), m2cpp::span<uvec>(0, fx.n_slices-1)) = -(Px(Px.n_rows-1, m2cpp::span<uvec>(0, Px.n_cols-1), m2cpp::span<uvec>(0, Px.n_slices-1))) ;
+        fy = Py-Py(m2cpp::span<uvec>(0, Py.n_rows-1), arma::join_rows(m2cpp::srow<double>(1), m2cpp::span<rowvec>(1, Py.n_cols-1)), m2cpp::span<uvec>(0, Py.n_slices-1)) ;
+        fy(m2cpp::span<uvec>(0, fy.n_rows-1), 1, m2cpp::span<uvec>(0, fy.n_slices-1)) = Py(m2cpp::span<uvec>(0, Py.n_rows-1), 1, m2cpp::span<uvec>(0, Py.n_slices-1)) ;
+        fy(m2cpp::span<uvec>(0, fy.n_rows-1), fy.n_cols, m2cpp::span<uvec>(0, fy.n_slices-1)) = -(Py(m2cpp::span<uvec>(0, Py.n_rows-1), Py.n_cols-1, m2cpp::span<uvec>(0, Py.n_slices-1))) ;
+        fz = Pz-Pz(m2cpp::span<uvec>(0, Pz.n_rows-1), m2cpp::span<uvec>(0, Pz.n_cols-1), arma::join_rows(m2cpp::srow<double>(1), m2cpp::span<rowvec>(1, Pz.n_cols-1))) ;
+        fz(m2cpp::span<uvec>(0, fz.n_rows-1), m2cpp::span<uvec>(0, fz.n_cols-1), 1) = Pz(m2cpp::span<uvec>(0, Pz.n_rows-1), m2cpp::span<uvec>(0, Pz.n_cols-1), 1) ;
+        fz(m2cpp::span<uvec>(0, fz.n_rows-1), m2cpp::span<uvec>(0, fz.n_cols-1), fz.n_slices) = -(Pz(m2cpp::span<uvec>(0, Pz.n_rows-1), m2cpp::span<uvec>(0, Pz.n_cols-1), Pz.n_slices-1)) ;
+        fd = fx+fy+fz ;
+        return fd ;*/
+    }
+
+    // grad - gradient operator
+    TYPE grad(const arma::Cube<T>& M)
+    {
+        using namespace arma;
+
+        Mat<T> fx, fy, fz;
+
+        // fx = M([2:end end],:,:)-M;
+        fx = M(join_rows(span<rowvec>(2, M.n_cols), m2cpp::srow<double>(M.n_cols)), m2cpp::span<uvec>(0, M.n_cols-1), m2cpp::span<uvec>(0, M.n_slices-1))-M ;
+        // fy = M(:,[2:end end],:)-M;
+        // fz = M(:,:,[2:end end])-M;
+
+        //fxyz = cat(4,fx,fy,fz);
+
+        TYPE fx, fxyz, fy, fz ;
+        fx = M(arma::join_rows(m2cpp::span<rowvec>(2, M.n_cols), m2cpp::srow<double>(M.n_cols)), m2cpp::span<uvec>(0, M.n_cols-1), m2cpp::span<uvec>(0, M.n_slices-1))-M ;
+        fy = M(m2cpp::span<uvec>(0, M.n_rows-1), arma::join_rows(m2cpp::span<rowvec>(2, M.n_cols), m2cpp::srow<double>(M.n_cols)), m2cpp::span<uvec>(0, M.n_slices-1))-M ;
+        fz = M(m2cpp::span<uvec>(0, M.n_rows-1), m2cpp::span<uvec>(0, M.n_cols-1), arma::join_rows(m2cpp::span<rowvec>(2, M.n_cols), m2cpp::srow<double>(M.n_cols)))-M ;
+        fxyz = cat(4, fx, fy, fz) ;
+        return fxyz ;
+    }
+
+
 }
 
 #endif
