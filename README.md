@@ -46,12 +46,12 @@ Optional arguments (You may optionally specify one or more of):
 Related to each reconstruction method:
 
   RUMBA:
-  --rumba-iterations  RUMBA: Iterations performed (default 300).
-  --rumba-lambda1     RUMBA: Longitudinal diffusivity value, in units of mm^2/s (default 0.0017).
-  --rumba-lambda2     RUMBA: Radial diffusivity value, in units of mm^2/s (default 0.0003).
-  --rumba-lambda-csf  RUMBA: Diffusivity value in CSF, in units of mm^2/s (default 0.0030).
-  --rumba-lambda-gm   RUMBA: Diffusivity value in GM, in units of mm^2/s (default 0.0007).
-  --rumba-noise       RUMBA: Add rician noise.
+  --rumba-iterations  Iterations performed (default 300).
+  --rumba-lambda1     Longitudinal diffusivity value, in units of mm^2/s (default 0.0017).
+  --rumba-lambda2     Radial diffusivity value, in units of mm^2/s (default 0.0003).
+  --rumba-lambda-csf  Diffusivity value in CSF, in units of mm^2/s (default 0.0030).
+  --rumba-lambda-gm   Diffusivity value in GM, in units of mm^2/s (default 0.0007).
+  --rumba-noise       Add rician noise.
 
   QBI:
   --qbi-lambda        Diffusivity value, in units of mm^2/s  (default 0.006).
