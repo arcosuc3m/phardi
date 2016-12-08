@@ -81,6 +81,7 @@ namespace phardi {
         Mat<T> yi(V.n_rows,r.n_elem);
         Mat<T> zi(V.n_rows,r.n_elem);
 
+#pragma omp parallel for
         for (uword m = 0; m < V.n_rows; ++m) {
             xi.row(m) = center_of_image + r * V(m, 1);
             yi.row(m) = center_of_image + r * V(m, 0);

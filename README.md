@@ -5,9 +5,8 @@
 * Armadillo 6.7
 * ITK 4.9
 * GCC 4.9
-* Boost 1.40 (component math: usage of legendre)
 * OpenBLAS (for multicore parallelism)
-* LaPack
+* LaPack (for multicore parallelism)
 
 ### How do I get set up? ###
 

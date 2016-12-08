@@ -26,7 +26,6 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <armadillo>
 #include <math.h>
-#include <boost/math/special_functions/legendre.hpp>
 
 namespace phardi {
 
@@ -90,6 +89,28 @@ namespace phardi {
         return n * factorial(n - 1);
     }
 
+    template <typename T>
+    T legendre(const arma::uword n, const T x)
+    {
+        T result = 0;
+
+        if (n == 0)
+        {
+            result = 0.0f;
+        }
+        else if (n == 1)
+        {
+            result =  1.0f;
+        }
+
+        else {
+            result = (2.0*n-1.0)/n * x * legendre(n-1,x) - (n-1)/n * legendre(n-2,x);
+        }
+
+        return result;
+    }
+
+
     // Construct spherical harmonics basis matrix at specified points.
     // SYNTAX: [basis] = construct_SH_basis(degree, sphere_points, dl, real_or_complex);
     //
@@ -151,7 +172,7 @@ namespace phardi {
 #pragma omp parallel for
             for (uword i = 0; i < Pm.n_elem; ++i) {
                 // Pm = legendre(l,cos(theta')); % legendre part
-                Pm(i) = boost::math::legendre_p(l, std::cos(theta(i)));
+                Pm(i) = legendre(l, std::cos(theta(i)));
             }
 
             // lconstant = sqrt((2*l + 1)/(4*pi));
@@ -370,6 +391,7 @@ namespace phardi {
         }
 
         // y = x(idx{:});
+#pragma omp parallel for
         for (uword i = 0; i < x.n_rows; ++i)
             for (uword j = 0; j < x.n_cols; ++j)
                 for (uword k = 0; k < x.n_slices; ++k)
@@ -399,6 +421,7 @@ namespace phardi {
         }
 
         // y = x(idx{:});
+#pragma omp parallel for
         for (uword i = 0; i < x.n_rows; ++i)
             for (uword j = 0; j < x.n_cols; ++j)
                 for (uword k = 0; k < x.n_slices; ++k)
