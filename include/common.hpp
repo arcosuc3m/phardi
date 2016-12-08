@@ -335,9 +335,10 @@ namespace phardi {
         Nz = Signal.n_slices;
 
 #pragma omp parallel for
-        for (uword i = 0; i < Nx; ++i)
+        for (uword j = 0; j < Ny; ++j)
         {
-            for (uword j = 0; j < Ny; ++j)
+
+            for (uword i = 0; i < Nx; ++i)
             {
                 Col<T> in = Signal(arma::span(i), arma::span(j), span::all);
                 Col<std::complex<T>> out = fft(in);
@@ -346,9 +347,9 @@ namespace phardi {
         }
 
 #pragma omp parallel for
-        for (uword i = 0; i < Nx; ++i)
+        for (uword k = 0; k < Nz; ++k)
         {
-            for (uword k = 0; k < Nz; ++k)
+            for (uword i = 0; i < Nx; ++i)
             {
                 Mat<std::complex<T>> in = A(arma::span(i), span::all , arma::span(k));
                 Mat<std::complex<T>> out = fft(in);
@@ -357,9 +358,9 @@ namespace phardi {
         }
 
 #pragma omp parallel for
-        for (uword j = 0; j < Ny; ++j)
+        for (uword k = 0; k < Nz; ++k)
         {
-            for (uword k = 0; k < Nz; ++k)
+            for (uword j = 0; j < Ny; ++j)
             {
                 Mat<std::complex<T>> in = B(span::all, arma::span(j), arma::span(k));
                 Mat<std::complex<T>> out = fft(in);
@@ -392,9 +393,9 @@ namespace phardi {
 
         // y = x(idx{:});
 #pragma omp parallel for
-        for (uword i = 0; i < x.n_rows; ++i)
+        for (uword k = 0; k < x.n_slices; ++k)
             for (uword j = 0; j < x.n_cols; ++j)
-                for (uword k = 0; k < x.n_slices; ++k)
+                for (uword i = 0; i < x.n_rows; ++i)
                     y(i,j,k) = x(idx[0](i),idx[1](j),idx[2](k));
 
         return y;
@@ -422,9 +423,9 @@ namespace phardi {
 
         // y = x(idx{:});
 #pragma omp parallel for
-        for (uword i = 0; i < x.n_rows; ++i)
+        for (uword k = 0; k < x.n_slices; ++k)
             for (uword j = 0; j < x.n_cols; ++j)
-                for (uword k = 0; k < x.n_slices; ++k)
+                for (uword i = 0; i < x.n_rows; ++i)
                     y(i,j,k) = x(idx[0](i),idx[1](j),idx[2](k));
 
         return y;
