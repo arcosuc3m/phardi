@@ -113,7 +113,7 @@ namespace phardi {
                         // if L > 0
                         if (L > 0)
                             // factor_csa = (-1/(8*pi))*((-1)^(L/2))*prod(1:2:(L+1))/prod(2:(L-2));
-                            factor_csa = (-(1.0) / (8*datum::pi)) * (pow((-(1.0)), (L/2.0))) * prod(span<Row<T>>(1, 2, (L+1))) / prod(span<Row<T>>(2, (L-2)));
+                            factor_csa = (-(1.0) / (8*datum::pi)) * (pow((-(1.0)), (L/2.0))) * prod(span<Row<T>>(1, 2.0, (L+1))) / prod(span<Row<T>>(2, (L-2)));
                         else if (L == 0)
                             // factor_csa = 1/(2*sqrt(pi));
                             factor_csa = 1/(2*sqrt(datum::pi)) ;

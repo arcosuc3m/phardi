@@ -70,7 +70,7 @@ namespace phardi {
     }
 
     template <typename T>
-    inline T span(size_t a, size_t step, size_t b)
+    inline T span(size_t a, float step, size_t b)
     {
         T s;
         arma::uword n = (b - a + step) / step;
@@ -264,68 +264,7 @@ namespace phardi {
     }
 
 
-    // Point Spread Function (PSF), defined by the main lobe of the experimental PSF (truncated theoretical solution).
-    //
-    //  Language:  MATLAB(R)
-    //   Author:  Erick Canales-Rodríguez, Lester Melie-García, Yasser Iturria-Medina, Yasser Alemán-Gómez
-    //   Date: 2013, Version: 1.2
-    //
-    // --- Some comments ----
-    // Notice that the theoretical/experimental PSF is just the fourier transform of the q-space points
-    // where the signal was measured (cartesian sampling scheme). That is, the FFT of a 3D binary image
-    // with values equal to 1 for those pixels where the signal was measured in q-space, and zero elsewhere.
-    // However, the deconvolution using the resulting PSF is very unstable and noisy due to the many sidelobes
-    // of this PSF (including negative sidelobes) and the low resolution of the data.
-    // In addition, due to the discretization, the obtained PSF is not smooth.
-    //
-    // In order to improve the deconvolution procedure in DSI, a practical consideration that I have used
-    // is to preserve only the main lobe of the PSF, which is positive, due to this part of the function is the main
-    // responsible of the unwanted convolution effect in DSI.
-    // Note that the truncation level (radius) depends on the experimental sampling scheme.
-    // The truncation implemented here in this code is for a standard DSI sampling scheme
-    // with 515 points and bmax=7000-9000 s/mm^2
-    // If you are using a different sampling scheme, then a different truncation radius must be used for optimal results.
-    //
-    // A different alternative is to use instead the gaussian function that best fit the theoretical PSF.
-    // Under this approximation the PSF is smooth and definite positive by definition. It does not contain unwanted oscillations.
-    // We have found that the deconvolution using this PSF also produces high quality results.
-    // This alternative PSF is computed by the function: create_gaussian_PSF
-    //
-    // See also create_gaussian_PSF, test_DSI_example, SignalMatrixBuilding.
 
-    template <typename T>
-    void create_mainlobe_PSF(const arma::Mat<T> qc, size_t Resolution, T& PSF,  arma::Cube<T>& Sampling_grid)
-    {
-        using namespace arma;
-
-        // Sampling_grid = zeros(Resolution,Resolution,Resolution);
-        Sampling_grid.set_size(Resolution, Resolution, Resolution);
-        Sampling_grid.zeros();
-
-        //n = length(qc);
-        uword n = qc.n_rows;
-
-#pragma omp parallel for
-        for (uword i=0; i < n; ++i)
-        {
-            // Sampling_grid(qc(i,1),qc(i,2),qc(i,3)) = 1;
-            Sampling_grid(qc(i, 0), qc(i, 1), qc(i, 2)) = 1 ;
-        }
-
-        // --- Experimental PSF
-        // PSF  = (real(fftshift(fftn(ifftshift(Sampling_grid)))));
-        PSF = (arma::real(ifft(fft(ifft(Sampling_grid))))) ;
-
-        // PSF(PSF<0)=0;
-        PSF(PSF<0) = 0 ;
-
-        // --- Thresholding
-        // PSF = PSF.*Sampling_grid; % Truncated PSF
-        PSF = PSF % Sampling_grid;
-
-        // PSF = PSF/sum(PSF(:));
-        PSF = PSF / sum(PSF) ;
-    }
 
     // Project:   High Angular Resolution Diffusion Imaging Tools
     // Function to compute the hardi-matrix used in the spherical harmonic inversion
@@ -362,75 +301,178 @@ namespace phardi {
         return A ;
     }
 
-    // div - divergence operator
     template <typename T>
-    arma::Mat<T> div(const arma::Cube<T>& P)
-    {
-
-
-        // Px = squeeze(P(:,:,:,1));
-        // Py = squeeze(P(:,:,:,2));
-        // Pz = squeeze(P(:,:,:,3));
-
-        // fx = Px-Px([1 1:end-1],:,:);
-        // fx(1,:,:)   = Px(1,:,:);    % boundary
-        // fx(end,:,:) = -Px(end-1,:,:);
-        // ---
-        // fy = Py-Py(:,[1 1:end-1],:);
-        // fy(:,1,:)   = Py(:,1,:);    % boundary
-        // fy(:,end,:) = -Py(:,end-1,:);
-        // ---
-        // fz = Pz-Pz(:,:,[1 1:end-1]);
-        // fz(:,:,1)   = Pz(:,:,1);    % boundary
-        // fz(:,:,end) = -Pz(:,:,end-1);
-        //  ---
-        // fd = fx+fy+fz;
-
-        // return fd;
-
-/*
-        TYPE Px, Py, Pz, fd, fx, fy, fz ;
-        Px = squeeze(P(m2cpp::span<uvec>(0, P.n_rows-1), m2cpp::span<uvec>(0, P.n_cols-1), m2cpp::span<uvec>(0, P.n_slices-1), 1)) ;
-        Py = squeeze(P(m2cpp::span<uvec>(0, P.n_rows-1), m2cpp::span<uvec>(0, P.n_cols-1), m2cpp::span<uvec>(0, P.n_slices-1), 2)) ;
-        Pz = squeeze(P(m2cpp::span<uvec>(0, P.n_rows-1), m2cpp::span<uvec>(0, P.n_cols-1), m2cpp::span<uvec>(0, P.n_slices-1), 3)) ;
-
-
-        fx = Px-Px(arma::join_rows(m2cpp::srow<double>(1), m2cpp::span<rowvec>(1, Px.n_cols-1)), m2cpp::span<uvec>(0, Px.n_cols-1), m2cpp::span<uvec>(0, Px.n_slices-1)) ;
-        fx(1, m2cpp::span<uvec>(0, fx.n_cols-1), m2cpp::span<uvec>(0, fx.n_slices-1)) = Px(1, m2cpp::span<uvec>(0, Px.n_cols-1), m2cpp::span<uvec>(0, Px.n_slices-1)) ;
-        fx(fx.n_rows, m2cpp::span<uvec>(0, fx.n_cols-1), m2cpp::span<uvec>(0, fx.n_slices-1)) = -(Px(Px.n_rows-1, m2cpp::span<uvec>(0, Px.n_cols-1), m2cpp::span<uvec>(0, Px.n_slices-1))) ;
-        fy = Py-Py(m2cpp::span<uvec>(0, Py.n_rows-1), arma::join_rows(m2cpp::srow<double>(1), m2cpp::span<rowvec>(1, Py.n_cols-1)), m2cpp::span<uvec>(0, Py.n_slices-1)) ;
-        fy(m2cpp::span<uvec>(0, fy.n_rows-1), 1, m2cpp::span<uvec>(0, fy.n_slices-1)) = Py(m2cpp::span<uvec>(0, Py.n_rows-1), 1, m2cpp::span<uvec>(0, Py.n_slices-1)) ;
-        fy(m2cpp::span<uvec>(0, fy.n_rows-1), fy.n_cols, m2cpp::span<uvec>(0, fy.n_slices-1)) = -(Py(m2cpp::span<uvec>(0, Py.n_rows-1), Py.n_cols-1, m2cpp::span<uvec>(0, Py.n_slices-1))) ;
-        fz = Pz-Pz(m2cpp::span<uvec>(0, Pz.n_rows-1), m2cpp::span<uvec>(0, Pz.n_cols-1), arma::join_rows(m2cpp::srow<double>(1), m2cpp::span<rowvec>(1, Pz.n_cols-1))) ;
-        fz(m2cpp::span<uvec>(0, fz.n_rows-1), m2cpp::span<uvec>(0, fz.n_cols-1), 1) = Pz(m2cpp::span<uvec>(0, Pz.n_rows-1), m2cpp::span<uvec>(0, Pz.n_cols-1), 1) ;
-        fz(m2cpp::span<uvec>(0, fz.n_rows-1), m2cpp::span<uvec>(0, fz.n_cols-1), fz.n_slices) = -(Pz(m2cpp::span<uvec>(0, Pz.n_rows-1), m2cpp::span<uvec>(0, Pz.n_cols-1), Pz.n_slices-1)) ;
-        fd = fx+fy+fz ;
-        return fd ;*/
-    }
-
-    // grad - gradient operator
-/*    TYPE grad(const arma::Cube<T>& M)
+    arma::Cube<std::complex<T>> fftn(const arma::Cube<T>  Signal)
     {
         using namespace arma;
 
-        Mat<T> fx, fy, fz;
+        Cube<std::complex<T>> A(size(Signal)), B(size(Signal)), C(size(Signal));
+        uword Nx, Ny, Nz;
 
-        // fx = M([2:end end],:,:)-M;
-        fx = M(join_rows(span<rowvec>(2, M.n_cols), m2cpp::srow<double>(M.n_cols)), m2cpp::span<uvec>(0, M.n_cols-1), m2cpp::span<uvec>(0, M.n_slices-1))-M ;
-        // fy = M(:,[2:end end],:)-M;
-        // fz = M(:,:,[2:end end])-M;
+        Nx = Signal.n_rows;
+        Ny = Signal.n_cols;
+        Nz = Signal.n_slices;
 
-        //fxyz = cat(4,fx,fy,fz);
+#pragma omp parallel for
+        for (uword i = 0; i < Nx; ++i)
+        {
+            for (uword j = 0; j < Ny; ++j)
+            {
+                Col<T> in = Signal(arma::span(i), arma::span(j), span::all);
+                Col<std::complex<T>> out = fft(in);
+                A(arma::span(i) , arma::span(j), span::all) = out;
+            }
+        }
 
-        TYPE fx, fxyz, fy, fz ;
-        fx = M(arma::join_rows(m2cpp::span<rowvec>(2, M.n_cols), m2cpp::srow<double>(M.n_cols)), m2cpp::span<uvec>(0, M.n_cols-1), m2cpp::span<uvec>(0, M.n_slices-1))-M ;
-        fy = M(m2cpp::span<uvec>(0, M.n_rows-1), arma::join_rows(m2cpp::span<rowvec>(2, M.n_cols), m2cpp::srow<double>(M.n_cols)), m2cpp::span<uvec>(0, M.n_slices-1))-M ;
-        fz = M(m2cpp::span<uvec>(0, M.n_rows-1), m2cpp::span<uvec>(0, M.n_cols-1), arma::join_rows(m2cpp::span<rowvec>(2, M.n_cols), m2cpp::srow<double>(M.n_cols)))-M ;
-        fxyz = cat(4, fx, fy, fz) ;
-        return fxyz ;
+#pragma omp parallel for
+        for (uword i = 0; i < Nx; ++i)
+        {
+            for (uword k = 0; k < Nz; ++k)
+            {
+                Mat<std::complex<T>> in = A(arma::span(i), span::all , arma::span(k));
+                Mat<std::complex<T>> out = fft(in);
+                B(arma::span(i), span::all , arma::span(k)) = out;
+            }
+        }
+
+#pragma omp parallel for
+        for (uword j = 0; j < Ny; ++j)
+        {
+            for (uword k = 0; k < Nz; ++k)
+            {
+                Mat<std::complex<T>> in = B(span::all, arma::span(j), arma::span(k));
+                Mat<std::complex<T>> out = fft(in);
+                C(span::all, arma::span(j), arma::span(k)) = out;
+            }
+        }
+        return C;
     }
-*/
 
+
+    template <typename T>
+    arma::Cube<T> fftshift(const arma::Cube<T> x)
+    {
+        using namespace arma;
+
+        Cube<T> y(size(x));
+        std::vector<rowvec> idx(3);
+
+        for (uword k = 0; k < 3; ++k)
+        {
+            //m = size(x, k);
+            uword m = size(x)[k];
+
+            // p = ceil(m/2);
+            uword p = ceil(m/2.0) ;
+
+            // idx{k} = [p+1:m 1:p];
+            idx[k] = join_rows(span<rowvec>(p, m-1), span<rowvec>(0, p-1));
+        }
+
+        // y = x(idx{:});
+        for (uword i = 0; i < x.n_rows; ++i)
+            for (uword j = 0; j < x.n_cols; ++j)
+                for (uword k = 0; k < x.n_slices; ++k)
+                    y(i,j,k) = x(idx[0](i),idx[1](j),idx[2](k));
+
+        return y;
+    }
+
+    template <typename T>
+    arma::Cube<T> ifftshift(const arma::Cube<T> x)
+    {
+        using namespace arma;
+
+        Cube<T> y(size(x));
+        std::vector<rowvec> idx(3);
+
+        for (uword k = 0; k < 3; ++k)
+        {
+            //m = size(x, k);
+            uword m = size(x)[k];
+
+            // p = ceil(m/2);
+            uword p = ceil(m/2.0) ;
+
+            // idx{k} = [p+1:m 1:p];
+            idx[k] = join_rows(span<rowvec>(p, m-1), span<rowvec>(0, p-1));
+        }
+
+        // y = x(idx{:});
+        for (uword i = 0; i < x.n_rows; ++i)
+            for (uword j = 0; j < x.n_cols; ++j)
+                for (uword k = 0; k < x.n_slices; ++k)
+                    y(i,j,k) = x(idx[0](i),idx[1](j),idx[2](k));
+
+        return y;
+    }
+
+
+    // Point Spread Function (PSF), defined by the main lobe of the experimental PSF (truncated theoretical solution).
+    //
+    //  Language:  MATLAB(R)
+    //   Author:  Erick Canales-Rodríguez, Lester Melie-García, Yasser Iturria-Medina, Yasser Alemán-Gómez
+    //   Date: 2013, Version: 1.2
+    //
+    // --- Some comments ----
+    // Notice that the theoretical/experimental PSF is just the fourier transform of the q-space points
+    // where the signal was measured (cartesian sampling scheme). That is, the FFT of a 3D binary image
+    // with values equal to 1 for those pixels where the signal was measured in q-space, and zero elsewhere.
+    // However, the deconvolution using the resulting PSF is very unstable and noisy due to the many sidelobes
+    // of this PSF (including negative sidelobes) and the low resolution of the data.
+    // In addition, due to the discretization, the obtained PSF is not smooth.
+    //
+    // In order to improve the deconvolution procedure in DSI, a practical consideration that I have used
+    // is to preserve only the main lobe of the PSF, which is positive, due to this part of the function is the main
+    // responsible of the unwanted convolution effect in DSI.
+    // Note that the truncation level (radius) depends on the experimental sampling scheme.
+    // The truncation implemented here in this code is for a standard DSI sampling scheme
+    // with 515 points and bmax=7000-9000 s/mm^2
+    // If you are using a different sampling scheme, then a different truncation radius must be used for optimal results.
+    //
+    // A different alternative is to use instead the gaussian function that best fit the theoretical PSF.
+    // Under this approximation the PSF is smooth and definite positive by definition. It does not contain unwanted oscillations.
+    // We have found that the deconvolution using this PSF also produces high quality results.
+    // This alternative PSF is computed by the function: create_gaussian_PSF
+    //
+    // See also create_gaussian_PSF, test_DSI_example, SignalMatrixBuilding.
+
+    template <typename T>
+    void create_mainlobe_PSF(const arma::Mat<T> & qc, arma::uword Resolution, arma::Cube<T> & PSF,  arma::Cube<T> Sampling_grid)
+    {
+        using namespace arma;
+
+        // Sampling_grid = zeros(Resolution,Resolution,Resolution);
+        Sampling_grid = zeros<Cube<T>>(Resolution, Resolution, Resolution);
+
+
+        //n = length(qc);
+        uword n = qc.n_rows;
+
+        for (uword i=0; i < n; ++i)
+        {
+            // Sampling_grid(qc(i,1),qc(i,2),qc(i,3)) = 1;
+            Sampling_grid(qc(i, 0), qc(i, 1), qc(i, 2)) = 1;
+        }
+
+        // --- Experimental PSF
+        // PSF  = (real(fftshift(fftn(ifftshift(Sampling_grid)))));
+        PSF = arma::real(fftshift(fftn((ifftshift(Sampling_grid)))));
+
+       // std:cout << PSF << std::endl;
+
+
+        // PSF(PSF<0)=0;
+        PSF.elem( find(PSF < 0.0) ).zeros();
+
+
+        // --- Thresholding
+        // PSF = PSF.*Sampling_grid; % Truncated PSF
+        PSF = PSF % Sampling_grid;
+
+        // PSF = PSF/sum(PSF(:));
+        PSF = PSF / accu(PSF);
+    }
 }
 
 #endif

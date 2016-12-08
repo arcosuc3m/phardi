@@ -46,11 +46,14 @@ namespace phardi {
 
         using namespace arma;
 
-        T PSF;
+        Cube<T> PSF;
+        Cube<T> Sampling_grid;
+
         Col<T> phi;
         Col<T> theta;
-        Cube<T> Sampling_grid;
         Col<T> Laplac2;
+        std::vector<T> Laplac2_v;
+
         Mat<T> basisV;
 
         // center_of_image = (opts.dsi.resolution-1)/2 + 1;
@@ -63,10 +66,10 @@ namespace phardi {
         uword rmax = opts.dsi.resolution - center_of_image - 1;
 
         //r = rmin:(rmax/100):rmax; % radial points that will be used for the ODF radial summation
-        Row<T> r = span<Row<T>>(rmin, rmax/100, rmax);
+        Row<T> r = span<Row<T>>(rmin, rmax/100.0, rmax);
 
         //rmatrix = repmat(r,[length(V), 1]);
-        Mat<T> rmatrix = repmat(r, V.n_elem, 1);
+        Mat<T> rmatrix = repmat(r, V.n_rows, 1);
 
         // for m=1:length(V)
         //     xi(m,:) = center_of_image + r*V(m,2);
@@ -74,14 +77,14 @@ namespace phardi {
         //     zi(m,:) = center_of_image + r*V(m,3);
         // end
 
-        Mat<T> xi(0,r.n_elem);
-        Mat<T> yi(0,r.n_elem);
-        Mat<T> zi(0,r.n_elem);
+        Mat<T> xi(V.n_rows,r.n_elem);
+        Mat<T> yi(V.n_rows,r.n_elem);
+        Mat<T> zi(V.n_rows,r.n_elem);
 
         for (uword m = 0; m < V.n_rows; ++m) {
-            xi.insert_rows(m, center_of_image + r * V(m, 2));
-            yi.insert_rows(m, center_of_image + r * V(m, 1));
-            zi.insert_rows(m, center_of_image + r * V(m, 3));
+            xi.row(m) = center_of_image + r * V(m, 1);
+            yi.row(m) = center_of_image + r * V(m, 0);
+            zi.row(m) = center_of_image + r * V(m, 2);
         }
 
         // --- q-space points centered in the new matrix of dimensions Resolution x Resolution x Resolution
@@ -111,9 +114,12 @@ namespace phardi {
         {
             for (sword m=-(L); m <= L; ++m)
             {
-                Laplac2 << (pow(L, 2))*pow((L+1), 2);
+                Laplac2_v.push_back((pow(L, 2))*pow((L+1), 2));
             }
         }
+
+        Laplac2.set_size(Laplac2_v.size());
+        Laplac2 = conv_to<Col<T>>::from(Laplac2_v);
 
         //Laplac = diag(Laplac2);
         Mat<T> Laplac = diagmat(Laplac2);
@@ -122,7 +128,7 @@ namespace phardi {
         construct_SH_basis<T>(opts.dsi.lmax, V, 2, "real", theta, phi, basisV) ;
 
         // Kernel = recon_matrix(basisV,Laplac,opts.dsi.lreg);
-        Kernel = recon_matrix<T>(basisV, Laplac, opts.dsi.lreg) ;
+        Kernel = recon_matrix<T>(basisV, Laplac, opts.dsi.lreg);
 
         return;
     }

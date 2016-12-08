@@ -218,7 +218,7 @@ namespace phardi {
 				LOG_INFO << "Created kernel for CSA/DOTR2";
                 break;
 			case DSI:
-//				create_Kernel_for_dsi<T>(V, diffGrads, diffBvals, Kernel, opts);
+				create_Kernel_for_dsi<T>(V, diffGrads, diffBvals, Kernel, opts);
 				break;
 			case QBI:
 				create_Kernel_for_qbi<T>(V, diffGrads, diffBvals, Kernel, basisV, K, opts);
