@@ -497,6 +497,60 @@ namespace phardi {
         // PSF = PSF/sum(PSF(:));
         PSF = PSF / accu(PSF);
     }
+
+
+    // Project:   High Angular Resolution Diffusion Imaging Tools
+    // Function to create the 3D Cartesian signal-matrix required in DSI
+    //
+    // Language:  MATLAB(R)
+    // Author:  Erick Canales-Rodríguez, Lester Melie-García, Yasser Iturria-Medina, Yasser Alemán-Gómez
+    // Date: 2013, Version: 1.2
+    //
+    // See also, test_DSI_example, create_mainlobe_PSF, create_gaussian_PSF
+    template <typename T>
+    arma::SpMat<T> SignalMatrixBuilding_Volume(const arma::Mat<T> & qc, const arma::Mat<T> & value, const arma::uword Resolution)
+    {
+        using namespace arma;
+
+        SpMat<T> sq;
+        cube res(Resolution,Resolution,Resolution);
+
+        // indexes = sub2ind([Resolution Resolution Resolution],qc(:,1),qc(:,2),qc(:,3));
+        Col<uword> indexes(qc.n_rows);
+        for (uword i = 0; i < qc.n_rows; ++i) {
+            indexes(i) = sub2ind(size(res), qc(i,0), qc(i,1), qc(i,2));
+        }
+
+        // totalNvoxels = Resolution.^3; % Total Number of voxels in the matrix
+        uword totalNvoxels = pow(Resolution, 3) ;
+
+        // if size(value,2)>1
+        if (size(value, 1)>1)
+        {
+            uvec aux = span<uvec>(0, size(value,1) - 1);
+            // allIndexes = (repmat(indexes(:)',[size(value,2) 1]) + totalNvoxels*repmat([0:size(value,2)-1]',[1 length(indexes) ]))'; % Indexes in 4D
+            Mat<uword> allIndexes = (repmat(indexes.t(),size(value,1), 1) + totalNvoxels * repmat(aux, 1, indexes.n_elem)).t();
+
+            // sq = sparse(totalNvoxels*size(value,2),1);
+            sq = SpMat<T>(totalNvoxels * size(value,1), 1);
+            // sq(allIndexes(:)) = value(:);
+#pragma omp parallel for
+            for (uword j = 0; j < value.n_cols; ++j)
+                for (uword i = 0; i < value.n_rows; ++i)
+                    sq.at(allIndexes(i,j)) = value(i,j);
+        }
+        else
+        {
+            // sq = zeros(Resolution, Resolution, Resolution);
+            //sq = arma::zeros<Cube<T>>(Resolution, Resolution, Resolution) ;
+
+            //sq(indexes) = value;
+            sq = SpMat<T>(indexes, value);
+        }
+
+        return sq;
+    }
+
 }
 
 #endif

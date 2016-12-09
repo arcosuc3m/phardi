@@ -42,6 +42,7 @@ namespace phardi {
                                  const arma::Mat<T> & diffGrads,
                                  const arma::Col<T> & diffBvals,
                                  arma::Mat<T> & Kernel,
+                                 arma::Mat<T> & qspace,
                                  const phardi::options opts) {
 
         using namespace arma;
@@ -93,7 +94,7 @@ namespace phardi {
         Mat<T> grad_qspace = opts.dsi.boxhalfwidth * diffGrads % sqrt(join_rows(join_rows(diffBvals, diffBvals), diffBvals) / max(diffBvals));
 
         // qspace = grad_qspace + center_of_image;
-        Mat<T> qspace = grad_qspace + center_of_image ;
+        qspace = grad_qspace + center_of_image ;
 
         // - Computing the point spread function (PSF) for the deconvolution operation
         //   -------------------------------------------------------

@@ -201,6 +201,7 @@ namespace phardi {
         Col<T> K;
         Col<T> K_dot_r2;
         Col<T> K_csa;
+		Mat<T> qspace;
 
 		LOG_INFO << "Kernel size: " << size(Kernel);
 		Kernel.fill(0.0);
@@ -218,7 +219,8 @@ namespace phardi {
 				LOG_INFO << "Created kernel for CSA/DOTR2";
                 break;
 			case DSI:
-				create_Kernel_for_dsi<T>(V, diffGrads, diffBvals, Kernel, opts);
+				create_Kernel_for_dsi<T>(V, diffGrads, diffBvals, Kernel, qspace, opts);
+				LOG_INFO << "Created kernel for DSI";
 				break;
 			case QBI:
 				create_Kernel_for_qbi<T>(V, diffGrads, diffBvals, Kernel, basisV, K, opts);
@@ -442,6 +444,77 @@ namespace phardi {
                             }
                                 break;
 							case DSI:
+							{
+								// --- Signal in the 3D image
+								// Smatrix = SignalMatrixBuilding(qspace,diffSignal,opts.dsi.resolution)
+								Mat<T> tempSignal;
+
+								uvec indb0, indb1;
+								// indb0 = find(sum(diffGrads,2) == 0);
+								indb0 = find(sum(diffGrads, 1) == 0);
+
+								// indb1 = find(sum(diffGrads,2) ~= 0);
+								indb1 = find(sum(diffGrads, 1) != 0);
+
+								// tempSignal = diffSignal(indb1,:);
+								Mat<T> tempS0;
+								// if length(indb0)>1
+								if (indb0.n_elem > 1)
+									// tempS0 = repmat(mean(diffSignal(indb0,:)),[size(diffSignal,1) 1]); % Signal from B0
+									tempS0 = repmat(mean(diffSignal.rows(indb0)), size(diffSignal,0), 1);
+									// else
+								else
+									// tempS0 = repmat(diffSignal(indb0,:),[size(diffSignal,1) 1]); % Signal from B0
+									tempS0 = repmat(diffSignal.rows(indb0), size(diffSignal,0), 1);
+
+								// tempSignal = diffSignal./tempS0;
+								tempSignal = diffSignal / tempS0;
+
+								// Smatrix = SignalMatrixBuilding_Volume(qspace,tempSignal,opts.dsi.resolution);
+								SpMat<T> Smatrix = SignalMatrixBuilding_Volume(qspace,tempSignal,opts.dsi.resolution);
+
+								// Smatrix = reshape(full(Smatrix),[opts.dsi.resolution opts.dsi.resolution opts.dsi.resolution size(diffSignal,2)]);
+
+								// --- DSI: PDF computation via fft
+
+								// Pdsi = real(fftshift(fft(fft(fft(ifftshift(Smatrix),[],1),[],2),[],3)));
+								Mat<T> Pdsi = real(fftshift(fft(fft(fft(ifftshift(Smatrix),[],1),[],2),[],3)));
+
+								// Pdsi(Pdsi<0)=0;
+								Pdsi.elem( find(Pdsi < 0.0) ).zeros();
+
+								// Pdsi_int = mirt3D_mexinterp(Pdsi,xi(:),yi(:),zi(:));
+								mirt3D_mexinterp(Pdsi, xi, yi, zi);
+
+								// Pdsi_int(Pdsi_int<0) = 0;
+								Pdsi_int.elem( find(Pdsi_int < 0.0) ).zeros();
+
+								// Pdsi_int = Pdsi_int./repmat(sum(Pdsi_int),[size(Pdsi_int,1) 1]);
+								Pdsi_int = Pdsi_int / repmat(sum(Pdsi_int), size(Pdsi_int,0), 1);
+
+								// --- Numerical ODF-DSI reconstruction
+								// ODF = Pdsi_int.*repmat((rmatrix(:).^2),[1 size(Pdsi_int,2)]);
+								ODF = Pdsi_int % repmat(pow(rmatrix,2), 1, size(Pdsi_int,1));
+
+								// ODF = reshape(ODF,[size(V,1) size(rmatrix,2) size(diffSignal,2)]);
+								ODF.reshape(size(V,0), size(rmatrix,1), size(diffSignal,1));
+
+								// ODF = squeeze(sum(ODF,2));
+
+								// ODF = ODF./repmat(sum(ODF),[size(V,1) 1]);
+								ODF = ODF / repmat(sum(ODF), size(V,0), 1);
+
+								// Smoothing
+								// sphE_dsi = Kernel*ODF;
+								Mat<T> sphE_dsi = Kernel*ODF;
+
+								// ODF = abs(basisV*sphE_dsi);
+								ODF = abs(basisV*sphE_dsi);
+
+								// ODF = ODF./repmat(sum(ODF),[size(ODF,1) 1]);
+								ODF = ODF / repmat(sum(ODF), size(ODF,0), 1);
+
+							}
 								break;
 							case GQI_L1:
 							{
