@@ -1,4 +1,4 @@
-ADD_EXECUTABLE(phardi phardi.cpp )
+ADD_EXECUTABLE(phardi phardi.cpp ../src/mirt3D_mexinterp.cpp)
 TARGET_LINK_LIBRARIES(phardi 
 		${CUDA_CUBLAS_LIBRARIES}
 		${Glue}  ${ITK_LIBRARIES} ${VTK_LIBRARIES}
