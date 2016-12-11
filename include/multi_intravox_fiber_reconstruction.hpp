@@ -308,7 +308,7 @@ namespace phardi {
 								diffSignal(i,j) = Idiff.at(ind(i,j));
 
 
-						ODF.resize(inda.n_elem, rmatrix.n_rows);
+						ODF.resize(rmatrix.n_rows, inda.n_elem);
 						switch (opts.reconsMethod) {
 							case DSI: {
 								// --- Signal in the 3D image
@@ -372,7 +372,7 @@ namespace phardi {
 									ODFvox = ODFvox / sum(ODFvox);
 
 									// ODF(:,indvox) = ODFvox;
-									ODF.row(indvox) = ODFvox.t();
+									ODF.col(indvox) = ODFvox;
 
 									// --- Representing ODF-DSI in terms of spherical harmonics
 								}
