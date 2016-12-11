@@ -264,6 +264,7 @@ namespace phardi {
 		    {
 				Mat<T> ODF;
 				Cube<T> Idiff(xdiff, ydiff, Ngrad);
+				Cube<T> globODFslice (xdiff,ydiff,Nd,fill::zeros);
 
 				// for slice = 1:Vdiff(1).dim(3) %%%%% === This loop could be parallelized
 				for (uword slice = 0; slice < zdiff; ++slice) {
@@ -288,7 +289,8 @@ namespace phardi {
 
 						// Voxel indexes
 						// inda = find(squeeze(Idiff(:,:,1))>0);
-						uvec inda = find(Idiff.slice(0) > 0);
+						uvec inda_vec = find(Idiff.slice(0) > 0);
+						Mat<uword> inda = conv_to<Mat<uword>>::from(inda_vec);
 
 						// totalNvoxels = prod(size(Imask)); % Total Number of voxels in the slice
 						uword totalNvoxels = Imask.n_rows * Imask.n_cols;
@@ -386,6 +388,37 @@ namespace phardi {
 							}
 							break;
 						}
+
+						// Allocating memory to save the ODF
+						// globODFslice = zeros(xdiff,ydiff,Nd);
+
+						// % Reordering ODF
+						//  allIndexesODF = repmat(inda(:)',[size(ODF,1) 1]); % Image indexes
+					    Mat<uword> allIndexesODF = repmat(inda.t(),ODF.n_rows,1);
+
+						// ODFindexes = allIndexesODF + totalNvoxels*repmat([0:size(ODF,1)-1]',[1 length(inda) ]); % Indexes in 4D
+						Mat<uword> ODFindexes = allIndexesODF + totalNvoxels * repmat(linspace<Mat<uword>>(0, ODF.n_rows - 1, ODF.n_rows ),1,inda.n_elem);
+
+						// globODFslice(ODFindexes(:)) = ODF(:);
+#pragma omp parallel for
+						for (uword j = 0; j < ODF.n_cols; ++j) {
+							for (uword i = 0; i < ODF.n_rows; ++i) {
+								globODFslice.at(ODFindexes(i,j)) = ODF(i ,j);
+							}
+						}
+
+					}
+#pragma omp parallel for
+					for (uword i = 0; i < xdiff; ++i) {
+						Index4DType coord;
+						coord[0] = i; coord[2] = slice;
+						for (uword j = 0; j < ydiff; ++j) {
+							coord[1] = j;
+							for (uword k = 0; k < Nd; ++k) {
+								coord[3] = k;
+								imageODF->SetPixel(coord, globODFslice(i,j,k));
+							}
+						}
 					}
 				}
 
@@ -459,20 +492,20 @@ namespace phardi {
 
 					//inda = find(squeeze(Idiff(:,:,1))>0);
 					uvec inda_vec = find(Idiff.slice(0) > 0);
-					Mat<T> inda = conv_to<Mat<T>>::from(inda_vec);
+					Mat<uword> inda = conv_to<Mat<uword>>::from(inda_vec);
 
 					//totalNvoxels = prod(size(Imask));
-					size_t  totalNvoxels = Vmask.slice(slice).n_elem;
+					uword  totalNvoxels = Vmask.slice(slice).n_elem;
 
 					Mat<T> ODF;
 
 					if (inda.n_elem > 0) {
 						//allIndexes = repmat(inda(:)',[Ngrad 1]);
-						Mat<T> allIndexes = repmat(inda.t(),Ngrad,1);
+						Mat<uword> allIndexes = repmat(inda.t(),Ngrad,1);
 						//allIndixes.save("inda.txt",arma::raw_ascii);
 
 						// diffSignal = Idiff(allIndexes + totalNvoxels*repmat([0:Ngrad-1]',[1 length(inda) ])); % Indexes in 4D
-						Mat<T> ind = allIndexes + (totalNvoxels *  repmat(linspace<Mat<T>>(0, Ngrad-1,Ngrad),1,inda.n_elem));
+						Mat<uword> ind = allIndexes + (totalNvoxels *  repmat(linspace<Mat<uword>>(0, Ngrad-1,Ngrad),1,inda.n_elem));
 						Mat<T> diffSignal(Ngrad,inda.n_elem);
 
 #pragma omp parallel for
@@ -729,10 +762,10 @@ namespace phardi {
 
 						// % Reordering ODF
 						//  allIndexesODF = repmat(inda(:)',[size(ODF,1) 1]); % Image indexes
-						Mat<T> allIndexesODF = repmat(inda.t(),ODF.n_rows,1);
+						Mat<uword> allIndexesODF = repmat(inda.t(),ODF.n_rows,1);
 
 						// ODFindexes = allIndexesODF + totalNvoxels*repmat([0:size(ODF,1)-1]',[1 length(inda) ]); % Indexes in 4D
-						Mat<T> ODFindexes = allIndexesODF + totalNvoxels * repmat(linspace<Mat<T>>(0, ODF.n_rows - 1, ODF.n_rows ),1,inda.n_elem);
+						Mat<uword> ODFindexes = allIndexesODF + totalNvoxels * repmat(linspace<Mat<uword>>(0, ODF.n_rows - 1, ODF.n_rows ),1,inda.n_elem);
 
 						// globODFslice(ODFindexes(:)) = ODF(:);
 #pragma omp parallel for
