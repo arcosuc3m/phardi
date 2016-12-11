@@ -337,6 +337,7 @@ namespace phardi {
 								tempSignal = diffSignal / tempS0;
 
 								// for indvox = 1:length(inda)
+#pragma omp parallel for
 								for (uword indvox = 0; indvox < inda.n_elem; ++indvox) {
 
 									// Smatrix = SignalMatrixBuilding_Volume(qspace,tempSignal(:,indvox),opts.dsi.resolution);
