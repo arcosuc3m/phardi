@@ -42,7 +42,12 @@ namespace phardi {
                                  const arma::Mat<T> & diffGrads,
                                  const arma::Col<T> & diffBvals,
                                  arma::Mat<T> & Kernel,
+                                 arma::Mat<T> & basisV,
                                  arma::Mat<T> & qspace,
+                                 arma::Mat<T> & xi,
+                                 arma::Mat<T> & yi,
+                                 arma::Mat<T> & zi,
+                                 arma::Mat<T> &rmatrix,
                                  const phardi::options opts) {
 
         using namespace arma;
@@ -55,8 +60,6 @@ namespace phardi {
         Col<T> Laplac2;
         std::vector<T> Laplac2_v;
 
-        Mat<T> basisV;
-
         // center_of_image = (opts.dsi.resolution-1)/2 + 1;
         uword center_of_image = (opts.dsi.resolution - 1)/2 + 1;
 
@@ -67,10 +70,10 @@ namespace phardi {
         uword rmax = opts.dsi.resolution - center_of_image - 1;
 
         //r = rmin:(rmax/100):rmax; % radial points that will be used for the ODF radial summation
-        Row<T> r = span<Row<T>>(rmin, rmax/100.0, rmax);
+        Row<T> r = regspace<Row<T>>(rmin, rmax/100.0, rmax);
 
         //rmatrix = repmat(r,[length(V), 1]);
-        Mat<T> rmatrix = repmat(r, V.n_rows, 1);
+        rmatrix = repmat(r, V.n_rows, 1);
 
         // for m=1:length(V)
         //     xi(m,:) = center_of_image + r*V(m,2);
@@ -78,9 +81,9 @@ namespace phardi {
         //     zi(m,:) = center_of_image + r*V(m,3);
         // end
 
-        Mat<T> xi(V.n_rows,r.n_elem);
-        Mat<T> yi(V.n_rows,r.n_elem);
-        Mat<T> zi(V.n_rows,r.n_elem);
+        xi.resize(V.n_rows,r.n_elem);
+        yi.resize(V.n_rows,r.n_elem);
+        zi.resize(V.n_rows,r.n_elem);
 
 #pragma omp parallel for
         for (uword m = 0; m < V.n_rows; ++m) {

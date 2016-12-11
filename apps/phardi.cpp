@@ -36,6 +36,10 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <chrono>
 #include <armadillo>
 
+
+
+#define ARMA_NO_DEBUG
+
 enum  optionIndex { UNKNOWN, HELP, READ, DATA, RECONS, MASK, BVECS, BVALS, ODF, PRECISION, OP_RUMBA_NOISE, OP_RUMBA_ITER, OP_RUMBA_LAMBDA1, OP_RUMBA_LAMBDA2, OP_RUMBA_LAMBDA_CSF, OP_RUMBA_LAMBDA_GM,
                     OP_QBI_LAMBDA, OP_GQI_LAMBDA, OP_GQI_MDDR, OP_DOTR2_LAMBDA, OP_DOTR2_T, OP_DOTR2_EULER, OP_CSA_LAMBDA, DEBUG};
 
@@ -90,7 +94,7 @@ const option::Descriptor usage[] =
         "Options:" },
     {HELP, 0,"h", "help",option::Arg::None, "  --help, -h  \tPrint usage and exit." },
     {RECONS, 0,"a","alg",Arg::Required, "  --alg, -a  \tReconstruction method (rumba, dsi, qbi, gqi_l1, gqi_l2, dotr2, csa)." },
-    {READ, 0,"d", "dataread",Arg::NonEmpty, "  --dataread, -d \tData reading method (slices|volume)." },
+    {READ, 0,"d", "dataread",Arg::NonEmpty, "  --dataread, -d \tData reading method (voxels, slices, volume)." },
     {DATA, 0,"k","data",Arg::Required, "  --data, -k  \tData file." },
     {MASK, 0,"m","mask",Arg::Required, "  --mask, -m  \tBinary mask file." },
     {BVECS, 0,"r","bvecs",Arg::Required, "  --bvecs, -r  \tb-vectors file." },
@@ -315,7 +319,13 @@ int main(int argc, char ** argv) {
         readmethod = std::string(options[READ].arg);
         if (readmethod == "volume") opts.datreadMethod = VOLUME;
         else if (readmethod == "slices") opts.datreadMethod = SLICES;
+        else if (readmethod == "voxels") opts.datreadMethod = VOXELS;
 	else opts.datreadMethod = SLICES;
+    }
+
+    if (opts.reconsMethod  == DSI)  {
+        LOG_INFO << "    Forced to VOXELS";
+        opts.datreadMethod = VOXELS;
     }
 
     std::string precision = "float";

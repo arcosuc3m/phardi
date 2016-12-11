@@ -51,35 +51,6 @@ namespace phardi {
         return std::sin(x)/x;
     }
 
-    template <typename T>
-    inline T span(size_t a, size_t b) {
-        T s((arma::uword) 0);
-
-        if (a > b) {
-            s.set_size(1);
-            s(0) = 1;
-        }
-        else {
-            arma::uword n = b - a;
-            s.set_size(n + 1);
-            for (size_t ii = 0; ii <= n; ++ii)
-                s(ii) = ii + a;
-        }
-        return s;
-    }
-
-    template <typename T>
-    inline T span(size_t a, float step, size_t b)
-    {
-        T s;
-        arma::uword n = (b - a + step) / step;
-        s.set_size(n);
-        for (int ii = 0; ii < n; ii++)
-        {
-            s(ii) = step * ii + a;
-        }
-        return s;
-    }
 
     template <typename T>
     inline T factorial(T n)
@@ -281,7 +252,7 @@ namespace phardi {
         Lmax = Lmax-2 ;
 
         // Nmin = sum(1:4:2*Lmax+1);
-        Nmin = arma::sum(span<Row<T>>(0, 4, 2*Lmax)) ;
+        Nmin = arma::sum(regspace<Row<T>>(0, 4, 2*Lmax)) ;
     }
 
 
@@ -301,7 +272,7 @@ namespace phardi {
     // test_DOT_R1_example, test_DOT_R2_vs_CSA_QBI_example.
 
     template <typename T>
-    arma::Mat<T> recon_matrix(const arma::Mat<T> Y, const arma::Mat<T> L, T Lambda)
+    arma::Mat<T> recon_matrix(const arma::Mat<T> & Y, const arma::Mat<T> & L, T Lambda)
     {
         using namespace arma;
 
@@ -323,7 +294,7 @@ namespace phardi {
     }
 
     template <typename T>
-    arma::Cube<std::complex<T>> fftn(const arma::Cube<T>  Signal)
+    arma::Cube<std::complex<T>> fft3D(const arma::Cube<T> & Signal)
     {
         using namespace arma;
 
@@ -372,12 +343,12 @@ namespace phardi {
 
 
     template <typename T>
-    arma::Cube<T> fftshift(const arma::Cube<T> x)
+    arma::Cube<T> fftshift3D(const arma::Cube<T> & x)
     {
         using namespace arma;
 
         Cube<T> y(size(x));
-        std::vector<rowvec> idx(3);
+        std::vector<uvec> idx(3);
 
         for (uword k = 0; k < 3; ++k)
         {
@@ -388,7 +359,7 @@ namespace phardi {
             uword p = ceil(m/2.0) ;
 
             // idx{k} = [p+1:m 1:p];
-            idx[k] = join_rows(span<rowvec>(p, m-1), span<rowvec>(0, p-1));
+            idx[k] = join_vert(regspace<uvec>(p, m-1), regspace<uvec>(0, p-1));
         }
 
         // y = x(idx{:});
@@ -402,12 +373,12 @@ namespace phardi {
     }
 
     template <typename T>
-    arma::Cube<T> ifftshift(const arma::Cube<T> x)
+    arma::Cube<T> ifftshift3D(const arma::Cube<T> & x)
     {
         using namespace arma;
 
         Cube<T> y(size(x));
-        std::vector<rowvec> idx(3);
+        std::vector<uvec> idx(3);
 
         for (uword k = 0; k < 3; ++k)
         {
@@ -418,7 +389,7 @@ namespace phardi {
             uword p = ceil(m/2.0) ;
 
             // idx{k} = [p+1:m 1:p];
-            idx[k] = join_rows(span<rowvec>(p, m-1), span<rowvec>(0, p-1));
+            idx[k] = join_vert(regspace<uvec>(p, m-1), regspace<uvec>(0, p-1));
         }
 
         // y = x(idx{:});
@@ -431,6 +402,73 @@ namespace phardi {
         return y;
     }
 
+    template <typename T>
+    arma::Mat<T> ifftshift2D(const arma::SpMat<T> & x)
+    {
+        using namespace arma;
+
+        Mat<T> y(size(x));
+        std::vector<uvec> idx(2);
+
+        Mat<T> xx(x);
+
+        for (uword k = 0; k < 2; ++k)
+        {
+            //m = size(x, k);
+            uword m = size(x)[k];
+
+            // p = ceil(m/2);
+            uword p = ceil(m/2.0) ;
+
+            // idx{k} = [p+1:m 1:p];
+            idx[k] = join_vert(regspace<uvec>(p, m-1), regspace<uvec>(0, p-1));
+        }
+
+        // y = x(idx{:});
+#pragma omp parallel for
+        for (uword j = 0; j < x.n_cols; ++j)
+            for (uword i = 0; i < x.n_rows; ++i)
+                y(i,j) = xx(idx[0](i),idx[1](j));
+
+        return y;
+    }
+
+    template <typename T>
+    arma::Mat<std::complex<T>> fftshift2D(const arma::Mat<std::complex<T>> & x)
+    {
+        using namespace arma;
+
+        Mat<std::complex<T>> y(size(x));
+        std::vector<uvec> idx(2);
+
+        for (uword k = 0; k < 2; ++k)
+        {
+            //m = size(x, k);
+            uword m = size(x)[k];
+
+            // p = ceil(m/2);
+            uword p = ceil(m/2.0) ;
+
+            // idx{k} = [p+1:m 1:p];
+            idx[k] = join_vert(regspace<uvec>(p, m-1), regspace<uvec>(0, p-1));
+        }
+
+        // y = x(idx{:});
+#pragma omp parallel for
+        for (uword j = 0; j < x.n_cols; ++j)
+            for (uword i = 0; i < x.n_rows; ++i)
+                y(i,j) = x(idx[0](i),idx[1](j));
+
+        return y;
+    }
+
+    template <typename T>
+    arma::Mat<std::complex<T>> fft2D(const arma::Mat<T> &  Signal)
+    {
+        using namespace arma;
+
+        return fft2(Signal);
+    }
 
     // Point Spread Function (PSF), defined by the main lobe of the experimental PSF (truncated theoretical solution).
     //
@@ -481,7 +519,7 @@ namespace phardi {
 
         // --- Experimental PSF
         // PSF  = (real(fftshift(fftn(ifftshift(Sampling_grid)))));
-        PSF = arma::real(fftshift(fftn((ifftshift(Sampling_grid)))));
+        PSF = arma::real(fftshift3D(fft3D((ifftshift3D(Sampling_grid)))));
 
        // std:cout << PSF << std::endl;
 
@@ -508,11 +546,11 @@ namespace phardi {
     //
     // See also, test_DSI_example, create_mainlobe_PSF, create_gaussian_PSF
     template <typename T>
-    arma::SpMat<T> SignalMatrixBuilding_Volume(const arma::Mat<T> & qc, const arma::Mat<T> & value, const arma::uword Resolution)
+    arma::Cube<T> SignalMatrixBuilding_Volume(const arma::Mat<T> & qc, const arma::Mat<T> & value, const arma::uword Resolution)
     {
         using namespace arma;
 
-        SpMat<T> sq;
+        Cube<T> sq;
         cube res(Resolution,Resolution,Resolution);
 
         // indexes = sub2ind([Resolution Resolution Resolution],qc(:,1),qc(:,2),qc(:,3));
@@ -521,32 +559,11 @@ namespace phardi {
             indexes(i) = sub2ind(size(res), qc(i,0), qc(i,1), qc(i,2));
         }
 
-        // totalNvoxels = Resolution.^3; % Total Number of voxels in the matrix
-        uword totalNvoxels = pow(Resolution, 3) ;
+        sq = arma::zeros<Cube<T>>(Resolution, Resolution, Resolution) ;
 
-        // if size(value,2)>1
-        if (size(value, 1)>1)
-        {
-            uvec aux = span<uvec>(0, size(value,1) - 1);
-            // allIndexes = (repmat(indexes(:)',[size(value,2) 1]) + totalNvoxels*repmat([0:size(value,2)-1]',[1 length(indexes) ]))'; % Indexes in 4D
-            Mat<uword> allIndexes = (repmat(indexes.t(),size(value,1), 1) + totalNvoxels * repmat(aux, 1, indexes.n_elem)).t();
-
-            // sq = sparse(totalNvoxels*size(value,2),1);
-            sq = SpMat<T>(totalNvoxels * size(value,1), 1);
-            // sq(allIndexes(:)) = value(:);
-#pragma omp parallel for
-            for (uword j = 0; j < value.n_cols; ++j)
-                for (uword i = 0; i < value.n_rows; ++i)
-                    sq.at(allIndexes(i,j)) = value(i,j);
-        }
-        else
-        {
-            // sq = zeros(Resolution, Resolution, Resolution);
-            //sq = arma::zeros<Cube<T>>(Resolution, Resolution, Resolution) ;
-
-            //sq(indexes) = value;
-            sq = SpMat<T>(indexes, value);
-        }
+        //sq(indexes) = value;
+        for (uword i = 0; i < value.n_elem; ++i)
+            sq(indexes(i)) = value(i);
 
         return sq;
     }

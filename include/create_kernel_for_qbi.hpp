@@ -75,7 +75,7 @@ namespace phardi {
         {
             for (m = -(L); m <= L; ++m)
             {
-                factor1 = boost::math::legendre_p(L, 0.0f) ;
+                factor1 = legendre(L, 0.0f) ;
                 K_v.push_back(factor1);
                 Laplac2_v.push_back(pow(L, 2) * pow((L+1.0f), 2));
             }

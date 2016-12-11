@@ -70,7 +70,7 @@ namespace phardi {
             x = V * b_matrix.t();
 
             //Kernel = (( (2*cos(x))./x.^2 ) + ( (x.^2-2).*sin(x) )./(x+eps).^3);
-            Kernel = (((2*arma::cos(x))/pow(x, 2))+((pow(x, 2)-2) % sin(x)) / pow((x+datum::eps), 3)) ;
+            Kernel = (((2 * cos(x))/pow(x, 2))+((pow(x, 2)-2) % sin(x)) / pow((x+datum::eps), 3)) ;
         }
 
         return;

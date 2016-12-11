@@ -78,7 +78,6 @@ namespace phardi {
         options_csa   csa;
         options_dotr2 dotr2;
         bool          debug;
-
     };
 }
 
