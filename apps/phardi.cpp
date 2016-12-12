@@ -119,11 +119,11 @@ const option::Descriptor usage[] =
 
     {OP_CSA_LAMBDA, 0,"","csa-lambda",Arg::Numeric, "  --csa-lambda \tCSA: Regularization parameter  (default 0.006)." },
 
-    {OP_DSI_LMAX, 0,"","dsi-lmax",Arg::Numeric, "  --dsi-lmax \tCSA: LMAX parameter  (default 10)." },
-    {OP_DSI_RES, 0,"","dsi-resolution",Arg::Numeric, "  --dsi-resolution \tCSA: Resolution parameter  (default 35)." },
-    {OP_DSI_RMIN, 0,"","dsi-rmin",Arg::Numeric, "  --dsi-rmin \tCSA: RMIN parameter  (default 1)." },
-    {OP_DSI_LREG, 0,"","dsi-lreg",Arg::Numeric, "  --dsi-lreg \tCSA: LREG parameter  (default 0.004)." },
-    {OP_DSI_BOX, 0,"","dsi-boxhalfwidth",Arg::Numeric, "  --dsi-boxhalfwidth \tCSA: Box half width parameter  (default 5)." },
+    {OP_DSI_LMAX, 0,"","dsi-lmax",Arg::Numeric, "  --dsi-lmax \tDSI: LMAX parameter  (default 10)." },
+    {OP_DSI_RES, 0,"","dsi-resolution",Arg::Numeric, "  --dsi-resolution \tDSI: Resolution parameter  (default 35)." },
+    {OP_DSI_RMIN, 0,"","dsi-rmin",Arg::Numeric, "  --dsi-rmin \tDSI: RMIN parameter  (default 1)." },
+    {OP_DSI_LREG, 0,"","dsi-lreg",Arg::Numeric, "  --dsi-lreg \tDSI: LREG parameter  (default 0.004)." },
+    {OP_DSI_BOX, 0,"","dsi-boxhalfwidth",Arg::Numeric, "  --dsi-boxhalfwidth \tDSI: Box half width parameter  (default 5)." },
 
     {DEBUG, 0,"v","verbose",option::Arg::None, "  --verbose, -v  \tVerbose execution details." },
 

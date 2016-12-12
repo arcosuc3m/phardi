@@ -83,11 +83,11 @@ Related to each reconstruction method:
   --csa-lambda        Regularization parameter (default 0.006).
 
   DSI
-  --dsi-lmax          CSA: LMAX parameter  (default 10).
-  --dsi-resolution    CSA: Resolution parameter  (default 35).
-  --dsi-rmin          CSA: RMIN parameter  (default 1).
-  --dsi-lreg          CSA: LREG parameter  (default 0.004).
-  --dsi-boxhalfwidth  CSA: Box half width parameter  (default 5).
+  --dsi-lmax          DSI: LMAX parameter  (default 10).
+  --dsi-resolution    DSI: Resolution parameter  (default 35).
+  --dsi-rmin          DSI: RMIN parameter  (default 1).
+  --dsi-lreg          DSI: LREG parameter  (default 0.004).
+  --dsi-boxhalfwidth  DSI: Box half width parameter  (default 5).
 
 Examples:
  phardi -a rumba -k /data/data.nii.gz -m /data/nodif_brain_mask.nii.gz -r /data/bvecs -b /data/bvals --odf /result/
