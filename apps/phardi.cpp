@@ -189,7 +189,10 @@ int main(int argc, char ** argv) {
     std::string ODFfilename   = options[ODF].arg;
     std::string recons        = options[RECONS].arg;
 
-    ODFfilename =  ODFfilename + kPathSeparator + "data_odf.nii.gz";
+    if (opts.zip)
+        ODFfilename =  ODFfilename + kPathSeparator + "data_odf.nii.gz";
+    else
+        ODFfilename =  ODFfilename + kPathSeparator + "data_odf.nii";
 
     if (!is_file_exist(diffImage))
     {
