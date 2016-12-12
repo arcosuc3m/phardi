@@ -40,12 +40,8 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <chrono>
 #include <armadillo>
 
-
-
-
-
 enum  optionIndex { UNKNOWN, HELP, READ, DATA, RECONS, MASK, BVECS, BVALS, ODF, PRECISION, OP_RUMBA_NOISE, OP_RUMBA_ITER, OP_RUMBA_LAMBDA1, OP_RUMBA_LAMBDA2, OP_RUMBA_LAMBDA_CSF, OP_RUMBA_LAMBDA_GM,
-                    OP_QBI_LAMBDA, OP_GQI_LAMBDA, OP_GQI_MDDR, OP_DOTR2_LAMBDA, OP_DOTR2_T, OP_DOTR2_EULER, OP_CSA_LAMBDA, DEBUG};
+                    OP_QBI_LAMBDA, OP_GQI_LAMBDA, OP_GQI_MDDR, OP_DOTR2_LAMBDA, OP_DOTR2_T, OP_DOTR2_EULER, OP_CSA_LAMBDA, OP_DSI_LMAX, OP_DSI_RES, OP_DSI_RMIN, OP_DSI_LREG, OP_DSI_BOX, DEBUG};
 
 struct Arg: public option::Arg
 {
@@ -118,10 +114,16 @@ const option::Descriptor usage[] =
     {OP_GQI_MDDR, 0,"","gqi-meandiffdist ",Arg::Numeric, "  --gqi-meandiffdist  \tGQI: Mean diffusion distance ratio (default 1.2)." },
 
     {OP_DOTR2_LAMBDA, 0,"","dotr2-lambda",Arg::Numeric, "  --dotr2-lambda  \tDOTR2: Regularization parameter  (default 0.006)." },
- //   {OP_DOTR2_T, 0,"","dotr2-t",Arg::Numeric, "  --dotr2-t  \tDOTR2: T value  (default 20.0e-3)." },
- //   {OP_DOTR2_EULER, 0,"","dotr2-eulergamma",Arg::Numeric, "  --dotr2-eulergamma  \tDOTR2: Euler Gamma  (default 0.577216)." },
+    // {OP_DOTR2_T, 0,"","dotr2-t",Arg::Numeric, "  --dotr2-t  \tDOTR2: T value  (default 20.0e-3)." },
+    // {OP_DOTR2_EULER, 0,"","dotr2-eulergamma",Arg::Numeric, "  --dotr2-eulergamma  \tDOTR2: Euler Gamma  (default 0.577216)." },
 
     {OP_CSA_LAMBDA, 0,"","csa-lambda",Arg::Numeric, "  --csa-lambda \tCSA: Regularization parameter  (default 0.006)." },
+
+    {OP_DSI_LMAX, 0,"","dsi-lmax",Arg::Numeric, "  --dsi-lmax \tCSA: LMAX parameter  (default 10)." },
+    {OP_DSI_RES, 0,"","dsi-resolution",Arg::Numeric, "  --dsi-resolution \tCSA: Resolution parameter  (default 35)." },
+    {OP_DSI_RMIN, 0,"","dsi-rmin",Arg::Numeric, "  --dsi-rmin \tCSA: RMIN parameter  (default 1)." },
+    {OP_DSI_LREG, 0,"","dsi-lreg",Arg::Numeric, "  --dsi-lreg \tCSA: LREG parameter  (default 0.004)." },
+    {OP_DSI_BOX, 0,"","dsi-boxhalfwidth",Arg::Numeric, "  --dsi-boxhalfwidth \tCSA: Box half width parameter  (default 5)." },
 
     {DEBUG, 0,"v","verbose",option::Arg::None, "  --verbose, -v  \tVerbose execution details." },
 
@@ -316,6 +318,22 @@ int main(int argc, char ** argv) {
         opts.csa.lambda =  std::stof(options[OP_CSA_LAMBDA].arg);
     }
 
+    // Options casting for DSI
+    if (options[OP_DSI_LMAX].count() > 0) {
+        opts.dsi.lmax =  std::stoi(options[OP_DSI_LMAX].arg);
+    }
+    if (options[OP_DSI_RES].count() > 0) {
+        opts.dsi.resolution =  std::stoi(options[OP_DSI_RES].arg);
+    }
+    if (options[OP_DSI_RMIN].count() > 0) {
+        opts.dsi.rmin =  std::stoi(options[OP_DSI_RMIN].arg);
+    }
+    if (options[OP_DSI_LREG].count() > 0) {
+        opts.dsi.lreg =  std::stof(options[OP_DSI_LREG].arg);
+    }
+    if (options[OP_DSI_BOX].count() > 0) {
+        opts.dsi.boxhalfwidth =  std::stoi(options[OP_DSI_BOX].arg);
+    }
 
     std::string readmethod = "slices";
 
