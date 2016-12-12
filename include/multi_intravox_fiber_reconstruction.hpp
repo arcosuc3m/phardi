@@ -237,10 +237,24 @@ namespace phardi {
 				LOG_INFO << "Created kernel for GQI_L1/GQI_L2";
 				break;
 		}
-		std::string filenameCSF = opts.outputDir + kPathSeparator + "data-vf_csf.nii.gz";
-		std::string filenameGM  = opts.outputDir + kPathSeparator + "data-vf_gm.nii.gz";
-		std::string filenameWM  = opts.outputDir + kPathSeparator + "data-vf_wm.nii.gz";
-		std::string filenameGFA = opts.outputDir + kPathSeparator + "data-vf_gfa.nii.gz";
+
+        std::string filenameCSF;
+        std::string filenameGM;
+        std::string filenameWM;
+        std::string filenameGFA;
+
+        if (opts.zip) {
+            filenameCSF = opts.outputDir + kPathSeparator + "data-vf_csf.nii.gz";
+            filenameGM  = opts.outputDir + kPathSeparator + "data-vf_gm.nii.gz";
+            filenameWM  = opts.outputDir + kPathSeparator + "data-vf_wm.nii.gz";
+            filenameGFA = opts.outputDir + kPathSeparator + "data-vf_gfa.nii.gz";
+        }
+        else {
+            filenameCSF = opts.outputDir + kPathSeparator + "data-vf_csf.nii";
+            filenameGM  = opts.outputDir + kPathSeparator + "data-vf_gm.nii";
+            filenameWM  = opts.outputDir + kPathSeparator + "data-vf_wm.nii";
+            filenameGFA = opts.outputDir + kPathSeparator + "data-vf_gfa.nii";
+        }
 
 		size3D[0] = xdiff;   index3D[0] = 0;
 		size3D[1] = ydiff;   index3D[1] = 0;

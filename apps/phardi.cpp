@@ -41,7 +41,7 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <armadillo>
 
 enum  optionIndex { UNKNOWN, HELP, READ, DATA, RECONS, MASK, BVECS, BVALS, ODF, PRECISION, OP_RUMBA_NOISE, OP_RUMBA_ITER, OP_RUMBA_LAMBDA1, OP_RUMBA_LAMBDA2, OP_RUMBA_LAMBDA_CSF, OP_RUMBA_LAMBDA_GM,
-                    OP_QBI_LAMBDA, OP_GQI_LAMBDA, OP_GQI_MDDR, OP_DOTR2_LAMBDA, OP_DOTR2_T, OP_DOTR2_EULER, OP_CSA_LAMBDA, OP_DSI_LMAX, OP_DSI_RES, OP_DSI_RMIN, OP_DSI_LREG, OP_DSI_BOX, DEBUG};
+                    OP_QBI_LAMBDA, OP_GQI_LAMBDA, OP_GQI_MDDR, OP_DOTR2_LAMBDA, OP_DOTR2_T, OP_DOTR2_EULER, OP_CSA_LAMBDA, OP_DSI_LMAX, OP_DSI_RES, OP_DSI_RMIN, OP_DSI_LREG, OP_DSI_BOX, ZIP, DEBUG};
 
 struct Arg: public option::Arg
 {
@@ -126,6 +126,7 @@ const option::Descriptor usage[] =
     {OP_DSI_BOX, 0,"","dsi-boxhalfwidth",Arg::Numeric, "  --dsi-boxhalfwidth \tDSI: Box half width parameter  (default 5)." },
 
     {DEBUG, 0,"v","verbose",option::Arg::None, "  --verbose, -v  \tVerbose execution details." },
+    {ZIP, 0,"z","compress",option::Arg::None, "  --compress, -z  \tCompress resulting files." },
 
     {UNKNOWN, 0, "", "",option::Arg::None, "\nExamples:\n"
         " phardi -a rumba -k /data/data.nii.gz -m /data/nodif_brain_mask.nii.gz -r /data/bvecs -b /data/bvals --odf /result/ \n"
@@ -163,6 +164,12 @@ int main(int argc, char ** argv) {
     }
     
     phardi::options opts;
+
+    opts.zip = false;
+
+    if (options[ZIP].count() > 0) {
+        opts.zip = true;
+    }
     
     if (options[DEBUG].count() > 0) {
        static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;

@@ -77,6 +77,7 @@ namespace phardi {
         options_qbi   qbi;
         options_csa   csa;
         options_dotr2 dotr2;
+        bool          zip;
         bool          debug;
     };
 }
