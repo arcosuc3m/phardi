@@ -47,7 +47,7 @@ USAGE: phardi [options]
 
 Options:
 Compulsory arguments (You MUST specify ALL arguments):
-  --alg, -a           Reconstruction method (rumba, qbi, gqi_l1, gqi_l2, dotr2, csa)
+  --alg, -a           Reconstruction method (rumba, dsi, qbi, gqi_l1, gqi_l2, dotr2, csa)
   --data, -k          Data file
   --mask, -m          Binary mask file
   --bvecs, -r         b-vectors file
