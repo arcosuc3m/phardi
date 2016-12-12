@@ -58,6 +58,7 @@ Optional arguments (You may optionally specify one or more of):
   --precision, -p     Calculation precision (float|double)
   --verbose, -v       Verbose execution details
   --help, -h          Print usage and exit
+  --compress, -z      Compress resulting files
 
 Related to each reconstruction method:
 
