@@ -13,12 +13,17 @@ List of reconstruction methods currently included:
 
 ### Requirements ###
 
+The following libraries and compiler are required for compilation:
+
+* GCC (>= 4.9)
 * Armadillo (>= 6.7)
 * ITK (>= 4.9)
-* GCC (>= 4.9)
-* OpenBLAS (for multicore parallelism)
-* LaPack (for multicore parallelism)
-* FFTW (for FFT acceleration)
+
+Optional libraries for CPU acceleration:
+
+* OpenBLAS/ATLAS/Intel MKL
+* LaPack
+* FFTW (for DSI)
 
 ### How do I get set up? ###
 
