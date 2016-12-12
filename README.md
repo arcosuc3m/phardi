@@ -1,12 +1,24 @@
 # README #
 
+This is a collection of routines for the analysis of High Angular Resolution Diffusion Imaging (HARDI) data. It is a subset of the code internally used in the FIDMAG Research Foundation (unit of research at the Benito Menni Hospital, Barcelona, Spain), the Cuban Neuroscience Center (Havana, Cuba), and the Medical Imaging Laboratory at Gregorio Marañón Hospital (Madrid, Spain).
+
+List of reconstruction methods currently included:
+
+* Q-Ball Imaging (QBI) 
+* Q-Ball Imaging in Constant Solid Angle (CSA-QBI) 
+* Revisited version of the DOT method (DOT-R2)
+* Diffusion Spectrum Imaging (DSI)
+* Robust and Unbiased Model-Based Spherical Deconvolution (RUMBA)
+
+
 ### Requirements ###
 
-* Armadillo 6.7
-* ITK 4.9
-* GCC 4.9
+* Armadillo (>= 6.7)
+* ITK (>= 4.9)
+* GCC (>= 4.9)
 * OpenBLAS (for multicore parallelism)
 * LaPack (for multicore parallelism)
+* FFTW (for FFT acceleration)
 
 ### How do I get set up? ###
 

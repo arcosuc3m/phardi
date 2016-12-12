@@ -142,7 +142,7 @@ namespace phardi {
 					coord_4d[1]=y;
 					for (int z = 0; z < regionDiff.GetSize()[2]; ++z) {
 						coord_4d[2] = z;
-						temp(x,y,z) = imageDiff->GetPixel(coord_4d);
+						temp.at(x,y,z) = imageDiff->GetPixel(coord_4d);
 					}
 				}
 			}
@@ -175,7 +175,7 @@ namespace phardi {
 				coord_3d[1]=y;
 				for (int z = 0; z < regionMask.GetSize()[2]; ++z) {
 					coord_3d[2] = z;
-					Vmask(x,y,z) = imageMask->GetPixel(coord_3d);
+					Vmask.at(x,y,z) = imageMask->GetPixel(coord_3d);
 				}
 			}
 		}
@@ -198,15 +198,15 @@ namespace phardi {
 		// %%  =====================================================================
 
 		Mat<T> Kernel (V.n_rows + 2, diffGrads.n_rows);
-        Mat<T> basisV;
-        Col<T> K;
-        Col<T> K_dot_r2;
-        Col<T> K_csa;
+        	Mat<T> basisV;
+        	Col<T> K;
+        	Col<T> K_dot_r2;
+        	Col<T> K_csa;
 		Mat<T> qspace;
-        Mat<T> xi;
-        Mat<T> yi;
-        Mat<T> zi;
-        Mat<T> rmatrix;
+        	Mat<T> xi;
+        	Mat<T> yi;
+        	Mat<T> zi;
+        	Mat<T> rmatrix;
 
 
 
@@ -218,11 +218,11 @@ namespace phardi {
 				create_Kernel_for_rumba<T>(V, diffGrads, diffBvals, Kernel, opts);
 				LOG_INFO << "Created kernel for RUMBA";
 				break;
-            case QBI_DOTR2:
-            case QBI_CSA:
-                create_Kernel_for_dotr2<T>(V, diffGrads, diffBvals, Kernel, basisV, K_dot_r2, K_csa, opts);
+            		case QBI_DOTR2:
+            		case QBI_CSA:
+                		create_Kernel_for_dotr2<T>(V, diffGrads, diffBvals, Kernel, basisV, K_dot_r2, K_csa, opts);
 				LOG_INFO << "Created kernel for CSA/DOTR2";
-                break;
+                		break;
 			case DSI:
 				create_Kernel_for_dsi<T>(V, diffGrads, diffBvals, Kernel, basisV, qspace, xi, yi, zi, rmatrix, opts);
 				LOG_INFO << "Created kernel for DSI";
@@ -305,7 +305,7 @@ namespace phardi {
 #pragma omp parallel for
 						for (uword j = 0; j < inda.n_elem; ++j)
 							for (uword i = 0; i < Ngrad; ++i)
-								diffSignal(i,j) = Idiff.at(ind(i,j));
+								diffSignal.at(i,j) = Idiff.at(ind(i,j));
 
 
 						ODF.resize(rmatrix.n_rows, inda.n_elem);
@@ -395,7 +395,7 @@ namespace phardi {
 
 						// % Reordering ODF
 						//  allIndexesODF = repmat(inda(:)',[size(ODF,1) 1]); % Image indexes
-					    Mat<uword> allIndexesODF = repmat(inda.t(),ODF.n_rows,1);
+					    	Mat<uword> allIndexesODF = repmat(inda.t(),ODF.n_rows,1);
 
 						// ODFindexes = allIndexesODF + totalNvoxels*repmat([0:size(ODF,1)-1]',[1 length(inda) ]); % Indexes in 4D
 						Mat<uword> ODFindexes = allIndexesODF + totalNvoxels * repmat(linspace<Mat<uword>>(0, ODF.n_rows - 1, ODF.n_rows ),1,inda.n_elem);
@@ -404,7 +404,7 @@ namespace phardi {
 #pragma omp parallel for
 						for (uword j = 0; j < ODF.n_cols; ++j) {
 							for (uword i = 0; i < ODF.n_rows; ++i) {
-								globODFslice.at(ODFindexes(i,j)) = ODF(i ,j);
+								globODFslice.at(ODFindexes(i,j)) = ODF.at(i ,j);
 							}
 						}
 
@@ -417,7 +417,7 @@ namespace phardi {
 							coord[1] = j;
 							for (uword k = 0; k < Nd; ++k) {
 								coord[3] = k;
-								imageODF->SetPixel(coord, globODFslice(i,j,k));
+								imageODF->SetPixel(coord, globODFslice.at(i,j,k));
 							}
 						}
 					}
@@ -512,7 +512,7 @@ namespace phardi {
 #pragma omp parallel for
 						for (uword j = 0; j < inda.n_elem; ++j)
 							for (uword i = 0; i < Ngrad; ++i)
-								diffSignal(i,j) = Idiff.at(ind(i,j));
+								diffSignal.at(i,j) = Idiff.at(ind.at(i,j));
 
 						switch (opts.reconsMethod) {
                             case QBI_DOTR2:
@@ -724,12 +724,12 @@ namespace phardi {
 
 #pragma omp parallel for
 								for (uword i = 0; i < inda.n_elem; ++i) {
-									slicevf_CSF.at(inda(i)) = ODF(ODF.n_rows - 2 ,i);
+									slicevf_CSF.at(inda(i)) = ODF.at(ODF.n_rows - 2 ,i);
 								}
 
 #pragma omp parallel for
 								for (uword i = 0; i < inda.n_elem; ++i) {
-									slicevf_GM.at(inda(i)) = ODF(ODF.n_rows - 1 ,i);
+									slicevf_GM.at(inda(i)) = ODF.at(ODF.n_rows - 1 ,i);
 								}
 
 
@@ -743,7 +743,7 @@ namespace phardi {
 								Row<T> tsum = sum(ODF,0);
 #pragma omp parallel for
 								for (uword i = 0; i < inda.n_elem; ++i) {
-									slicevf_WM.at(inda(i)) = tsum(i);
+									slicevf_WM.at(inda.at(i)) = tsum.at(i);
 								}
 
 								// Adding the isotropic components to the ODF
@@ -754,7 +754,7 @@ namespace phardi {
 								Row<T>  temp = stddev( ODF, 0, 0 ) / sqrt(mean(pow(ODF,2),0) + std::numeric_limits<double>::epsilon());
 #pragma omp parallel for
 								for (uword i = 0; i < inda.n_elem; ++i) {
-									slicevf_GFA.at(inda(i)) = temp(i);
+									slicevf_GFA.at(inda.at(i)) = temp.at(i);
 								}
 								break;
 						}
@@ -772,7 +772,7 @@ namespace phardi {
 #pragma omp parallel for
 						for (uword j = 0; j < ODF.n_cols; ++j) {
 							for (uword i = 0; i < ODF.n_rows; ++i) {
-								globODFslice.at(ODFindexes(i,j)) = ODF(i ,j);
+								globODFslice.at(ODFindexes.at(i,j)) = ODF.at(i ,j);
 							}
 						}
 					}
@@ -783,7 +783,7 @@ namespace phardi {
 						coord[1] = j; coord[2] = slice;
 						for (uword i = 0; i < xdiff; ++i) {
 							coord[0] = i;
-							imageCSF->SetPixel(coord, slicevf_CSF(i,j));
+							imageCSF->SetPixel(coord, slicevf_CSF.at(i,j));
 						}
 					}
 
@@ -794,7 +794,7 @@ namespace phardi {
 						coord[2] = slice;
 						for (uword i = 0; i < xdiff; ++i) {
 							coord[0] = i;
-							imageGM->SetPixel(coord, slicevf_GM(i,j));
+							imageGM->SetPixel(coord, slicevf_GM.at(i,j));
 						}
 					}
 
@@ -804,7 +804,7 @@ namespace phardi {
 						coord[1] = j; coord[2] = slice;
 						for (uword i = 0; i < xdiff; ++i) {
 							coord[0] = i;
-							imageWM->SetPixel(coord, slicevf_WM(i,j));
+							imageWM->SetPixel(coord, slicevf_WM.at(i,j));
 						}
 					}
 
@@ -814,7 +814,7 @@ namespace phardi {
 						coord[1] = j; coord[2] = slice;
 						for (uword i = 0; i < xdiff; ++i) {
 							coord[0] = i;
-							imageGFA->SetPixel(coord, slicevf_GFA(i,j));
+							imageGFA->SetPixel(coord, slicevf_GFA.at(i,j));
 						}
 					}
 
@@ -826,7 +826,7 @@ namespace phardi {
 							coord[1] = j;
 							for (uword k = 0; k < Nd; ++k) {
 								coord[3] = k;
-								imageODF->SetPixel(coord, globODFslice(i,j,k));
+								imageODF->SetPixel(coord, globODFslice.at(i,j,k));
 							}
 						}
 					}
@@ -926,7 +926,7 @@ namespace phardi {
 #pragma omp parallel for
 					for (uword j = 0; j < inda.n_elem; ++j)
 						for (uword i = 0; i < Ngrad; ++i)
-							diffSignal(i,j) = Vdiff[i].at( inda_vec(j)  );  //Vdiff[i].at(ind(i,j));
+							diffSignal.at(i,j) = Vdiff[i].at( inda_vec.at(j)  );  //Vdiff[i].at(ind(i,j));
 
 					Mat<T> ODF;
 					switch (opts.reconsMethod) {
@@ -1142,12 +1142,12 @@ namespace phardi {
 
 #pragma omp parallel for
 							for (uword i = 0; i < inda.n_elem; ++i) {
-								slicevf_CSF.at(inda(i)) = ODF(ODF.n_rows - 2 ,i);
+								slicevf_CSF.at(inda.at(i)) = ODF.at(ODF.n_rows - 2 ,i);
 							}
 
 #pragma omp parallel for
 							for (uword i = 0; i < inda.n_elem; ++i) {
-								slicevf_GM.at(inda(i)) = ODF(ODF.n_rows - 1 ,i);
+								slicevf_GM.at(inda.at(i)) = ODF.at(ODF.n_rows - 1 ,i);
 							}
 
 							//ODF_iso = ODF(end,:) + ODF(end-1,:);
@@ -1160,7 +1160,7 @@ namespace phardi {
 							Row<T> tsum = sum(ODF,0);
 #pragma omp parallel for
 							for (uword i = 0; i < inda.n_elem; ++i) {
-								slicevf_WM.at(inda(i)) = tsum(i);
+								slicevf_WM.at(inda.at(i)) = tsum.at(i);
 							}
 
 							// Adding the isotropic components to the ODF
@@ -1171,7 +1171,7 @@ namespace phardi {
 							Row<T>  temp = stddev( ODF, 0, 0 ) / sqrt(mean(pow(ODF,2),0) + std::numeric_limits<double>::epsilon());
 #pragma omp parallel for
 							for (uword i = 0; i < inda.n_elem; ++i) {
-								slicevf_GFA.at(inda(i)) = temp(i);
+								slicevf_GFA.at(inda.at(i)) = temp.at(i);
 							}
 							break;
 					}
@@ -1190,7 +1190,7 @@ namespace phardi {
 					for (uword j = 0; j < ODF.n_cols; ++j) {
 						for (uword i = 0; i < ODF.n_rows; ++i) {
 							//globODFslice[i].at(ODFindexes(j)) = ODF(i ,j);
-							globODFslice[i].at(j) = ODF(i ,j);
+							globODFslice[i].at(j) = ODF.at(i ,j);
 						}
 					}
 				}
@@ -1202,7 +1202,7 @@ namespace phardi {
 					for (auto j = 0; j < ydiff; ++j) {
 						coord[1] = j;
 						for (auto k = 0; k < zdiff; ++k) {
-							T temp = slicevf_CSF(i,j,k);
+							T temp = slicevf_CSF.at(i,j,k);
 							coord[2] = k;
 							imageCSF->SetPixel(coord, temp);
 						}
@@ -1216,7 +1216,7 @@ namespace phardi {
 					for (auto j = 0; j < ydiff; ++j) {
 						coord[1] = j;
 						for (auto k = 0; k < zdiff; ++k) {
-							T temp = slicevf_GM(i,j,k);
+							T temp = slicevf_GM.at(i,j,k);
 							coord[2] = k;
 							imageGM->SetPixel(coord, temp);
 						}
@@ -1230,7 +1230,7 @@ namespace phardi {
 					for (auto j = 0; j < ydiff; ++j) {
 						coord[1] = j;
 						for (auto k = 0; k < zdiff; ++k) {
-							T temp = slicevf_WM(i,j,k);
+							T temp = slicevf_WM.at(i,j,k);
 							coord[2] = k;
 							imageWM->SetPixel(coord, temp);
 						}
@@ -1244,7 +1244,7 @@ namespace phardi {
 					for (auto j = 0; j < ydiff; ++j) {
 						coord[1] = j;
 						for (auto k = 0; k < zdiff; ++k) {
-							T temp = slicevf_GFA(i,j,k);
+							T temp = slicevf_GFA.at(i,j,k);
 							coord[2] = k;
 							imageGFA->SetPixel(coord, temp);
 						}
@@ -1261,7 +1261,7 @@ namespace phardi {
 						for (auto j = 0; j < ydiff; ++j) {
 							coord[1] = j;
 							for (auto k = 0; k < zdiff; ++k) {
-								T temp = tempc(i,j,k);
+								T temp = tempc.at(i,j,k);
 								coord[2] = k;
 								imageODF->SetPixel(coord, temp);
 							}

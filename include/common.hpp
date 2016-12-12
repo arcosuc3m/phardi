@@ -24,6 +24,10 @@ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef COMMON_H
 #define COMMON_H
 
+#ifdef FFTW
+     #include <fftw3.h>
+#endif
+
 #include <armadillo>
 #include <math.h>
 
@@ -282,12 +286,6 @@ namespace phardi {
         // YY = Y'*Y;
         YY = Y.t() * Y;
 
-        // N = size(Y,1);
-        //N = size(YY, 0);
-
-        // I = diag(ones(N,1));
-        //I = diagmat(ones<uvec>(N));
-
         // A = (YY + Lambda*L)\Y';
         A = solve (YY + Lambda * L, Y.t(), solve_opts::equilibrate);
         return A ;
@@ -298,7 +296,35 @@ namespace phardi {
     {
         using namespace arma;
 
-        Cube<std::complex<T>> A(size(Signal)), B(size(Signal)), C(size(Signal));
+        Cube<std::complex<T>> C(size(Signal));
+
+#ifdef FFTW
+
+        fftw_complex* in = (fftw_complex*)fftw_malloc( sizeof(fftw_complex) * Signal.n_elem);
+        fftw_complex* out = (fftw_complex*)fftw_malloc( sizeof(fftw_complex) * Signal.n_elem);
+
+        for (uword i = 0; i < Signal.n_elem; ++i) {
+                in[i][0] = Signal.at(i);
+                in[i][1] = 0;
+        }
+
+	fftw_plan plan;
+
+	#pragma omp critical        
+        plan=fftw_plan_dft_3d(Signal.n_slices, Signal.n_cols, Signal.n_rows, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+
+        fftw_execute(plan);
+
+	for (uword i = 0; i < Signal.n_elem; ++i)
+		C.at(i) = cx_double(out[i][0], out[i][1]);
+
+        fftw_free(out);
+        fftw_free(in);
+	#pragma omp critical        
+        fftw_destroy_plan(plan);
+#else
+
+        Cube<std::complex<T>> A(size(Signal)), B(size(Signal));
         uword Nx, Ny, Nz;
 
         Nx = Signal.n_rows;
@@ -338,6 +364,9 @@ namespace phardi {
                 C(span::all, arma::span(j), arma::span(k)) = out;
             }
         }
+
+#endif
+
         return C;
     }
 
@@ -367,7 +396,7 @@ namespace phardi {
         for (uword k = 0; k < x.n_slices; ++k)
             for (uword j = 0; j < x.n_cols; ++j)
                 for (uword i = 0; i < x.n_rows; ++i)
-                    y(i,j,k) = x(idx[0](i),idx[1](j),idx[2](k));
+                    y.at(i,j,k) = x.at(idx[0](i),idx[1](j),idx[2](k));
 
         return y;
     }
@@ -397,7 +426,7 @@ namespace phardi {
         for (uword k = 0; k < x.n_slices; ++k)
             for (uword j = 0; j < x.n_cols; ++j)
                 for (uword i = 0; i < x.n_rows; ++i)
-                    y(i,j,k) = x(idx[0](i),idx[1](j),idx[2](k));
+                    y.at(i,j,k) = x.at(idx[0](i),idx[1](j),idx[2](k));
 
         return y;
     }
@@ -428,7 +457,7 @@ namespace phardi {
 #pragma omp parallel for
         for (uword j = 0; j < x.n_cols; ++j)
             for (uword i = 0; i < x.n_rows; ++i)
-                y(i,j) = xx(idx[0](i),idx[1](j));
+                y.at(i,j) = xx.at(idx[0](i),idx[1](j));
 
         return y;
     }
@@ -457,7 +486,7 @@ namespace phardi {
 #pragma omp parallel for
         for (uword j = 0; j < x.n_cols; ++j)
             for (uword i = 0; i < x.n_rows; ++i)
-                y(i,j) = x(idx[0](i),idx[1](j));
+                y.at(i,j) = x.at(idx[0](i),idx[1](j));
 
         return y;
     }
@@ -563,7 +592,7 @@ namespace phardi {
 
         //sq(indexes) = value;
         for (uword i = 0; i < value.n_elem; ++i)
-            sq(indexes(i)) = value(i);
+            sq.at(indexes(i)) = value.at(i);
 
         return sq;
     }

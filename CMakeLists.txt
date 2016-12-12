@@ -45,6 +45,11 @@ ELSE()
     MESSAGE(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a dIFferent C++ compiler.")
 ENDIF()
 
+FIND_PACKAGE(FFTW)
+
+IF(FFTW_FOUND)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFFTW")
+ENDIF()
 
 FIND_PACKAGE(OpenMP)
 IF (OPENMP_FOUND)
