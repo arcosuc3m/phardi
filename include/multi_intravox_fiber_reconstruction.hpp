@@ -890,14 +890,14 @@ namespace phardi {
 					for (int i = 0; i < ind_S0.n_elem; ++i)
 						Vdiff[ind_S0(i)].reset();
 
-					for (uword graddir = Ngrad - 1; graddir >=0; --graddir)
+					for (sword graddir = Ngrad - 1; graddir >=0; --graddir)
 						if (Vdiff[graddir].n_elem == 0)  Vdiff.erase(Vdiff.begin() + graddir);
 
 					int pSize = Vdiff.size();
 
 					//Idiff = cat(4,S0_est,Idiff);
 					Vdiff.resize( pSize + ind_S0.n_elem);
-					for (uword i = pSize -1 ; i >= 0; --i)
+					for (sword i = pSize -1 ; i >= 0; --i)
 						Vdiff[i + ind_S0.n_elem] = Vdiff[i];
 
 					for (uword i = 0; i < ind_S0.n_elem; ++i)
