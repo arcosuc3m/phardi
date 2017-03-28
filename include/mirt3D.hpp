@@ -137,7 +137,7 @@ namespace phardi {
         using namespace arma;
 
         uword i, MN, nrows, ncols, npages, vol, ndim, newXndim, Xndim;
-        uword dims[2], Xdims[2], newdims[20];
+        uword dims[4], Xdims[2], newdims[20];
 
         /* Get the sizes of each input argument */
 
