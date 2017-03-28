@@ -1,0 +1,29 @@
+Armadillo C++ Linear Algebra Library
+-------
+Author:		Conrad Sanderson and Ryan Curtin
+Copyright:	Copyright (C) All rights reserved
+License:	Apache License, Version 2.0
+
+Insight Toolkit 
+-------
+Author:		Insight Software Consortium
+Copyright:	Copyright (C) Insight Software Consortium. All rights reserved
+License:	Apache License, Version 2.0
+
+FFTW 
+-------
+Author:		Matteo Frigo and Massachusetts
+Copyright:	Copyright (C) 1997--1999 Massachusetts Institute of Technology. All rights reserved
+License:	General Public License
+
+The Lean Mean C++ Option Parser 
+-------
+Author:		Matthias S. Benkmann
+Copyright:	Copyright (C) 2012 Matthias S. Benkmann
+License:	General Public License
+
+Plog - portable and simple log for C++
+-------
+Author:		Sergey Podobry
+Copyright:	Copyright (c) 2016 Sergey Podobry (sergey.podobry at gmail.com).
+License:	MPL 2.0, http://mozilla.org/MPL/2.0/
