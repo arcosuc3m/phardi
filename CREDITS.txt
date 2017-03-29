@@ -1,3 +1,9 @@
+pHARDI
+-------
+Author:		Javier Garcia-Blas, J. Daniel Garcia, Manuel F. Dolz, Yasser Aleman, Erick Canales 
+Copyright:	Copyright (C) 2017 Universidad Carlos III de Madrid. 
+License:	GNU General Public License v3.0 (GPL3)
+
 Armadillo C++ Linear Algebra Library
 -------
 Author:		Conrad Sanderson and Ryan Curtin
