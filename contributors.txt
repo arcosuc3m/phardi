@@ -1,4 +1,0 @@
-Javier Garcia Blas (fjblas@inf.uc3m.es)
-Jose Daniel Garcia Sanchez (josedaniel.garcia@uc3m.es)
-Yasser Aleman (yaleman@hggm.es)
-Erick Canales (ejcanalesr@gmail.com)
