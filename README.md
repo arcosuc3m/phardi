@@ -33,6 +33,10 @@ cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/g++-4.9 -DCMAKE_BUILD_TYPE=Release
 make
 ```
 
+### Sample data ###
+
+http://doi.org/10.5281/zenodo.258764
+
 ### Execution ###
 
 
