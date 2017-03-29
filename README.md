@@ -18,12 +18,8 @@ The following libraries and compiler are required for compilation:
 * GCC (>= 4.9)
 * Armadillo (>= 6.7)
 * ITK (>= 4.9)
-
-Optional libraries for CPU acceleration:
-
-* OpenBLAS/ATLAS/Intel MKL
-* LaPack
 * FFTW (for DSI)
+* ArrayFire (>= 3.4.0)
 
 ### How do I get set up? ###
 
@@ -59,6 +55,7 @@ Optional arguments (You may optionally specify one or more of):
   --verbose, -v       Verbose execution details
   --help, -h          Print usage and exit
   --compress, -z      Compress resulting files
+  --device            Hardware backend: cuda, opencl or cpu (default cuda).
 
 Related to each reconstruction method:
 

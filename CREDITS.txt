@@ -7,8 +7,14 @@ License:	GNU General Public License v3.0 (GPL3)
 Armadillo C++ Linear Algebra Library
 -------
 Author:		Conrad Sanderson and Ryan Curtin
-Copyright:	Copyright (C) All rights reserved
+Copyright:	Copyright (C). All rights reserved
 License:	Apache License, Version 2.0
+
+ArrayFire
+-------
+Author:		ArrayFire
+Copyright:	Copyright (C) 2014-2015, ArrayFire. All rights reserved
+License:	BSD 3-Clause License
 
 Insight Toolkit 
 -------

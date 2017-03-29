@@ -36,8 +36,9 @@
 #include <vector>
 #include <chrono>
 #include <armadillo>
+#include <arrayfire.h>
 
-enum  optionIndex { UNKNOWN, HELP, READ, DATA, RECONS, MASK, BVECS, BVALS, ODF, PRECISION, OP_RUMBA_NOISE, OP_RUMBA_ITER, OP_RUMBA_LAMBDA1, OP_RUMBA_LAMBDA2, OP_RUMBA_LAMBDA_CSF, OP_RUMBA_LAMBDA_GM,
+enum  optionIndex { UNKNOWN, HELP, READ, DATA, RECONS, MASK, BVECS, BVALS, DEVICE, ODF, PRECISION, OP_RUMBA_NOISE, OP_RUMBA_ITER, OP_RUMBA_LAMBDA1, OP_RUMBA_LAMBDA2, OP_RUMBA_LAMBDA_CSF, OP_RUMBA_LAMBDA_GM,
                     OP_QBI_LAMBDA, OP_GQI_LAMBDA, OP_GQI_MDDR, OP_DOTR2_LAMBDA, OP_DOTR2_T, OP_DOTR2_EULER, OP_CSA_LAMBDA, OP_DSI_LMAX, OP_DSI_RES, OP_DSI_RMIN, OP_DSI_LREG, OP_DSI_BOX, ZIP, DEBUG};
 
 struct Arg: public option::Arg
@@ -98,6 +99,8 @@ const option::Descriptor usage[] =
     {BVALS, 0,"b","bvals",Arg::Required, "  --bvals, -b  \tb-values file." },
     {ODF, 0,"o","odf",Arg::Required, "  --odf, -o  \tOutput path." },
     {PRECISION, 0,"p","presicion",Arg::NonEmpty, "  --precision, -p  \tCalculation precision (float|double)." },
+
+    {DEVICE, 0,"","device",Arg::NonEmpty, "  --device   \tHardware backend: cuda, opencl or cpu (default cuda)." },
 
     {OP_RUMBA_ITER, 0,"i","rumba-iterations",Arg::Numeric, "  --rumba-iterations \tRUMBA: Iterations performed (default 300)." },
     {OP_RUMBA_LAMBDA1, 0,"","rumba-lambda1",Arg::Numeric, "  --rumba-lambda1 \tRUMBA: Longitudinal diffusivity value, in units of mm^2/s (default 0.0017)." },
@@ -411,6 +414,20 @@ int main(int argc, char ** argv) {
         LOG_INFO << "    Lambda GM      = " << opts.rumba_sd.lambda_gm;
     }
 
+    std::string device = "cuda";
+
+    if (options[DEVICE].count() > 0) {
+         device = std::string(options[DEVICE].arg);
+    }
+
+    if (device == "cuda")
+        af::setBackend(AF_BACKEND_CUDA);
+    else if (device == "opencl")
+        af::setBackend(AF_BACKEND_OPENCL);
+    else if (device == "cpu")
+        af::setBackend(AF_BACKEND_CPU);
+
+    af::info();
 
     if (precision == "float")
         Multi_IntraVox_Fiber_Reconstruction<float>(diffImage,bvecsFilename,bvalsFilename,diffBmask,ODFfilename,opts);
