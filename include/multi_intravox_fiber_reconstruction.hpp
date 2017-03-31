@@ -699,9 +699,10 @@ namespace phardi {
 
                                 // indb0 = find(sum(diffGrads,2) == 0);
                                 indb0 = find(sum(diffGrads, 1)==0);
-
+indb0.print("indb0");
                                 // indb1 = find(sum(diffGrads,2) ~= 0);
                                 indb1 = find(sum(diffGrads, 1)!=0);
+indb1.print("indb1");
 
                                 // coeff = Kernel*diffSignal(indb1,:);
                                 coeff = Kernel * diffSignal.rows(indb1);
@@ -800,8 +801,7 @@ namespace phardi {
 #pragma omp parallel for
                     for (uword j = 0; j < ydiff; ++j) {
                         Index3DType coord;
-                        coord[1] = j;
-                        coord[2] = slice;
+                        coord[1] = j; coord[2] = slice;
                         for (uword i = 0; i < xdiff; ++i) {
                             coord[0] = i;
                             imageGM->SetPixel(coord, slicevf_GM.at(i,j));

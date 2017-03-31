@@ -21,12 +21,16 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+#define __STDCPP_WANT_MATH_SPEC_FUNCS__ 1
+
 #ifdef FFTW
      #include <fftw3.h>
 #endif
 
 #include <armadillo>
 #include <math.h>
+#include <cmath>
+#include <limits>
 
 namespace phardi {
 
@@ -34,7 +38,7 @@ namespace phardi {
     template <typename T>
     void Cart2Sph(T x, T y, T z, T & phi, T & theta)
     {
-        double hypotxy;
+        T hypotxy;
         hypotxy = std::sqrt(std::pow(x,2) + std::pow(y,2));
 
         // compute elev
@@ -62,24 +66,55 @@ namespace phardi {
     }
 
     template <typename T>
-    T legendre(const arma::uword n, const T x)
-    {
-        T result = 0;
+    arma::Mat<T> legendre (arma::uword n, arma::Col<T>& x) {
+        using namespace arma;
 
-        if (n == 0)
-        {
-            result = 0.0f;
-        }
-        else if (n == 1)
-        {
-            result =  1.0f;
-        }
+        if(n == 0) {
+            Mat<T> res;
+            res.resize(x.n_elem, 1);
+            res.ones();
+            return res;
+        } else {
+            Col<T> rootn(2*n+1);
+            for (uword i = 0; i <= 2*n; ++i)
+                rootn(i) = std::sqrt(i);
 
-        else {
-            result = (2.0*n-1.0)/n * x * legendre(n-1,x) - (n-1)/n * legendre(n-2,x);
-        }
+            Col<T> s = sqrt(1 - pow(x,2));
+            Mat<T> P(n+3, x.n_elem);
+	    P.zeros();          
 
-        return result;
+            Col<T> twocot = -2.0 * x / s;
+
+            Col<T> sn = pow ( -1.0 * s, n);
+            T tol = std::sqrt(std::numeric_limits<T>::min());
+            uvec ind = find( s>0 && abs(sn)<=tol);
+            uvec nind = find( x!=1 && abs(sn)>=tol);
+  
+            if (nind.n_elem > 0) {
+                Col<T> d(n);
+                for (uword i = 0; i < n; ++i)
+                    d(i) = 2*(i+1);
+
+                T c = prod(1-(1/d));
+    
+                P.row(n) = std::sqrt(c) * sn(nind);
+                P.row(n-1) = P.row(n) % twocot(nind) * n / rootn(rootn.n_elem - 1);
+                for (sword m = n-2; m >=0 ; --m) {
+                    P.row(m) = (P.row(m+1) % twocot(nind)*(m+1) - P.row(m+2)*rootn(n+m+2)*rootn(n-m-1))/(rootn(n+m+1)*rootn(n-m)); 
+                }
+
+            }
+            
+            Mat<T> y = P.submat(0,0,n+1,P.n_cols);
+            uvec s0 = find(s == 0);
+            if (s0.n_elem !=0)
+                y.row(0) = pow(x(s0),n);
+            for (uword m = 1; m <= n-1; ++m)
+                y.row(m) = prod(rootn.subvec(n-m+1,n+m))*y.row(m);     
+            y.row(n) = prod(rootn.subvec(1,rootn.n_elem-1)) * y.row(n);
+            y.resize(n+1, x.n_elem);          
+            return y;          
+        }
     }
 
 
@@ -108,8 +143,8 @@ namespace phardi {
 
         using namespace arma;
 
-        T k, lconstant, center, precoeff;
-        uword n, l, m;
+        T k, lconstant, precoeff;
+        uword n;
 
         // n = size(sphere_points,1);  % number of points
         n = size(sphere_points, 0);
@@ -122,6 +157,8 @@ namespace phardi {
             // [phi, theta] = cart2sph(sphere_points(:,1),sphere_points(:,2),sphere_points(:,3));
             Cart2Sph<T>(sphere_points(i,0), sphere_points(i,1), sphere_points(i,2), phi(i), theta(i)) ;
         }
+
+
         // theta = pi/2 - theta;  % convert to interval [0, PI]
         theta.transform([](T val) { return datum::pi/2.0 - val;});
 
@@ -137,22 +174,20 @@ namespace phardi {
 
         Mat<T> Y(n, k, fill::zeros);
 
-        for (l=0; l < degree; l+=dl)
+        for (uword l=0; l <= degree; l+=dl)
         {
-            Col<T> Pm(theta.n_elem);
+            uword center;
 
-#pragma omp parallel for
-            for (uword i = 0; i < Pm.n_elem; ++i) {
-                // Pm = legendre(l,cos(theta')); % legendre part
-                Pm(i) = legendre(l, std::cos(theta(i)));
-            }
-
+            Col<T> ctheta = cos(theta);
+            // Pm = legendre(l,cos(theta')); % legendre part
+            Mat<T> Pm = legendre(l, ctheta);
+            Pm = Pm.t();
             // lconstant = sqrt((2*l + 1)/(4*pi));
-            lconstant = std::sqrt((2*l+1) / (4 * datum::pi));
+            lconstant = std::sqrt((2.0*l+1.0) / (4.0 * datum::pi));
 
             if (dl==2)
             {
-                center = (l+1)*(l+2)/2.0-l ;
+                center = (l+1)*(l+2)/2-l ;
             }
             else
             {
@@ -163,9 +198,9 @@ namespace phardi {
             }
 
             // Y(:,center) = lconstant*Pm(:,1);
-            Y.col(center) = lconstant * Pm;
+            Y.col(center-1) = lconstant * Pm.col(0);
 
-            for (m=0; m<l; ++m)
+            for (uword m=1; m<=l; ++m)
             {
                 // precoeff = lconstant * sqrt(factorial(l - m)/factorial(l + m));
                 precoeff = lconstant * std::sqrt(factorial<T>(l-m)/factorial<T>(l+m)) ;
@@ -176,18 +211,11 @@ namespace phardi {
                     {
                         precoeff = -precoeff;
                     }
-
                     // Y(:, center + m) = sqrt(2)*precoeff*Pm(:,m+1).*cos(m*phi);
-#pragma omp parallel for
-                    for (uword i = 0; i < phi.n_elem; ++i) {
-                        Y(i, center + m) = std::sqrt(2) * precoeff * Pm(m + 1) * std::cos(m * phi(i));
-                    }
+                    Y.col(center + m -1) = sqrt(2.0f) * precoeff * Pm.col(m) % cos(m*phi);
 
                     // Y(:, center - m) = sqrt(2)*precoeff*Pm(:,m+1).*sin(m*phi);
-#pragma omp parallel for
-                    for (uword i = 0; i < phi.n_elem; ++i) {
-                        Y(i, center - m) = std::sqrt(2) * precoeff * Pm(m + 1) * std::sin(m * phi(i));
-                    }
+                    Y.col(center - m -1) = sqrt(2.0f) * precoeff * Pm.col(m) % sin(m*phi);
                 }
                 else if ("complex" == real_or_complex)
                 {

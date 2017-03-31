@@ -47,7 +47,6 @@ namespace phardi {
 
         Col<T> thetaG, thetaV, phiG, phiV;
         uword Lmax, Nmin;
-        T factor1;
         sword m, L;
 
         std::vector<T> K_v;
@@ -65,15 +64,19 @@ namespace phardi {
 
         construct_SH_basis<T>(Lmax, diffGrads.rows(indb1), 2, "real", thetaG, phiG, basisG);
         construct_SH_basis<T>(Lmax, V, 2, "real", thetaV, phiV, basisV);
-
+	
         K.reset();
         Laplac2.reset();
         for (L = 0; L <= Lmax; L+=2)
         {
             for (m = -(L); m <= L; ++m)
             {
-                factor1 = legendre(L, 0.0f) ;
-                K_v.push_back(factor1);
+                Mat<T> factor1;
+
+		Col<T> z(1);
+                z.zeros();
+                factor1 = legendre(L, z) ;
+                K_v.push_back(factor1(0,0));
                 Laplac2_v.push_back(pow(L, 2) * pow((L+1.0f), 2));
             }
         }
