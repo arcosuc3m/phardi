@@ -782,47 +782,47 @@ namespace phardi {
                             }
                         }
                     }
+                    if (opts.reconsMethod == RUMBA_SD) {
+#pragma omp parallel for
+                        for (uword j = 0; j < ydiff; ++j) {
+                            Index3DType coord;
+                            coord[1] = j; coord[2] = slice;
+                            for (uword i = 0; i < xdiff; ++i) {
+                                coord[0] = i;
+                                imageCSF->SetPixel(coord, slicevf_CSF.at(i,j));
+                            }
+                        }
 
 #pragma omp parallel for
-                    for (uword j = 0; j < ydiff; ++j) {
-                        Index3DType coord;
-                        coord[1] = j; coord[2] = slice;
-                        for (uword i = 0; i < xdiff; ++i) {
-                            coord[0] = i;
-                            imageCSF->SetPixel(coord, slicevf_CSF.at(i,j));
+                        for (uword j = 0; j < ydiff; ++j) {
+                            Index3DType coord;
+                            coord[1] = j; coord[2] = slice;
+                            for (uword i = 0; i < xdiff; ++i) {
+                                coord[0] = i;
+                                imageGM->SetPixel(coord, slicevf_GM.at(i,j));
+                            }
                         }
-                    }
 
 #pragma omp parallel for
-                    for (uword j = 0; j < ydiff; ++j) {
-                        Index3DType coord;
-                        coord[1] = j; coord[2] = slice;
-                        for (uword i = 0; i < xdiff; ++i) {
-                            coord[0] = i;
-                            imageGM->SetPixel(coord, slicevf_GM.at(i,j));
+                        for (uword j = 0; j < ydiff; ++j) {
+                            Index3DType coord;
+                            coord[1] = j; coord[2] = slice;
+                            for (uword i = 0; i < xdiff; ++i) {
+                                coord[0] = i;
+                                imageWM->SetPixel(coord, slicevf_WM.at(i,j));
+                            }
                         }
-                    }
 
 #pragma omp parallel for
-                    for (uword j = 0; j < ydiff; ++j) {
-                        Index3DType coord;
-                        coord[1] = j; coord[2] = slice;
-                        for (uword i = 0; i < xdiff; ++i) {
-                            coord[0] = i;
-                            imageWM->SetPixel(coord, slicevf_WM.at(i,j));
+                        for (uword j = 0; j < ydiff; ++j) {
+                            Index3DType coord;
+                            coord[1] = j; coord[2] = slice;
+                            for (uword i = 0; i < xdiff; ++i) {
+                                coord[0] = i;
+                                imageGFA->SetPixel(coord, slicevf_GFA.at(i,j));
+                            }
                         }
                     }
-
-#pragma omp parallel for
-                    for (uword j = 0; j < ydiff; ++j) {
-                        Index3DType coord;
-                        coord[1] = j; coord[2] = slice;
-                        for (uword i = 0; i < xdiff; ++i) {
-                            coord[0] = i;
-                            imageGFA->SetPixel(coord, slicevf_GFA.at(i,j));
-                        }
-                    }
-
 #pragma omp parallel for
                     for (uword i = 0; i < xdiff; ++i) {
                         Index4DType coord;
@@ -1199,63 +1199,63 @@ namespace phardi {
                         }
                     }
                 }
+                if (opts.reconsMethod == RUMBA_SD) {
+#pragma omp parallel for
+                    for (auto i = 0; i < xdiff; ++i) {
+                        Index3DType coord;
+                        coord[0] = i;
+                        for (auto j = 0; j < ydiff; ++j) {
+                            coord[1] = j;
+                            for (auto k = 0; k < zdiff; ++k) {
+                                T temp = slicevf_CSF.at(i,j,k);
+                                coord[2] = k;
+                                imageCSF->SetPixel(coord, temp);
+                            }
+                        }
+                    }
 
 #pragma omp parallel for
-                for (auto i = 0; i < xdiff; ++i) {
-                    Index3DType coord;
-                    coord[0] = i;
-                    for (auto j = 0; j < ydiff; ++j) {
-                        coord[1] = j;
-                        for (auto k = 0; k < zdiff; ++k) {
-                            T temp = slicevf_CSF.at(i,j,k);
-                            coord[2] = k;
-                            imageCSF->SetPixel(coord, temp);
+                    for (auto i = 0; i < xdiff; ++i) {
+                        Index3DType coord;
+                        coord[0] = i;
+                        for (auto j = 0; j < ydiff; ++j) {
+                            coord[1] = j;
+                            for (auto k = 0; k < zdiff; ++k) {
+                                T temp = slicevf_GM.at(i,j,k);
+                                coord[2] = k;
+                                imageGM->SetPixel(coord, temp);
+                            }
+                        }
+                    }
+
+#pragma omp parallel for
+                    for (auto i = 0; i < xdiff; ++i) {
+                        Index3DType coord;
+                        coord[0] = i;
+                        for (auto j = 0; j < ydiff; ++j) {
+                            coord[1] = j;
+                            for (auto k = 0; k < zdiff; ++k) {
+                                T temp = slicevf_WM.at(i,j,k);
+                                coord[2] = k;
+                                imageWM->SetPixel(coord, temp);
+                            }
+                        }
+                    }
+
+#pragma omp parallel for
+                    for (auto i = 0; i < xdiff; ++i) {
+                        Index3DType coord;
+                        coord[0] = i;
+                        for (auto j = 0; j < ydiff; ++j) {
+                            coord[1] = j;
+                            for (auto k = 0; k < zdiff; ++k) {
+                                T temp = slicevf_GFA.at(i,j,k);
+                                coord[2] = k;
+                                imageGFA->SetPixel(coord, temp);
+                            }
                         }
                     }
                 }
-
-#pragma omp parallel for
-                for (auto i = 0; i < xdiff; ++i) {
-                    Index3DType coord;
-                    coord[0] = i;
-                    for (auto j = 0; j < ydiff; ++j) {
-                        coord[1] = j;
-                        for (auto k = 0; k < zdiff; ++k) {
-                            T temp = slicevf_GM.at(i,j,k);
-                            coord[2] = k;
-                            imageGM->SetPixel(coord, temp);
-                        }
-                    }
-                }
-
-#pragma omp parallel for
-                for (auto i = 0; i < xdiff; ++i) {
-                    Index3DType coord;
-                    coord[0] = i;
-                    for (auto j = 0; j < ydiff; ++j) {
-                        coord[1] = j;
-                        for (auto k = 0; k < zdiff; ++k) {
-                            T temp = slicevf_WM.at(i,j,k);
-                            coord[2] = k;
-                            imageWM->SetPixel(coord, temp);
-                        }
-                    }
-                }
-
-#pragma omp parallel for
-                for (auto i = 0; i < xdiff; ++i) {
-                    Index3DType coord;
-                    coord[0] = i;
-                    for (auto j = 0; j < ydiff; ++j) {
-                        coord[1] = j;
-                        for (auto k = 0; k < zdiff; ++k) {
-                            T temp = slicevf_GFA.at(i,j,k);
-                            coord[2] = k;
-                            imageGFA->SetPixel(coord, temp);
-                        }
-                    }
-                }
-
 #pragma omp parallel for
                 for (auto n = 0; n < Nd; ++n) {
                     Cube<T> tempc = globODFslice[n];
@@ -1277,21 +1277,23 @@ namespace phardi {
                 break;
         }
 
-        LOG_INFO << "writting file " << filenameCSF;
-        // LOG_INFO << imageCSF;
-        WriteImage<Image3DType,NiftiType>(filenameCSF,imageCSF);
+        if (opts.reconsMethod == RUMBA_SD) {
+            LOG_INFO << "writting file " << filenameCSF;
+            // LOG_INFO << imageCSF;
+            WriteImage<Image3DType,NiftiType>(filenameCSF,imageCSF);
 
-        LOG_INFO << "writting file " << filenameGM;
-        // LOG_INFO <<  imageGM;
-        WriteImage<Image3DType,NiftiType>(filenameGM,imageGM);
+            LOG_INFO << "writting file " << filenameGM;
+            // LOG_INFO <<  imageGM;
+            WriteImage<Image3DType,NiftiType>(filenameGM,imageGM);
 
-        LOG_INFO << "writting file " << filenameWM;
-        // LOG_INFO <<  imageWM;
-        WriteImage<Image3DType,NiftiType>(filenameWM,imageWM);
+            LOG_INFO << "writting file " << filenameWM;
+            // LOG_INFO <<  imageWM;
+            WriteImage<Image3DType,NiftiType>(filenameWM,imageWM);
 
-        LOG_INFO << "writting file " << filenameGFA;
-        // LOG_INFO <<  imageGFA;
-        WriteImage<Image3DType,NiftiType>(filenameGFA,imageGFA);
+            LOG_INFO << "writting file " << filenameGFA;
+            // LOG_INFO <<  imageGFA;
+            WriteImage<Image3DType,NiftiType>(filenameGFA,imageGFA);
+        }
 
         LOG_INFO << "writting file " << ODFfilename;
         WriteImage<Image4DType,NiftiType>(ODFfilename,imageODF);
