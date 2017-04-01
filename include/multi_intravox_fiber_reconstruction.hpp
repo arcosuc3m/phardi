@@ -205,10 +205,7 @@ namespace phardi {
         Mat<T> zi;
         Mat<T> rmatrix;
 
-
-
-        LOG_INFO << "Kernel size: " << size(Kernel);
-        Kernel.fill(0.0);
+        Kernel.zeros();
 
         switch (opts.reconsMethod) {
             case RUMBA_SD:
@@ -699,10 +696,8 @@ namespace phardi {
 
                                 // indb0 = find(sum(diffGrads,2) == 0);
                                 indb0 = find(sum(diffGrads, 1)==0);
-indb0.print("indb0");
                                 // indb1 = find(sum(diffGrads,2) ~= 0);
                                 indb1 = find(sum(diffGrads, 1)!=0);
-indb1.print("indb1");
 
                                 // coeff = Kernel*diffSignal(indb1,:);
                                 coeff = Kernel * diffSignal.rows(indb1);
@@ -920,17 +915,17 @@ indb1.print("indb1");
                     }
                     //inda = find(squeeze(Idiff(:,:,1))>0);
                     uvec inda_vec = find( Vmask != 0);
-                    Mat<T> inda = conv_to<Mat<T>>::from(inda_vec);
+                    Mat<uword> inda = conv_to<Mat<uword>>::from(inda_vec);
 
                     //totalNvoxels = prod(size(Imask));
                     size_t  totalNvoxels = Vmask.n_elem;
 
                     //allIndexes = repmat(inda(:)',[Ngrad 1]);
-                    Mat<T> allIndixes = repmat(inda.t(),Ngrad,1);
+                    Mat<uword> allIndixes = repmat(inda.t(),Ngrad,1);
                     //allIndixes.save("inda.txt",arma::raw_ascii);
 
                     // diffSignal = Idiff(allIndexes + totalNvoxels*repmat([0:Ngrad-1]',[1 length(inda) ])); % Indexes in 4D
-                    Mat<T> ind = allIndixes + (totalNvoxels *  repmat(linspace<Mat<T>>(0, Ngrad-1,Ngrad),1,inda.n_elem));
+                    Mat<uword> ind = allIndixes + (totalNvoxels *  repmat(linspace<Mat<uword>>(0, Ngrad-1,Ngrad),1,inda.n_elem));
                     Mat<T> diffSignal(Ngrad,inda.n_elem);
 
 #pragma omp parallel for
@@ -1190,17 +1185,17 @@ indb1.print("indb1");
 
                     // % Reordering ODF
                     //  allIndexesODF = repmat(inda(:)',[size(ODF,1) 1]); % Image indexes
-                    Mat<T> allIndexesODF = repmat(inda.t(),ODF.n_rows,1);
+                    Mat<uword> allIndexesODF = repmat(inda.t(),ODF.n_rows,1);
 
                     // ODFindexes = allIndexesODF + totalNvoxels*repmat([0:size(ODF,1)-1]',[1 length(inda) ]); % Indexes in 4D
-                    Mat<T> ODFindexes = allIndexesODF + totalNvoxels * repmat(linspace<Mat<T>>(0, ODF.n_rows - 1, ODF.n_rows ),1,inda.n_elem);
+                    Mat<uword> ODFindexes = allIndexesODF + totalNvoxels * repmat(linspace<Mat<uword>>(0, ODF.n_rows - 1, ODF.n_rows ),1,inda.n_elem);
 
                     // globODFslice(ODFindexes(:)) = ODF(:);
+                    uword slice_size = xdiff * ydiff * zdiff;
 #pragma omp parallel for
                     for (uword j = 0; j < ODF.n_cols; ++j) {
                         for (uword i = 0; i < ODF.n_rows; ++i) {
-                            //globODFslice[i].at(ODFindexes(j)) = ODF(i ,j);
-                            globODFslice[i].at(j) = ODF.at(i ,j);
+                            globODFslice[i].at(ODFindexes(i,j) % slice_size) = ODF.at(i ,j);
                         }
                     }
                 }
