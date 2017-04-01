@@ -396,6 +396,12 @@ namespace phardi {
 
                             }
                                 break;
+                            RUMBA_SD:
+                            QBI:
+                            QBI_CSA:
+                            GQI_L1:
+                            GQI_L2:
+                                break;
                         }
 
                         // Allocating memory to save the ODF

@@ -355,11 +355,6 @@ int main(int argc, char ** argv) {
 	else opts.datreadMethod = SLICES;
     }
 
-    if (opts.reconsMethod  == DSI)  {
-        LOG_INFO << "    Forced to VOXELS";
-        opts.datreadMethod = VOXELS;
-    }
-
     std::string precision = "float";
 
     if (options[PRECISION].count() > 0) {
@@ -375,8 +370,17 @@ int main(int argc, char ** argv) {
 
     if (opts.datreadMethod == VOLUME)
         LOG_INFO << "    Read method   = volume";
-    else 
+    else if (opts.datreadMethod == SLICES)
         LOG_INFO << "    Read method   = slices";
+    else if (opts.datreadMethod == VOXELS)
+        LOG_INFO << "    Read method   = voxels";
+
+
+    if (opts.reconsMethod == DSI && opts.datreadMethod != VOXELS) {
+        LOG_INFO << "    Read method not compatible";
+        std::cerr << "    Read method not compatible" << std::endl;
+        return -1;
+    }
 
     if (opts.reconsMethod == QBI_DOTR2) {
         LOG_INFO << "Configuration details for DOTR2:";
