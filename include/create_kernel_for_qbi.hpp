@@ -42,15 +42,16 @@ namespace phardi {
 
         using namespace arma;
 
-        Mat<T> basisG,  Laplac;
-        Col<T> Laplac2;
+        Mat<T> basisG;
+        Mat<uword> Laplac;
+        Col<uword> Laplac2;
 
         Col<T> thetaG, thetaV, phiG, phiV;
         uword Lmax, Nmin;
         sword m, L;
 
         std::vector<T> K_v;
-        std::vector<T> Laplac2_v;
+        std::vector<uword> Laplac2_v;
 
         obtain_Lmax(diffGrads, Lmax, Nmin);
 
@@ -76,8 +77,8 @@ namespace phardi {
 		Col<T> z(1);
                 z.zeros();
                 factor1 = legendre(L, z) ;
-                K_v.push_back(factor1(0,0));
-                Laplac2_v.push_back(pow(L, 2) * pow((L+1.0f), 2));
+                K_v.push_back(as_scalar(factor1));
+                Laplac2_v.push_back(pow(L, 2) * pow((L+1), 2));
             }
         }
 
@@ -85,7 +86,7 @@ namespace phardi {
         K.set_size(K_v.size());
 
         K = conv_to<Col<T>>::from(K_v);
-        Laplac2 = conv_to<Col<T>>::from(Laplac2_v);
+        Laplac2 = conv_to<Col<uword>>::from(Laplac2_v);
 
         Laplac = diagmat(Laplac2);
 

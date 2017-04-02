@@ -199,7 +199,7 @@ namespace phardi {
         Col<T> K;
         Col<T> K_dot_r2;
         Col<T> K_csa;
-        Mat<T> qspace;
+        Mat<uword> qspace;
         Mat<T> xi;
         Mat<T> yi;
         Mat<T> zi;
@@ -349,10 +349,7 @@ namespace phardi {
                                 for (uword indvox = 0; indvox < inda.n_elem; ++indvox) {
 
                                     // Smatrix = SignalMatrixBuilding_Volume(qspace,tempSignal(:,indvox),opts.dsi.resolution);
-                                    Mat<T> vox(tempSignal.n_rows,1);
-                                    vox.col(0) = tempSignal.col(indvox);
-
-                                    Cube<T> Smatrix = SignalMatrixBuilding_Volume(qspace, vox, opts.dsi.resolution);
+                                    Cube<T> Smatrix = SignalMatrixBuilding_Volume(qspace, conv_to<Col<T>>::from(tempSignal.col(indvox)), opts.dsi.resolution);
 
                                     // --- DSI: PDF computation via fft
 
@@ -549,7 +546,6 @@ namespace phardi {
                                 else
                                     //tempS0 = repmat(diffSignal(indb0,:),[length(indb1) 1]); % Signal from B0
                                     tempS0 = repmat(diffSignal.rows(indb0), indb1.n_elem, 1);
-
                                 // tempVar = -log(tempSignal./tempS0)./repmat(diffBvals(indb1),[1 size(tempSignal,2)]);
                                 Mat<T> tempVar = -log(tempSignal / tempS0) / repmat(diffBvals.rows(indb1), 1, size(tempSignal, 1));
 
@@ -569,19 +565,18 @@ namespace phardi {
                                 coeff0 = coeff0 / repmat(coeff0.row(0), size(coeff0, 0), 1);
 
                                 //K_dot_r2(1) = (4/pi)*(2*sqrt(pi))/16;
-                                K_dot_r2(0) = (4 / datum::pi) * (2 * std::sqrt(datum::pi)) / 16.0;
+                                K_dot_r2(0) = (4.0 / datum::pi) * (2.0 * std::sqrt(datum::pi)) / 16.0;
 
                                 //ss = coeff0.*repmat(K_dot_r2,[1 size(coeff0,2)]);
                                 Mat<T> ss = coeff0 % repmat(K_dot_r2, 1, size(coeff0, 1));
-
                                 // ODF = basisV*ss;
                                 ODF = basisV * ss;
 
                                 // ODF = ODF - repmat(min(ODF),size(V,1),1);
-                                ODF = ODF - repmat(min(ODF,0), size(V, 0), 1);
+                                ODF = ODF - repmat(min(ODF), size(V, 0), 1);
 
                                 // ODF = ODF./repmat(sum(ODF),size(V,1),1); % normalization
-                                ODF = ODF / repmat(sum(ODF,0), size(V, 0), 1);
+                                ODF = ODF / repmat(sum(ODF), size(V, 0), 1);
                             }
                                 break;
                             case QBI_CSA:
@@ -606,7 +601,7 @@ namespace phardi {
                                     tempS0 = repmat(diffSignal.rows(indb0), indb1.n_elem, 1);
 
                                 // Signal_profile = log(-log(tempSignal./tempS0));
-                                Mat <T> Signal_profile = log(-log(tempSignal / tempS0));
+                                Mat<T> Signal_profile = log(-log(tempSignal / tempS0));
 
                                 // coeff0 = Kernel*Signal_profile;
                                 Mat<T> coeff0 = Kernel * Signal_profile;
@@ -622,7 +617,6 @@ namespace phardi {
 
                                 // ODF = ODF - repmat(min(ODF),size(V,1),1);
                                 ODF = ODF - repmat(min(ODF,0), size(V, 0), 1);
-
                                 // ODF = ODF./repmat(sum(ODF),size(V,1),1); % normalization
                                 ODF = ODF/repmat(sum(ODF,0), size(V, 0), 1);
                             }
@@ -1016,10 +1010,11 @@ namespace phardi {
                             else
                                 //tempS0 = repmat(diffSignal(indb0,:),[length(indb1) 1]); % Signal from B0
                                 tempS0 = repmat(diffSignal.rows(indb0), indb1.n_elem, 1);
+std::cout << size(indb0) << " " << size(indb1) << std::endl;
 
                             // Signal_profile = log(-log(tempSignal./tempS0));
-                            Mat <T> Signal_profile = log(-log(tempSignal / tempS0));
-
+                            Mat<T> Signal_profile = log(-log(tempSignal / tempS0));
+diffSignal.print("row 0");
                             // coeff0 = Kernel*Signal_profile;
                             Mat<T> coeff0 = Kernel * Signal_profile;
 

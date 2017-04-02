@@ -46,14 +46,15 @@ namespace phardi {
         uword Lmax, Nmin;
         uvec indb0, indb1;
         Col<T> thetaG, thetaV, phiG, phiV;
-        Mat<T> basisG,  Laplac;
+        Mat<T> basisG;
+        Mat<uword> Laplac;
         sword m, L;
 
         std::vector<T> K_dot_r2_v;
         std::vector<T> K_csa_v;
-        std::vector<T> Laplac2_v;
+        std::vector<uword> Laplac2_v;
 
-        Col<T> Laplac2;
+        Col<uword> Laplac2;
 
         //  --- real spherical harmonic reconstruction: parameters definition --- %
         // [Lmax Nmin] = obtain_Lmax(diffGrads);
@@ -100,7 +101,7 @@ namespace phardi {
                         T factor_dot_r2;
                         // -- Precomputation for DOT-R2 method
                         // factor_dot_r2 = ((-1)^(L/2))*Vector(1,L/2 + 1)*(4/pi);
-                        factor_dot_r2 = (pow((-(1)), (L/2.0))) * Vector(L/2.0+1) * (4/datum::pi) ;
+                        factor_dot_r2 = (pow((-(1)), (L/2))) * Vector(L/2+1) * (4/datum::pi) ;
                         // K_dot_r2 = [K_dot_r2; factor_dot_r2];
                         K_dot_r2_v.push_back(factor_dot_r2);
                         break;
@@ -110,17 +111,17 @@ namespace phardi {
                         // if L > 0
                         if (L > 0)
                             // factor_csa = (-1/(8*pi))*((-1)^(L/2))*prod(1:2:(L+1))/prod(2:(L-2));
-                            factor_csa = (-(1.0) / (8*datum::pi)) * (pow((-(1.0)), (L/2.0))) * prod(regspace<Row<T>>(1, 2.0, (L+1))) / prod(regspace<Row<T>>(2, (L-2)));
+                            factor_csa = (-(1.0) / (8*datum::pi)) * (pow((-(1.0)), (L/2))) * prod(regspace<Row<T>>(1, 2.0, (L+1))) / prod(regspace<Row<T>>(2, (L-2)));
                         else if (L == 0)
                             // factor_csa = 1/(2*sqrt(pi));
-                            factor_csa = 1/(2*sqrt(datum::pi)) ;
+                            factor_csa = 1.0 / (2.0 * std::sqrt(datum::pi)) ;
 
                         // K_csa = [K_csa; factor_csa];
                         K_csa_v.push_back(factor_csa);
                         break;
                 }
                 // -- Precomputation for the spherical harmonic regularization
-                Laplac2_v.push_back(pow(L, 2) * pow((L+1.0), 2));
+                Laplac2_v.push_back(pow(L, 2) * pow((L+1), 2));
             }
         }
 
@@ -130,15 +131,16 @@ namespace phardi {
 
         K_dot_r2 = conv_to<Col<T>>::from(K_dot_r2_v);
         K_csa = conv_to<Col<T>>::from(K_csa_v);
-        Laplac2 = conv_to<Col<T>>::from(Laplac2_v);
+        Laplac2 = conv_to<Col<uword>>::from(Laplac2_v);
 
         // Laplac = diag(Laplac2);
         Laplac = diagmat(Laplac2);
-
         // Creating the kernel for the reconstruction
         // Kernel = recon_matrix(basisG,Laplac,Lambda);
-        Kernel = recon_matrix<T>(basisG, Laplac, opts.qbi.lambda);
-
+        if (opts.reconsMethod == QBI_DOTR2)
+            Kernel = recon_matrix<T>(basisG, Laplac, opts.dotr2.lambda);
+        else
+            Kernel = recon_matrix<T>(basisG, Laplac, opts.csa.lambda);
         return ;
 
     }

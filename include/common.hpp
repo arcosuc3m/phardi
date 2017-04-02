@@ -284,9 +284,6 @@ namespace phardi {
         Nmin = arma::sum(regspace<Row<T>>(0, 4, 2*Lmax)) ;
     }
 
-
-
-
     // Project:   High Angular Resolution Diffusion Imaging Tools
     // Function to compute the hardi-matrix used in the spherical harmonic inversion
     // ---------------------
@@ -301,19 +298,22 @@ namespace phardi {
     // test_DOT_R1_example, test_DOT_R2_vs_CSA_QBI_example.
 
     template <typename T>
-    arma::Mat<T> recon_matrix(const arma::Mat<T> & Y, const arma::Mat<T> & L, T Lambda)
+    arma::Mat<T> recon_matrix(const arma::Mat<T> & Y, const arma::Mat<arma::uword> & L, T Lambda)
     {
         using namespace arma;
 
-        Mat<T> A, I, YY ;
+        Mat<T> YY;
+        Mat<T> A(Y.n_cols,Y.n_rows);
         uword N;
 
         // YY = Y'*Y;
         YY = Y.t() * Y;
-
         // A = (YY + Lambda*L)\Y';
-        A = solve (YY + Lambda * L, Y.t(), solve_opts::equilibrate);
-        return A ;
+
+        Mat<T> aa = YY + Lambda * conv_to<Mat<T>>::from(L);
+        Mat<T> bb = Y.t();
+        A = solve (aa,bb);
+        return A;
     }
 
     template <typename T>
@@ -554,7 +554,7 @@ namespace phardi {
     // See also create_gaussian_PSF, test_DSI_example, SignalMatrixBuilding.
 
     template <typename T>
-    void create_mainlobe_PSF(const arma::Mat<T> & qc, arma::uword Resolution, arma::Cube<T> & PSF,  arma::Cube<T> Sampling_grid)
+    void create_mainlobe_PSF(const arma::Mat<arma::uword> & qc, arma::uword Resolution, arma::Cube<T> & PSF,  arma::Cube<T> Sampling_grid)
     {
         using namespace arma;
 
@@ -574,9 +574,6 @@ namespace phardi {
         // --- Experimental PSF
         // PSF  = (real(fftshift(fftn(ifftshift(Sampling_grid)))));
         PSF = arma::real(fftshift3D(fft3D((ifftshift3D(Sampling_grid)))));
-
-       // std:cout << PSF << std::endl;
-
 
         // PSF(PSF<0)=0;
         PSF.elem( find(PSF < 0.0) ).zeros();
@@ -600,7 +597,7 @@ namespace phardi {
     //
     // See also, test_DSI_example, create_mainlobe_PSF, create_gaussian_PSF
     template <typename T>
-    arma::Cube<T> SignalMatrixBuilding_Volume(const arma::Mat<T> & qc, const arma::Mat<T> & value, const arma::uword Resolution)
+    arma::Cube<T> SignalMatrixBuilding_Volume(const arma::Mat<arma::uword> & qc, const arma::Col<T> & value, const arma::uword Resolution)
     {
         using namespace arma;
 

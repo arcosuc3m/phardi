@@ -64,13 +64,13 @@ namespace phardi {
         else if (opts.reconsMethod == GQI_L2)
         {
             // b_matrix = diffGrads(indb1,:).*sqrt(repmat(diffBvals(indb1,:),1,3)*6*0.0040);% I have tested different values and instead of 0.0025,
-            b_matrix = diffGrads.rows(indb1-1) % sqrt(repmat(diffBvals.rows(indb1), 1, 3) * 6.0 * 0.0040) ;
+            b_matrix = diffGrads.rows(indb1) % sqrt(repmat(diffBvals.rows(indb1), 1, 3) * 6.0 * 0.0040) ;
 
             //x = (V*b_matrix');
             x = V * b_matrix.t();
 
             //Kernel = (( (2*cos(x))./x.^2 ) + ( (x.^2-2).*sin(x) )./(x+eps).^3);
-            Kernel = (((2 * cos(x))/pow(x, 2))+((pow(x, 2)-2) % sin(x)) / pow((x+datum::eps), 3)) ;
+            Kernel = (((2 * cos(x))/pow(x, 2)) + ((pow(x, 2)-2) % sin(x)) / pow((x+datum::eps), 3)) ;
         }
 
         return;

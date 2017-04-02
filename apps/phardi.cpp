@@ -272,7 +272,7 @@ int main(int argc, char ** argv) {
     else if (recons == "gqi_l2")
         opts.reconsMethod        = GQI_L2;
     else  {
-        LOG_ERROR << "Method not recognized";
+        LOG_ERROR << "Method not recognized. Possible options are: rumba, dsi, dotr2, csa, qbi, gqi_l1, gqi_l2";
         return 0;
     }
 
@@ -376,7 +376,7 @@ int main(int argc, char ** argv) {
         LOG_INFO << "    Read method   = voxels";
 
 
-    if (opts.reconsMethod == DSI && opts.datreadMethod != VOXELS) {
+    if (opts.reconsMethod == DSI && opts.datreadMethod == VOLUME) {
         LOG_INFO << "    Read method not compatible";
         std::cerr << "    Read method not compatible" << std::endl;
         return -1;

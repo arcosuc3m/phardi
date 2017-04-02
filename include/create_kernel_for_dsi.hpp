@@ -40,7 +40,7 @@ namespace phardi {
                                  const arma::Col<T> & diffBvals,
                                  arma::Mat<T> & Kernel,
                                  arma::Mat<T> & basisV,
-                                 arma::Mat<T> & qspace,
+                                 arma::Mat<arma::uword> & qspace,
                                  arma::Mat<T> & xi,
                                  arma::Mat<T> & yi,
                                  arma::Mat<T> & zi,
@@ -54,11 +54,11 @@ namespace phardi {
 
         Col<T> phi;
         Col<T> theta;
-        Col<T> Laplac2;
-        std::vector<T> Laplac2_v;
+        Col<uword> Laplac2;
+        std::vector<uword> Laplac2_v;
 
         // center_of_image = (opts.dsi.resolution-1)/2 + 1;
-        uword center_of_image = (opts.dsi.resolution - 1)/2 + 1;
+        uword center_of_image = (opts.dsi.resolution - 1)/2 ;
 
         //rmin = opts.dsi.rmin;
         uword rmin = opts.dsi.rmin;
@@ -91,10 +91,10 @@ namespace phardi {
 
         // --- q-space points centered in the new matrix of dimensions Resolution x Resolution x Resolution
         // grad_qspace = round(opts.dsi.boxhalfwidth*diffGrads.*sqrt([diffBvals diffBvals diffBvals]/max(diffBvals)));
-        Mat<T> grad_qspace = opts.dsi.boxhalfwidth * diffGrads % sqrt(join_rows(join_rows(diffBvals, diffBvals), diffBvals) / max(diffBvals));
+        Mat<T> grad_qspace = round(opts.dsi.boxhalfwidth * diffGrads % sqrt(join_rows(join_rows(diffBvals, diffBvals), diffBvals) / max(diffBvals)));
 
         // qspace = grad_qspace + center_of_image;
-        qspace = grad_qspace + center_of_image ;
+        qspace = conv_to<Mat<uword>>::from(grad_qspace + center_of_image) ;
 
         // - Computing the point spread function (PSF) for the deconvolution operation
         //   -------------------------------------------------------
@@ -121,17 +121,17 @@ namespace phardi {
         }
 
         Laplac2.set_size(Laplac2_v.size());
-        Laplac2 = conv_to<Col<T>>::from(Laplac2_v);
+        Laplac2 = conv_to<Col<uword>>::from(Laplac2_v);
 
         //Laplac = diag(Laplac2);
-        Mat<T> Laplac = diagmat(Laplac2);
+        Mat<uword> Laplac = diagmat(Laplac2);
 
         // basisV = construct_SH_basis (opts.dsi.lmax, V, 2, 'real');
         construct_SH_basis<T>(opts.dsi.lmax, V, 2, "real", theta, phi, basisV) ;
 
         // Kernel = recon_matrix(basisV,Laplac,opts.dsi.lreg);
         Kernel = recon_matrix<T>(basisV, Laplac, opts.dsi.lreg);
-
+Kernel.print("Kernel");
         return;
     }
 }
