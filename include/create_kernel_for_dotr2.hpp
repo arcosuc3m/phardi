@@ -48,12 +48,11 @@ namespace phardi {
         Col<T> thetaG, thetaV, phiG, phiV;
         Mat<T> basisG;
         Mat<uword> Laplac;
-        sword m, L;
 
         std::vector<T> K_dot_r2_v;
         std::vector<T> K_csa_v;
         std::vector<uword> Laplac2_v;
-
+        sword m, L;
         Col<uword> Laplac2;
 
         //  --- real spherical harmonic reconstruction: parameters definition --- %
@@ -109,10 +108,18 @@ namespace phardi {
                         T factor_csa;
                         // -- Precomputation for CSA-QBI method
                         // if L > 0
-                        if (L > 0)
+                        if (L > 0) {
+                            T p1 = 1.0;
+                            T p2 = 1.0;
                             // factor_csa = (-1/(8*pi))*((-1)^(L/2))*prod(1:2:(L+1))/prod(2:(L-2));
-                            factor_csa = (-(1.0) / (8*datum::pi)) * (pow((-(1.0)), (L/2))) * prod(regspace<Row<T>>(1, 2.0, (L+1))) / prod(regspace<Row<T>>(2, (L-2)));
-                        else if (L == 0)
+                            Row<T> reg1 = regspace<Row<T>>(1, 2.0, (L+1.0));
+                            Row<T> reg2 = regspace<Row<T>>(2, (L-2.0));
+                            p1 = prod(reg1);
+                            if (p1 == 0.0) p1 = 1.0;
+                            p2 = prod(reg2);
+                            if (p2 == 0.0) p2 = 1.0;
+                            factor_csa = (-1.0 / (8*datum::pi)) * (pow((-(1.0)), (L/2))) * p1 / p2;
+                        } else if (L == 0)
                             // factor_csa = 1/(2*sqrt(pi));
                             factor_csa = 1.0 / (2.0 * std::sqrt(datum::pi)) ;
 

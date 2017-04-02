@@ -708,10 +708,10 @@ namespace phardi {
                                 ODF = basisV * ss;
 
                                 // ODF = ODF - repmat(min(ODF),size(V,1),1);
-                                ODF = ODF - repmat(min(ODF,0), size(V, 0), 1);
+                                ODF = ODF - repmat(min(ODF), size(V, 0), 1);
 
                                 // ODF = ODF./repmat(sum(ODF),size(V,1),1); % normalization
-                                ODF = ODF/repmat(sum(ODF,0), size(V, 0), 1);
+                                ODF = ODF/repmat(sum(ODF), size(V, 0), 1);
                             }
                                 break;
                             case RUMBA_SD:
@@ -1014,13 +1014,13 @@ std::cout << size(indb0) << " " << size(indb1) << std::endl;
 
                             // Signal_profile = log(-log(tempSignal./tempS0));
                             Mat<T> Signal_profile = log(-log(tempSignal / tempS0));
-diffSignal.print("row 0");
                             // coeff0 = Kernel*Signal_profile;
                             Mat<T> coeff0 = Kernel * Signal_profile;
 
                             //coeff0(1,:) = ones(1,size(coeff0,2));
                             coeff0.row(0) = ones<Row<T>>(size(coeff0, 1));
 
+K_csa.print("K_csa");
                             // ss = coeff0.*repmat(K_csa,[1 size(coeff0,2)]);
                             Mat<T> ss = coeff0 % repmat (K_csa ,1 , size(coeff0, 1));
 
@@ -1123,12 +1123,11 @@ diffSignal.print("row 0");
 
                             // ODF = basisV*ss;
                             ODF = basisV * ss;
-
                             // ODF = ODF - repmat(min(ODF),size(V,1),1);
-                            ODF = ODF - repmat(min(ODF,0), size(V, 0), 1);
+                            ODF = ODF - repmat(min(ODF), size(V, 0), 1);
 
                             // ODF = ODF./repmat(sum(ODF),size(V,1),1); % normalization
-                            ODF = ODF/repmat(sum(ODF,0), size(V, 0), 1);
+                            ODF = ODF/repmat(sum(ODF), size(V, 0), 1);
                         }
                             break;
                         case RUMBA_SD:

@@ -77,7 +77,7 @@ namespace phardi {
 		Col<T> z(1);
                 z.zeros();
                 factor1 = legendre(L, z) ;
-                K_v.push_back(as_scalar(factor1));
+                K_v.push_back(factor1(0,0));
                 Laplac2_v.push_back(pow(L, 2) * pow((L+1), 2));
             }
         }
