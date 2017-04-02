@@ -85,7 +85,7 @@ namespace phardi {
         // Use the following corrected result, which contains the omitted term:
         // Vector = [1, 3/32, 15/64, 210/(3*512), 630/(1024*3*5), 13860/(16384*3*5*7)];
 
-        Col<T> Vector = {1, 3/32, 15/64, 210/1536, 630/15360, 13860/1720320};
+        Col<T> Vector = {1.0, 3.0/32.0, 15.0/64.0, 210.0/1536.0, 630.0/15360.0, 13860.0/1720320.0};
 
         //  K_dot_r2 = []; Laplac2 = []; K_csa = [];
 
@@ -100,7 +100,7 @@ namespace phardi {
                         T factor_dot_r2;
                         // -- Precomputation for DOT-R2 method
                         // factor_dot_r2 = ((-1)^(L/2))*Vector(1,L/2 + 1)*(4/pi);
-                        factor_dot_r2 = (pow((-(1)), (L/2))) * Vector(L/2+1) * (4/datum::pi) ;
+                        factor_dot_r2 = (pow(-1.0, (L/2))) * Vector(L/2) * (4.0/datum::pi) ;
                         // K_dot_r2 = [K_dot_r2; factor_dot_r2];
                         K_dot_r2_v.push_back(factor_dot_r2);
                         break;

@@ -975,7 +975,7 @@ namespace phardi {
                             coeff0 = coeff0 / repmat(coeff0.row(0), size(coeff0, 0), 1);
 
                             //K_dot_r2(1) = (4/pi)*(2*sqrt(pi))/16;
-                            K_dot_r2(0) = (4 / datum::pi) * (2 * std::sqrt(datum::pi)) / 16.0;
+                            K_dot_r2(0) = (4.0 / datum::pi) * (2.0 * std::sqrt(datum::pi)) / 16.0;
 
                             //ss = coeff0.*repmat(K_dot_r2,[1 size(coeff0,2)]);
                             Mat<T> ss = coeff0 % repmat(K_dot_r2, 1, size(coeff0, 1));
@@ -1010,7 +1010,6 @@ namespace phardi {
                             else
                                 //tempS0 = repmat(diffSignal(indb0,:),[length(indb1) 1]); % Signal from B0
                                 tempS0 = repmat(diffSignal.rows(indb0), indb1.n_elem, 1);
-std::cout << size(indb0) << " " << size(indb1) << std::endl;
 
                             // Signal_profile = log(-log(tempSignal./tempS0));
                             Mat<T> Signal_profile = log(-log(tempSignal / tempS0));
@@ -1020,7 +1019,6 @@ std::cout << size(indb0) << " " << size(indb1) << std::endl;
                             //coeff0(1,:) = ones(1,size(coeff0,2));
                             coeff0.row(0) = ones<Row<T>>(size(coeff0, 1));
 
-K_csa.print("K_csa");
                             // ss = coeff0.*repmat(K_csa,[1 size(coeff0,2)]);
                             Mat<T> ss = coeff0 % repmat (K_csa ,1 , size(coeff0, 1));
 
