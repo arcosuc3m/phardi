@@ -31,6 +31,7 @@
 #include "create_kernel_for_dotr2.hpp"
 #include "constants.hpp"
 #include "mirt3D.hpp"
+#include "362_shell_semisphere.hpp"
 
 #include <plog/Log.h>
 #include <armadillo>
@@ -59,13 +60,7 @@ namespace phardi {
         using namespace arma;
         using namespace itk;
 
-        Mat<T> V;
-        if (opts.ODFDirscheme.length() == 0)
-            opts.ODFDirscheme =  "./362_shell_semisphere.txt";
-
-
-        V.load(opts.ODFDirscheme, arma::raw_ascii);
-        LOG_INFO << "Reading V " << opts.ODFDirscheme << " [" << V.n_rows << ", " << V.n_cols << "]";
+        Mat<T> V = ODFDirscheme<T>();
 
         Mat<T> diffGrads;
         diffGrads.load(diffGradsfilename, arma::raw_ascii);
