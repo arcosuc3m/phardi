@@ -28,7 +28,7 @@ namespace phardi {
     template <typename T>
     arma::Mat<T> ODFDirscheme_362(void) {
 
-         Mat <T> ret;
+         arma::Mat <T> ret;
 
 	 ret << 5.2540681e-02 << -9.9861878e-01 <<  0.0000000e+00 << arma::endr
 	 << -6.7056486e-02 << -9.9585635e-01 <<  6.1429234e-02 << arma::endr
