@@ -358,8 +358,6 @@ namespace phardi {
                                     // Pdsi(Pdsi<0)=0;
                                     Pdsi.elem(find(Pdsi < 0.0)).zeros();
 
-Pdsi.print("hola");
-
                                     // Pdsi_int = mirt3D_mexinterp(Pdsi,xi,yi,zi);
                                     Mat<T> Pdsi_int = mirt3D_Function(Pdsi, xi, yi, zi);
 
@@ -367,14 +365,8 @@ Pdsi.print("hola");
                                     // Pdsi_int(Pdsi_int<0) = 0;
                                     Pdsi_int.elem(find(Pdsi_int < 0.0)).zeros();
 
-Pdsi_int.print("hola");
-return;
-
                                     // Pdsi_int = Pdsi_int./sum(Pdsi_int(:));
                                     Pdsi_int = Pdsi_int / accu(Pdsi_int);
-
-
-
 
                                     // --- Numerical ODF-DSI reconstruction
 

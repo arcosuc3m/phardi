@@ -84,9 +84,9 @@ namespace phardi {
 
 #pragma omp parallel for
         for (uword m = 0; m < V.n_rows; ++m) {
-            xi.row(m) = center_of_image + r * V(m, 1);
-            yi.row(m) = center_of_image + r * V(m, 0);
-            zi.row(m) = center_of_image + r * V(m, 2);
+            xi.row(m) = center_of_image + 1 + r * V(m, 1);
+            yi.row(m) = center_of_image + 1 + r * V(m, 0);
+            zi.row(m) = center_of_image + 1 + r * V(m, 2);
         }
 
         // --- q-space points centered in the new matrix of dimensions Resolution x Resolution x Resolution
