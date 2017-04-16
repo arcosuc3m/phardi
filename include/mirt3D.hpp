@@ -44,23 +44,25 @@ namespace phardi {
         using namespace arma;
 
         uword n, in1, in2, in3, in4, in5, in6, in7, in8;
-        Te t, s,  s1, w, w1, tmp, nan;
+        Te s1, w1, tmp, nan;
         Te m1, m2, m3, m4, m5, m6, m7, m8;
-        uword ndx, nw, Zshift, i, nrowsncols, ft, fs, fw;
+        sword ndx, nw, Zshift, i, nrowsncols;
 
         nw         = nrows*ncols;
         nrowsncols = nw*npages;
         nan        = datum::nan;
 
         for (n=0; n < MN; ++n) {
+            sword ft, fs, fw;
+            sword t,  s,  w; 
 
             t=T(n);
             s=S(n);
             w=W(n);
 
-            ft=(uword) floor(t);
-            fs=(uword) floor(s);
-            fw=(uword) floor(w);
+            ft=(sword) floor(t);
+            fs=(sword) floor(s);
+            fw=(sword) floor(w);
 
 
             if (fs<1 || s>ncols || ft<1 || t>nrows || fw<1 || w>npages){

@@ -64,7 +64,7 @@ namespace phardi {
         uword rmin = opts.dsi.rmin;
 
         //rmax = opts.dsi.resolution - center_of_image - 1;
-        uword rmax = opts.dsi.resolution - center_of_image - 1;
+        uword rmax = opts.dsi.resolution - center_of_image - 2;
 
         //r = rmin:(rmax/100):rmax; % radial points that will be used for the ODF radial summation
         Row<T> r = regspace<Row<T>>(rmin, rmax/100.0, rmax);
@@ -102,7 +102,6 @@ namespace phardi {
         // [PSF, Sampling_grid] = create_mainlobe_PSF(qspace,opts.dsi.resolution);
         create_mainlobe_PSF(qspace, opts.dsi.resolution, PSF, Sampling_grid);
 
-
         // Creating Spherical Harmonics
         // Laplac2 = [];
         // for L=0:2:opts.dsi.lmax
@@ -131,7 +130,7 @@ namespace phardi {
 
         // Kernel = recon_matrix(basisV,Laplac,opts.dsi.lreg);
         Kernel = recon_matrix<T>(basisV, Laplac, opts.dsi.lreg);
-Kernel.print("Kernel");
+
         return;
     }
 }

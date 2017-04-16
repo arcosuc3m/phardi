@@ -340,28 +340,41 @@ namespace phardi {
                                 tempSignal = diffSignal / tempS0;
 
                                 // for indvox = 1:length(inda)
-#pragma omp parallel for
+//#pragma omp parallel for
                                 for (uword indvox = 0; indvox < inda.n_elem; ++indvox) {
 
                                     // Smatrix = SignalMatrixBuilding_Volume(qspace,tempSignal(:,indvox),opts.dsi.resolution);
                                     Cube<T> Smatrix = SignalMatrixBuilding_Volume(qspace, conv_to<Col<T>>::from(tempSignal.col(indvox)), opts.dsi.resolution);
 
-                                    // --- DSI: PDF computation via fft
+                                    af::array Smatrix_af = af::array(Smatrix.n_rows, Smatrix.n_cols, Smatrix.n_slices, Smatrix.memptr());
 
+                                    // --- DSI: PDF computation via fft
                                     // Pdsi = real(fftshift(fftn(ifftshift(Smatrix))));
-                                    Cube<T> Pdsi = real(fftshift3D(fft3D(ifftshift3D(Smatrix))));
+                                    af::array Pdsi_af = af::real(fftshift3(fft3(ifftshift3(Smatrix_af))));
+                                   
+                                    Cube<T> Pdsi(size(Smatrix));
+                                    Pdsi_af.host(Pdsi.memptr());
 
                                     // Pdsi(Pdsi<0)=0;
                                     Pdsi.elem(find(Pdsi < 0.0)).zeros();
 
+Pdsi.print("hola");
+
                                     // Pdsi_int = mirt3D_mexinterp(Pdsi,xi,yi,zi);
                                     Mat<T> Pdsi_int = mirt3D_Function(Pdsi, xi, yi, zi);
+
 
                                     // Pdsi_int(Pdsi_int<0) = 0;
                                     Pdsi_int.elem(find(Pdsi_int < 0.0)).zeros();
 
+Pdsi_int.print("hola");
+return;
+
                                     // Pdsi_int = Pdsi_int./sum(Pdsi_int(:));
-                                    Pdsi_int = Pdsi_int / sum(vectorise(Pdsi_int));
+                                    Pdsi_int = Pdsi_int / accu(Pdsi_int);
+
+
+
 
                                     // --- Numerical ODF-DSI reconstruction
 
@@ -521,6 +534,67 @@ namespace phardi {
                                 diffSignal.at(i,j) = Idiff.at(ind.at(i,j));
 
                         switch (opts.reconsMethod) {
+                            case DSI: 
+                            {
+                                // --- Signal in the 3D image
+                                // Smatrix = SignalMatrixBuilding(qspace,diffSignal,opts.dsi.resolution)
+                                Mat<T> tempSignal;
+
+                                uvec indb0, indb1;
+                                // indb0 = find(sum(diffGrads,2) == 0);
+                                indb0 = find(sum(diffGrads, 1) == 0);
+
+                                // indb1 = find(sum(diffGrads,2) ~= 0);
+                                indb1 = find(sum(diffGrads, 1) != 0);
+
+                                // tempSignal = diffSignal(indb1,:);
+                                Mat<T> tempS0;
+                                // if length(indb0)>1
+                                if (indb0.n_elem > 1)
+                                    // tempS0 = repmat(mean(diffSignal(indb0,:)),[size(diffSignal,1) 1]); % Signal from B0
+                                    tempS0 = repmat(mean(diffSignal.rows(indb0)), size(diffSignal, 0), 1);
+                                    // else
+                                else
+                                    // tempS0 = repmat(diffSignal(indb0,:),[size(diffSignal,1) 1]); % Signal from B0
+                                    tempS0 = repmat(diffSignal.rows(indb0), size(diffSignal, 0), 1);
+
+                                // tempSignal = diffSignal./tempS0;
+                                tempSignal = diffSignal / tempS0;
+
+                                // Smatrix = SignalMatrixBuilding_Volume(qspace,tempSignal(:,indvox),opts.dsi.resolution);
+                                Cube<T> Smatrix;// = SignalMatrixBuilding_Volume(qspace, tempSignal, opts.dsi.resolution);
+                                // --- DSI: PDF computation via fft
+
+                                // Pdsi = real(fftshift(fftn(ifftshift(Smatrix))));
+                                Cube<T> Pdsi;// = real(fftshift3D(fft3D(ifftshift3D(Smatrix))));
+
+                                // Pdsi(Pdsi<0)=0;
+                                Pdsi.elem(find(Pdsi < 0.0)).zeros();
+/*
+                                // Pdsi_int = mirt3D_mexinterp(Pdsi,xi,yi,zi);
+                                Mat<T> Pdsi_int = mirt3D_Function(Pdsi, vectorise(xi), vectorise(yi), vectorise(zi));
+
+                                // Pdsi_int(Pdsi_int<0) = 0;
+                                Pdsi_int.elem(find(Pdsi_int < 0.0)).zeros();
+
+                                // Pdsi_int = Pdsi_int./sum(Pdsi_int(:));
+                                Pdsi_int = Pdsi_int / sum(vectorise(Pdsi_int));
+
+                                // --- Numerical ODF-DSI reconstruction
+
+                                // Smoothing
+                                // sphE_dsi = Kernel*ODF;
+                                Mat<T> sphE_dsi = Kernel * ODF;
+
+                                // ODF = abs(basisV*sphE_dsi);
+                                ODF = abs(basisV*sphE_dsi);
+
+                                // ODF = ODF./repmat(sum(ODF),[size(ODF,1) 1]);
+                                ODF = ODF / repmat(sum(ODF), size(ODF,0), 1);
+*/
+
+                            }
+                                break;
                             case QBI_DOTR2:
                             {
                                 uvec indb0, indb1;
