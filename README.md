@@ -18,7 +18,6 @@ The following libraries and compiler are required for compilation:
 * GCC (>= 4.9)
 * Armadillo (>= 6.7)
 * ITK (>= 4.9)
-* FFTW (for DSI)
 * ArrayFire (>= 3.4.0)
 
 ### How do I get set up? ###
