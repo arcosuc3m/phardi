@@ -218,13 +218,6 @@ int main(int argc, char ** argv) {
         return 1;
     }
 
-    if (!is_file_exist("./362_shell_semisphere.txt"))
-    {
-        LOG_ERROR << "Can't find 362_shell_semisphere.txt";
-        return 1;
-    }
-
-
     // %% Options
     // opts.reconsMethod = 'rumba_sd'; % Reconstruction Method
     // opts.datreadMethod = 'slices'; % Reading Data
@@ -353,6 +346,10 @@ int main(int argc, char ** argv) {
         else if (readmethod == "slices") opts.datreadMethod = SLICES;
         else if (readmethod == "voxels") opts.datreadMethod = VOXELS;
 	else opts.datreadMethod = SLICES;
+    }
+
+    if (opts.reconsMethod == DSI) {
+       opts.datreadMethod = VOXELS;
     }
 
     std::string precision = "float";

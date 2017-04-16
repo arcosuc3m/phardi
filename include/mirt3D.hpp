@@ -43,18 +43,14 @@ namespace phardi {
     {
         using namespace arma;
 
-        uword n, in1, in2, in3, in4, in5, in6, in7, in8;
-        Te s1, w1, tmp, nan;
-        Te m1, m2, m3, m4, m5, m6, m7, m8;
-        sword ndx, nw, Zshift, i, nrowsncols;
+        uword nw         = nrows*ncols;
+        uword nrowsncols = nw*npages;
+        uword n          = 0;
 
-        nw         = nrows*ncols;
-        nrowsncols = nw*npages;
-        nan        = datum::nan;
-
+#pragma omp parallel for
         for (n=0; n < MN; ++n) {
             sword ft, fs, fw;
-            sword t,  s,  w; 
+            Te t, s, w; 
 
             t=T(n);
             s=S(n);
@@ -64,12 +60,15 @@ namespace phardi {
             fs=(sword) floor(s);
             fw=(sword) floor(w);
 
-
             if (fs<1 || s>ncols || ft<1 || t>nrows || fw<1 || w>npages){
                 /* Put nans if outside*/
-                for (i = 0; i < ndim; i++) F(n+i*MN) = nan;
+                Te nan     = datum::nan;
+                for (uword i = 0; i < ndim; i++) F(n+i*MN) = nan;
             }
             else  {
+                uword in1, in2, in3, in4, in5, in6, in7, in8;
+                sword ndx, nw, Zshift, i;
+                Te s1, w1, tmp;
 
                 ndx =  ft+(fs-1)*nrows+(fw-1)*nw;
 
@@ -98,9 +97,10 @@ namespace phardi {
 
                 ////////////
                 for (i = 0; i < ndim; ++i){
+                    Te m1, m2, m3, m4, m5, m6, m7, m8;
 
-                    s1=1-s;
-                    w1=1-w;
+                    s1= 1.0 - s;
+                    w1= 1.0 - w;
 
                     tmp=s1*w1;
                     m2=t*tmp;

@@ -359,8 +359,8 @@ namespace phardi {
                                     Pdsi.elem(find(Pdsi < 0.0)).zeros();
 
                                     // Pdsi_int = mirt3D_mexinterp(Pdsi,xi,yi,zi);
-                                    Mat<T> Pdsi_int = mirt3D_Function(Pdsi, xi, yi, zi);
 
+                                    Mat<T> Pdsi_int = mirt3D_Function(Pdsi, xi, yi, zi);
 
                                     // Pdsi_int(Pdsi_int<0) = 0;
                                     Pdsi_int.elem(find(Pdsi_int < 0.0)).zeros();
