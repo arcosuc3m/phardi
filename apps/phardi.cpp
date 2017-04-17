@@ -18,9 +18,7 @@
 * See COPYRIGHT.txt for copyright notices and details.
 */
 
-#ifdef NDEBUG
 #define ARMA_NO_DEBUG
-#endif
 
 #include "optionparser.hpp"
 #include "options.hpp"
