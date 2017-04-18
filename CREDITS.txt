@@ -22,12 +22,6 @@ Author:		Insight Software Consortium
 Copyright:	Copyright (C) Insight Software Consortium. All rights reserved
 License:	Apache License, Version 2.0
 
-FFTW 
--------
-Author:		Matteo Frigo and Massachusetts
-Copyright:	Copyright (C) 1997--1999 Massachusetts Institute of Technology. All rights reserved
-License:	General Public License
-
 The Lean Mean C++ Option Parser 
 -------
 Author:		Matthias S. Benkmann
