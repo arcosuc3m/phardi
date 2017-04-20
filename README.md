@@ -34,6 +34,20 @@ Optional packages:
 sudo sudo apt install libatlas-dev liblapack-dev libblas-dev libopenblas-dev libarpack2-dev liblapacke-dev libatlas3gf-base libatlas3-base opencl-headers
 ```
 
+Downloading and Installing ArrayFire:
+
+```
+git clone https://github.com/arrayfire/arrayfire.git
+cd arrayfire/
+git submodule init
+git submodule update
+mkdir build
+cd build/
+ccmake ../
+make -j8
+sudo make install
+```
+
 ### How do I get set up? ###
 
 
