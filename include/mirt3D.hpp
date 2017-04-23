@@ -25,8 +25,6 @@
 
 namespace phardi {
 
-
-
     template <typename Te>
     void mirt3D(
             const arma::Cube<Te> & Z,
@@ -66,8 +64,8 @@ namespace phardi {
                 for (uword i = 0; i < ndim; i++) F(n+i*MN) = nan;
             }
             else  {
-                uword in1, in2, in3, in4, in5, in6, in7, in8;
-                sword ndx, nw, Zshift, i;
+                sword in1, in2, in3, in4, in5, in6, in7, in8;
+                sword ndx, Zshift, i;
                 Te s1, w1, tmp;
 
                 ndx =  ft+(fs-1)*nrows+(fw-1)*nw;
@@ -121,7 +119,6 @@ namespace phardi {
                     Zshift=i*nrowsncols;
                     F(n+i*MN)=Z(in1+Zshift)*m1+Z(in2+Zshift)*m2+Z(in3+Zshift)*m3+Z(in4+Zshift)*m4+Z(in5+Zshift)*m5+Z(in6+Zshift)*m6+
                               Z(in7+Zshift)*m7+Z(in8+Zshift)*m8;
-
                 }
 
             }
