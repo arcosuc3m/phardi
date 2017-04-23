@@ -25,7 +25,7 @@ The following libraries and compiler are required for compilation:
 Mandatory packages:
 
 ```
-sudo apt install libfontconfig1-dev build-essential git cmake libfreeimage-dev cmake-curses-gui
+sudo apt install libfontconfig1-dev build-essential git cmake libfreeimage-dev cmake-curses-gui freeglut3-dev
 ```
 
 Optional packages:
