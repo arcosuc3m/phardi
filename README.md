@@ -43,7 +43,7 @@ git submodule init
 git submodule update
 mkdir build
 cd build/
-ccmake ../
+cmake ..
 make -j8
 sudo make install
 ```
