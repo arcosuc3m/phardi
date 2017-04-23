@@ -25,13 +25,13 @@ The following libraries and compiler are required for compilation:
 Mandatory packages:
 
 ```
-sudo sudo apt install libfontconfig1-dev build-essential git cmake libfreeimage-dev cmake-curses-gui
+sudo apt install libfontconfig1-dev build-essential git cmake libfreeimage-dev cmake-curses-gui
 ```
 
 Optional packages:
 
 ```
-sudo sudo apt install libatlas-dev liblapack-dev libblas-dev libopenblas-dev libarpack2-dev liblapacke-dev libatlas3gf-base libatlas3-base opencl-headers
+sudo apt install libatlas-dev liblapack-dev libblas-dev libopenblas-dev libarpack2-dev liblapacke-dev libatlas3gf-base libatlas3-base opencl-headers
 ```
 
 Downloading and Installing ArrayFire:
