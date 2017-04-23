@@ -20,16 +20,44 @@ The following libraries and compiler are required for compilation:
 * ITK (>= 4.9)
 * ArrayFire (>= 3.4.0)
 
+### Installation ####
+
+Mandatory packages:
+
+```
+sudo sudo apt install libfontconfig1-dev build-essential git cmake libfreeimage-dev cmake-curses-gui
+```
+
+Optional packages:
+
+```
+sudo sudo apt install libatlas-dev liblapack-dev libblas-dev libopenblas-dev libarpack2-dev liblapacke-dev libatlas3gf-base libatlas3-base opencl-headers
+```
+
+Downloading and Installing ArrayFire:
+
+```
+git clone https://github.com/arrayfire/arrayfire.git
+cd arrayfire/
+git submodule init
+git submodule update
+mkdir build
+cd build/
+ccmake ../
+make -j8
+sudo make install
+```
+
 ### How do I get set up? ###
 
 
 ```
-#!bash
-
+git clone https://github.com/arcosuc3m/phardi
+cd phardi/
 mkdir build
 cd build
-cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/g++-4.9 -DCMAKE_BUILD_TYPE=Release
-make
+cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/g++-5 -DCMAKE_BUILD_TYPE=Release
+make 
 ```
 
 ### Sample data ###
