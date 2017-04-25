@@ -36,8 +36,11 @@
 #include <armadillo>
 #include <arrayfire.h>
 
-enum  optionIndex { UNKNOWN, HELP, READ, DATA, RECONS, MASK, BVECS, BVALS, DEVICE, ODF, PRECISION, OP_RUMBA_NOISE, OP_RUMBA_ITER, OP_RUMBA_LAMBDA1, OP_RUMBA_LAMBDA2, OP_RUMBA_LAMBDA_CSF, OP_RUMBA_LAMBDA_GM,
-                    OP_QBI_LAMBDA, OP_GQI_LAMBDA, OP_GQI_MDDR, OP_DOTR2_LAMBDA, OP_DOTR2_T, OP_DOTR2_EULER, OP_CSA_LAMBDA, OP_DSI_LMAX, OP_DSI_RES, OP_DSI_RMIN, OP_DSI_LREG, OP_DSI_BOX, ZIP, DEBUG};
+enum  optionIndex { UNKNOWN, HELP, READ, DATA, RECONS, MASK, BVECS, BVALS, DEVICE, ODF, PRECISION, OP_RUMBA_NOISE, 
+                    OP_RUMBA_ITER, OP_RUMBA_LAMBDA1, OP_RUMBA_LAMBDA2, OP_RUMBA_LAMBDA_CSF, OP_RUMBA_LAMBDA_GM,
+                    OP_QBI_LAMBDA, OP_GQI_LAMBDA, OP_GQI_MDDR, OP_DOTR2_LAMBDA, OP_DOTR2_T, OP_DOTR2_EULER, 
+                    OP_CSA_LAMBDA, OP_DSI_LMAX, OP_DSI_RES, OP_DSI_RMIN, OP_DSI_LREG, OP_DSI_BOX, OP_DTI_NNLS_TORDER, 
+                    ZIP, DEBUG};
 
 struct Arg: public option::Arg
 {
@@ -89,7 +92,7 @@ const option::Descriptor usage[] =
     {UNKNOWN, 0, "", "",option::Arg::None, "USAGE: phardi [options]\n\n"
         "Options:" },
     {HELP, 0,"h", "help",option::Arg::None, "  --help, -h  \tPrint usage and exit." },
-    {RECONS, 0,"a","alg",Arg::Required, "  --alg, -a  \tReconstruction method (rumba, dsi, qbi, gqi_l1, gqi_l2, dotr2, csa)." },
+    {RECONS, 0,"a","alg",Arg::Required, "  --alg, -a  \tReconstruction method (rumba, dti_nnls, dsi, qbi, gqi_l1, gqi_l2, dotr2, csa)." },
     {READ, 0,"d", "dataread",Arg::NonEmpty, "  --dataread, -d \tData reading method (voxels, slices, volume)." },
     {DATA, 0,"k","data",Arg::Required, "  --data, -k  \tData file." },
     {MASK, 0,"m","mask",Arg::Required, "  --mask, -m  \tBinary mask file." },
@@ -116,6 +119,8 @@ const option::Descriptor usage[] =
     // {OP_DOTR2_EULER, 0,"","dotr2-eulergamma",Arg::Numeric, "  --dotr2-eulergamma  \tDOTR2: Euler Gamma  (default 0.577216)." },
 
     {OP_CSA_LAMBDA, 0,"","csa-lambda",Arg::Numeric, "  --csa-lambda \tCSA: Regularization parameter  (default 0.006)." },
+    
+    {OP_DTI_NNLS_TORDER,, 0,"","dti_nnls-torder",Arg::Numeric, "  --dti_nnls-torder \tDTI_NNLS: Tensor order  (default 2)." },
 
     {OP_DSI_LMAX, 0,"","dsi-lmax",Arg::Numeric, "  --dsi-lmax \tDSI: LMAX parameter  (default 10)." },
     {OP_DSI_RES, 0,"","dsi-resolution",Arg::Numeric, "  --dsi-resolution \tDSI: Resolution parameter  (default 35)." },
@@ -247,6 +252,8 @@ int main(int argc, char ** argv) {
     opts.dotr2.eulerGamma    = DOTR2_EULERGAMMA;
 
     opts.csa.lambda          = CSA_LAMBDA;
+    
+    opts.dti_nnls.torder     = DTI_NNLS_TORDER;
 
     if (recons == "rumba")
         opts.reconsMethod        = RUMBA_SD;
@@ -262,6 +269,8 @@ int main(int argc, char ** argv) {
         opts.reconsMethod        = GQI_L1;
     else if (recons == "gqi_l2")
         opts.reconsMethod        = GQI_L2;
+    else if (recons == "dti_nnls")
+        opts.reconsMethod        = DTI_NNLS;
     else  {
         LOG_ERROR << "Method not recognized. Possible options are: rumba, dsi, dotr2, csa, qbi, gqi_l1, gqi_l2";
         return 0;
@@ -317,6 +326,11 @@ int main(int argc, char ** argv) {
     // Options casting for CSA
     if (options[OP_CSA_LAMBDA].count() > 0) {
         opts.csa.lambda =  std::stof(options[OP_CSA_LAMBDA].arg);
+    }
+
+    // Options casting for DTI_NNLS
+    if (options[OP_DTI_NNLS_TORDER].count() > 0) {
+        opts.dti_nnls.torder =  std::stof(options[OP_DTI_NNLS_TORDER].arg);
     }
 
     // Options casting for DSI

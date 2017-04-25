@@ -29,6 +29,7 @@
 #include "create_kernel_for_qbi.hpp"
 #include "create_kernel_for_gqi.hpp"
 #include "create_kernel_for_dotr2.hpp"
+#include "create_kernel_for_dti.hpp"
 #include "constants.hpp"
 #include "mirt3D.hpp"
 #include "362_shell_semisphere.hpp"
@@ -224,6 +225,10 @@ namespace phardi {
             case GQI_L2:
                 create_Kernel_for_gqi<T>(V, diffGrads, diffBvals, Kernel, opts);
                 LOG_INFO << "Created kernel for GQI_L1/GQI_L2";
+                break;
+            case DTI_NNLS:
+                create_Kernel_for_dti<T>(V, diffGrads, diffBvals, Kernel, opts);
+                LOG_INFO << "Created kernel for DTI_NNLS";
                 break;
         }
 

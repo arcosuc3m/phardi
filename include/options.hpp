@@ -25,7 +25,7 @@
 #include <armadillo>
 namespace phardi {
 
-    enum recons {RUMBA_SD, DSI, QBI, GQI_L1, GQI_L2, QBI_DOTR2, QBI_CSA};
+    enum recons {RUMBA_SD, DSI, QBI, GQI_L1, GQI_L2, QBI_DOTR2, QBI_CSA, DTI_NNLS};
     enum datread {VOXELS, SLICES, VOLUME};
 
     struct options_rumba {
@@ -63,19 +63,24 @@ namespace phardi {
         double lambda;
     };
 
+    struct options_dti_nnls {
+       arma::uword torder;
+    };
+
     struct options {
-        recons        reconsMethod;   // Reconstruction method.
-        datread       datreadMethod;   // Data reading method.
-        std::string   outputDir;
-        std::string   ODFDirscheme;    // Directions scheme for reconstructing ODF.
-        options_rumba rumba_sd;
-        options_dsi   dsi;
-        options_gqi   gqi;
-        options_qbi   qbi;
-        options_csa   csa;
-        options_dotr2 dotr2;
-        bool          zip;
-        bool          debug;
+        recons           reconsMethod;   // Reconstruction method.
+        datread          datreadMethod;   // Data reading method.
+        std::string      outputDir;
+        std::string      ODFDirscheme;    // Directions scheme for reconstructing ODF.
+        options_rumba    rumba_sd;
+        options_dsi      dsi;
+        options_gqi      gqi;
+        options_qbi      qbi;
+        options_csa      csa;
+        options_dotr2    dotr2;
+        options_dti_nnls dti_nnls;
+        bool             zip;
+        bool             debug;
     };
 }
 
