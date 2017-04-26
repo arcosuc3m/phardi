@@ -72,8 +72,7 @@ namespace phardi {
                            const arma::Col<T>  a33,
                            arma::Col<T> &b,
                            arma::Col<T> &j,
-                           arma::Col<T> &d,
-                                 const phardi::options opts) {
+                           arma::Col<T> &d) {
 
         using namespace arma;
 
@@ -91,7 +90,7 @@ namespace phardi {
         Col<T> c =-( pow(a12,2) + pow(a13,2) + pow(a23,2) - b * d - d * j - j * b);
         
         //d=-(b.*d.*j - double(a23).^2.*b - double(a12).^2.*j - double(a13).^2.*d + 2*double(a13).*double(a12).*double(a23));
-        Col<T> d =-( b*d*j - pow(a23,2) * b - pow(a12,2) * j - pow(a13,2) * d + 2 * a13 * a12 * a23);
+        d =-( b*d*j - pow(a23,2) * b - pow(a12,2) * j - pow(a13,2) * d + 2 * a13 * a12 * a23);
 
         //b=-double(a11) - double(a22) - double(a33) - ep - ep -ep;
 
@@ -109,7 +108,7 @@ namespace phardi {
         c = c/27.0f;
 
         //c=max(c,0);
-        c = max(c,0)
+        c = max(c,0);
 
         //c=realsqrt(c);
         c = sqrt(c);    

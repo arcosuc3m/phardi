@@ -34,6 +34,9 @@
 #include "mirt3D.hpp"
 #include "362_shell_semisphere.hpp"
 
+#include "eigenvaluefield33.hpp"
+#include "eigenvectorfield33.hpp"
+
 #include <plog/Log.h>
 #include <armadillo>
 #include <iostream>

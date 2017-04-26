@@ -77,7 +77,7 @@ namespace phardi {
 */
 
     template <typename T>
-    arma::Mat<T> constructMatrixOfMonomials(const arma::Mat<T> & V,
+    arma::Mat<T> constructMatrixOfMonomials(const arma::Mat<T> & g,
                                             const arma::uword order) {
 
         using namespace arma;
@@ -93,14 +93,15 @@ namespace phardi {
         //     end
         // end
 
-        Mat<T> G(V.n_elems, order * (order-1));        
+        Mat<T> G(g.n_rows, factorial(order+1));
+        G.zeros();
 
         uword c = 0;
-        for (uword k = 0; k < V.n_elems; ++k) {
+        for (uword k = 0; k < g.n_rows; ++k) {
             c = 0;
-            for (uword i = 0; i < order; ++i) {
-                for (uword j = 0; j < order-1; ++j) {
-                    G(k,c) = (pow(V(k,0),i)) * (pow(V(k,1),j)) * (pow(V(k,2),order-i-j));
+            for (uword i = 0; i <= order; ++i) {
+                for (uword j = 0; j <= order-i; ++j) {
+                    G(k,c) = (pow(g(k,0),i)) * (pow(g(k,1),j)) * (pow(g(k,2),order-i-j));
                     c++;
                 }
             }
@@ -151,7 +152,6 @@ namespace phardi {
     %------------------------------------------------------------------------------------
 */
 
-    template <typename T>
     arma::uvec populationBasis(const arma::uword i, const arma::uword order, arma::uvec c) {
 
         using namespace arma;
@@ -169,11 +169,10 @@ namespace phardi {
         } else {
             uword j = i % 3;
             c(j) = c(j) + 1;
-            return populationBasis((i-j)/3, order-1,c);
+            return populationBasis((i-j)/3, order-1, c);
         }
     }
 
-    template <typename T>
     arma::uword population(const arma::uword i, const arma::uword j, const arma::uword k,
                     const arma::uword order) {
     
@@ -190,10 +189,10 @@ namespace phardi {
 
         uword counter = 0;
         uword size = pow(3,order);
-        for (uword z = 0; z < size -1; ++z) {
-            uvec c(3);
-            c.zeros();
-            c = populationBasis(z, order, c);
+        uvec c(3);
+        for (uword z = 0; z <= size -1; ++z) {
+            c = populationBasis(z, order, zeros<uvec>(3));
+
             if (c(0) == i && c(1) == j && c(2) == k)
                 counter++; 
         }
@@ -251,6 +250,7 @@ namespace phardi {
     void create_Kernel_for_dti(const arma::Mat<T> & V,
                                  const arma::Mat<T> & diffGrads,
                                  const arma::Col<T> & diffBvals,
+                                 arma::Mat<T> & Kernel,
                                  const phardi::options opts) {
 
         using namespace arma;
@@ -263,10 +263,12 @@ namespace phardi {
 
         uword order = opts.dti_nnls.torder;
    
-        Cube<T> pop(order+1,order+1,order+1);
-        for (uword i = 0; i < order; ++i) {
-            for (uword j = 0; j < order - 1; ++j) {
-                pop(i, j, order-i-j) = population(i, j, order-i-j, order)
+        ucube pop(order+1,order+1,order+1);
+        pop.zeros();
+
+        for (uword i = 0; i <= order; ++i) {
+            for (uword j = 0; j <= order - i; ++j) {
+                pop(i, j, order-i-j) = population(i, j, order-i-j, order);
             } 
         }
 
@@ -280,25 +282,28 @@ namespace phardi {
         //     end
         // end
 
-        Mat<T> C (V.n_elem, order * (order-1));
+        Mat<T> C (V.n_rows, factorial(order+1));
+        C.zeros();
+
         uword c = 0;
-        for (uword k = 0; l < V.n_elem; ++k) {
+        for (uword k = 0; k < V.n_rows; ++k) {
             c = 0;
-            for (uword i = 0; i < order; ++i) {
-                for (uword j = 0; j <  order - 1; ++j) {
-                    C(k,c) = pop(i, j, order-i-j) * (pow(V(k,0), i) * (pow(V(k,1),j)) * (pow(V(k,2),order-i-j))
+            for (uword i = 0; i <= order; ++i) {
+                for (uword j = 0; j <=  order - i; ++j) {
+                    C(k,c) = pop(i, j, order-i-j) * (pow(V(k,0), i)) * (pow(V(k,1),j)) * (pow(V(k,2),order-i-j));
                     c++;
                 }
             }    
         }
 
         // G=constructMatrixOfMonomials(diffGrads, 2);
-        G = constructMatrixOfMonomials(diffGrads, 2);
+        Mat<T> G = constructMatrixOfMonomials(diffGrads, 2);
 
         // Kernel=G*C';
         Kernel = G * C.t();
 
         // Kernel=[-diag(diffBvals)*Kernel ones(size(diffGrads,1),1)];
+        Kernel = join_cols(-diagmat(diffBvals) * Kernel, ones<Col<T>>(diffBvals.n_rows));
         return;
     }
 }

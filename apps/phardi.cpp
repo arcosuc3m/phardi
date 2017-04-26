@@ -120,7 +120,7 @@ const option::Descriptor usage[] =
 
     {OP_CSA_LAMBDA, 0,"","csa-lambda",Arg::Numeric, "  --csa-lambda \tCSA: Regularization parameter  (default 0.006)." },
     
-    {OP_DTI_NNLS_TORDER,, 0,"","dti_nnls-torder",Arg::Numeric, "  --dti_nnls-torder \tDTI_NNLS: Tensor order  (default 2)." },
+    {OP_DTI_NNLS_TORDER, 0,"","dti_nnls-torder",Arg::Numeric, "  --dti_nnls-torder \tDTI_NNLS: Tensor order  (default 2)." },
 
     {OP_DSI_LMAX, 0,"","dsi-lmax",Arg::Numeric, "  --dsi-lmax \tDSI: LMAX parameter  (default 10)." },
     {OP_DSI_RES, 0,"","dsi-resolution",Arg::Numeric, "  --dsi-resolution \tDSI: Resolution parameter  (default 35)." },
@@ -147,25 +147,26 @@ int main(int argc, char ** argv) {
     using namespace std;
     using namespace phardi;
     using namespace std::chrono;
-    
-    using clk = chrono::high_resolution_clock; 
-    
+
+    using clk = chrono::high_resolution_clock;
+
     auto t1 = clk::now();
-    
-    argc-=(argc>0); argv+=(argc>0); // skip program name argv[0] if present
-    option::Stats  stats(usage, argc, argv);
+
+    argc -= (argc > 0);
+    argv += (argc > 0); // skip program name argv[0] if present
+    option::Stats stats(usage, argc, argv);
     std::vector<option::Option> options(stats.options_max);
     std::vector<option::Option> buffer(stats.buffer_max);
     option::Parser parse(usage, argc, argv, &options[0], &buffer[0]);
-    
+
     if (parse.error())
         return 1;
-    
+
     if (options[HELP] || argc == 0) {
         option::printUsage(std::cout, usage);
         return 0;
     }
-    
+
     phardi::options opts;
 
     opts.zip = false;
@@ -173,50 +174,46 @@ int main(int argc, char ** argv) {
     if (options[ZIP].count() > 0) {
         opts.zip = true;
     }
-    
+
     if (options[DEBUG].count() > 0) {
-       static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
-       plog::init(plog::verbose, &consoleAppender);
+        static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
+        plog::init(plog::verbose, &consoleAppender);
     } else {
-       plog::init(plog::debug, "phardi.log");
+        plog::init(plog::debug, "phardi.log");
     }
 
-    for (option::Option* opt = options.front(); opt; opt = opt->next()) {
-        LOG_INFO << "Option: " << opt->name <<  ": " <<  opt->arg;
+    for (option::Option *opt = options.front(); opt; opt = opt->next()) {
+        LOG_INFO << "Option: " << opt->name << ": " << opt->arg;
     }
-    
-    std::string diffImage     = options[DATA].arg;
+
+    std::string diffImage = options[DATA].arg;
     std::string bvecsFilename = options[BVECS].arg;
     std::string bvalsFilename = options[BVALS].arg;
-    std::string diffBmask     = options[MASK].arg;
-    std::string ODFfilename   = options[ODF].arg;
-    std::string recons        = options[RECONS].arg;
+    std::string diffBmask = options[MASK].arg;
+    std::string ODFfilename = options[ODF].arg;
+    std::string recons = options[RECONS].arg;
 
     if (opts.zip)
-        ODFfilename =  ODFfilename + kPathSeparator + "data_odf.nii.gz";
+        ODFfilename = ODFfilename + kPathSeparator + "data_odf.nii.gz";
     else
-        ODFfilename =  ODFfilename + kPathSeparator + "data_odf.nii";
+        ODFfilename = ODFfilename + kPathSeparator + "data_odf.nii";
 
-    if (!is_file_exist(diffImage))
-    {
+    if (!is_file_exist(diffImage)) {
         LOG_ERROR << "Can't find " << diffImage;
         return 1;
     }
 
-    if (!is_file_exist(bvecsFilename))
-    {
+    if (!is_file_exist(bvecsFilename)) {
         LOG_ERROR << "Can't find " << bvecsFilename;
         return 1;
     }
-    
-    if (!is_file_exist(bvalsFilename))
-    {
+
+    if (!is_file_exist(bvalsFilename)) {
         LOG_ERROR << "Can't find " << bvalsFilename;
         return 1;
     }
-    
-    if (!is_file_exist(diffBmask))
-    {
+
+    if (!is_file_exist(diffBmask)) {
         LOG_ERROR << "Can't find " << diffBmask;
         return 1;
     }
@@ -225,129 +222,129 @@ int main(int argc, char ** argv) {
     // opts.reconsMethod = 'rumba_sd'; % Reconstruction Method
     // opts.datreadMethod = 'slices'; % Reading Data
     // opts.saveODF = 1; % Save or not the ODF
-    opts.reconsMethod        = RUMBA_SD; // Reconstruction Method
-    opts.datreadMethod       = SLICES;  //Reading Data
-    opts.outputDir           = options[ODF].arg;
+    opts.reconsMethod = RUMBA_SD; // Reconstruction Method
+    opts.datreadMethod = SLICES;  //Reading Data
+    opts.outputDir = options[ODF].arg;
 
-    opts.rumba_sd.add_noise  = false;
-    opts.rumba_sd.Niter      = RUMBA_NITER;
-    opts.rumba_sd.lambda1    = RUMBA_LAMBDA1;
-    opts.rumba_sd.lambda2    = RUMBA_LAMBDA2;
+    opts.rumba_sd.add_noise = false;
+    opts.rumba_sd.Niter = RUMBA_NITER;
+    opts.rumba_sd.lambda1 = RUMBA_LAMBDA1;
+    opts.rumba_sd.lambda2 = RUMBA_LAMBDA2;
     opts.rumba_sd.lambda_csf = RUMBA_LAMBDA_CSF;
-    opts.rumba_sd.lambda_gm  = RUMBA_LAMBDA_GM;
+    opts.rumba_sd.lambda_gm = RUMBA_LAMBDA_GM;
 
-    opts.dsi.lmax            = DSI_LMAX;
-    opts.dsi.resolution      = DSI_RESOLUTION;
-    opts.dsi.rmin            = DSI_RMIN;
-    opts.dsi.lreg            = DSI_LREG;
-    opts.dsi.boxhalfwidth    = DSI_BOXHALFWIDTH;
+    opts.dsi.lmax = DSI_LMAX;
+    opts.dsi.resolution = DSI_RESOLUTION;
+    opts.dsi.rmin = DSI_RMIN;
+    opts.dsi.lreg = DSI_LREG;
+    opts.dsi.boxhalfwidth = DSI_BOXHALFWIDTH;
 
-    opts.qbi.lambda          = QBI_LAMBDA;
+    opts.qbi.lambda = QBI_LAMBDA;
 
     opts.gqi.mean_diffusion_distance_ratio = GQI_MEANDIFFDIST;
-    opts.gqi.lambda          = GQI_LAMBDA;
+    opts.gqi.lambda = GQI_LAMBDA;
 
-    opts.dotr2.lambda        = DOTR2_LAMBDA;
-    opts.dotr2.t             = DOTR2_T;
-    opts.dotr2.eulerGamma    = DOTR2_EULERGAMMA;
+    opts.dotr2.lambda = DOTR2_LAMBDA;
+    opts.dotr2.t = DOTR2_T;
+    opts.dotr2.eulerGamma = DOTR2_EULERGAMMA;
 
-    opts.csa.lambda          = CSA_LAMBDA;
-    
-    opts.dti_nnls.torder     = DTI_NNLS_TORDER;
+    opts.csa.lambda = CSA_LAMBDA;
+
+    opts.dti_nnls.torder = DTI_NNLS_TORDER;
 
     if (recons == "rumba")
-        opts.reconsMethod        = RUMBA_SD;
+        opts.reconsMethod = RUMBA_SD;
     else if (recons == "dsi")
-        opts.reconsMethod        = DSI;
+        opts.reconsMethod = DSI;
     else if (recons == "dotr2")
-        opts.reconsMethod        = QBI_DOTR2;
+        opts.reconsMethod = QBI_DOTR2;
     else if (recons == "csa")
-        opts.reconsMethod        = QBI_CSA;
+        opts.reconsMethod = QBI_CSA;
     else if (recons == "qbi")
-        opts.reconsMethod        = QBI;
+        opts.reconsMethod = QBI;
     else if (recons == "gqi_l1")
-        opts.reconsMethod        = GQI_L1;
+        opts.reconsMethod = GQI_L1;
     else if (recons == "gqi_l2")
-        opts.reconsMethod        = GQI_L2;
+        opts.reconsMethod = GQI_L2;
     else if (recons == "dti_nnls")
-        opts.reconsMethod        = DTI_NNLS;
-    else  {
+        opts.reconsMethod = DTI_NNLS;
+    else {
         LOG_ERROR << "Method not recognized. Possible options are: rumba, dsi, dotr2, csa, qbi, gqi_l1, gqi_l2";
         return 0;
     }
 
-    LOG_INFO << "phardi "<< VERSION_MAJOR << "." << VERSION_MINOR;
-    LOG_INFO << "Start.";   
+    LOG_INFO << "phardi " << VERSION_MAJOR << "." << VERSION_MINOR;
+    LOG_INFO << "Start.";
 
     // Options casting for RUMBA
     if (options[OP_RUMBA_ITER].count() > 0) {
         opts.rumba_sd.Niter = std::stoi(options[OP_RUMBA_ITER].arg);
     }
     if (options[OP_RUMBA_LAMBDA1].count() > 0) {
-        opts.rumba_sd.lambda1 =  std::stof(options[OP_RUMBA_LAMBDA1].arg);
+        opts.rumba_sd.lambda1 = std::stof(options[OP_RUMBA_LAMBDA1].arg);
     }
     if (options[OP_RUMBA_LAMBDA2].count() > 0) {
-        opts.rumba_sd.lambda2 =  std::stof(options[OP_RUMBA_LAMBDA2].arg);
+        opts.rumba_sd.lambda2 = std::stof(options[OP_RUMBA_LAMBDA2].arg);
     }
     if (options[OP_RUMBA_LAMBDA_CSF].count() > 0) {
-        opts.rumba_sd.lambda_csf =  std::stof(options[OP_RUMBA_LAMBDA_CSF].arg);
+        opts.rumba_sd.lambda_csf = std::stof(options[OP_RUMBA_LAMBDA_CSF].arg);
     }
     if (options[OP_RUMBA_LAMBDA_GM].count() > 0) {
-        opts.rumba_sd.lambda_gm =  std::stof(options[OP_RUMBA_LAMBDA_GM].arg);
+        opts.rumba_sd.lambda_gm = std::stof(options[OP_RUMBA_LAMBDA_GM].arg);
     }
     if (options[OP_RUMBA_NOISE].count() > 0) {
-        opts.rumba_sd.add_noise =  true;
+        opts.rumba_sd.add_noise = true;
     }
 
     // Options casting for QBI
     if (options[OP_QBI_LAMBDA].count() > 0) {
-        opts.qbi.lambda =  std::stof(options[OP_QBI_LAMBDA].arg);
+        opts.qbi.lambda = std::stof(options[OP_QBI_LAMBDA].arg);
     }
 
     // Options casting for GQI
     if (options[OP_GQI_LAMBDA].count() > 0) {
-        opts.gqi.lambda =  std::stof(options[OP_GQI_LAMBDA].arg);
+        opts.gqi.lambda = std::stof(options[OP_GQI_LAMBDA].arg);
     }
     if (options[OP_GQI_MDDR].count() > 0) {
-        opts.gqi.mean_diffusion_distance_ratio =  std::stof(options[OP_GQI_MDDR].arg);
+        opts.gqi.mean_diffusion_distance_ratio = std::stof(options[OP_GQI_MDDR].arg);
     }
 
     // Options casting for DOTR2
     if (options[OP_DOTR2_LAMBDA].count() > 0) {
-        opts.dotr2.lambda =  std::stof(options[OP_DOTR2_LAMBDA].arg);
+        opts.dotr2.lambda = std::stof(options[OP_DOTR2_LAMBDA].arg);
     }
     if (options[OP_DOTR2_T].count() > 0) {
-        opts.dotr2.t =  std::stof(options[OP_DOTR2_T].arg);
+        opts.dotr2.t = std::stof(options[OP_DOTR2_T].arg);
     }
     if (options[OP_DOTR2_EULER].count() > 0) {
-        opts.dotr2.eulerGamma =  std::stof(options[OP_DOTR2_EULER].arg);
+        opts.dotr2.eulerGamma = std::stof(options[OP_DOTR2_EULER].arg);
     }
 
     // Options casting for CSA
     if (options[OP_CSA_LAMBDA].count() > 0) {
-        opts.csa.lambda =  std::stof(options[OP_CSA_LAMBDA].arg);
+        opts.csa.lambda = std::stof(options[OP_CSA_LAMBDA].arg);
     }
 
     // Options casting for DTI_NNLS
     if (options[OP_DTI_NNLS_TORDER].count() > 0) {
-        opts.dti_nnls.torder =  std::stof(options[OP_DTI_NNLS_TORDER].arg);
+        opts.dti_nnls.torder = std::stof(options[OP_DTI_NNLS_TORDER].arg);
     }
 
     // Options casting for DSI
     if (options[OP_DSI_LMAX].count() > 0) {
-        opts.dsi.lmax =  std::stoi(options[OP_DSI_LMAX].arg);
+        opts.dsi.lmax = std::stoi(options[OP_DSI_LMAX].arg);
     }
     if (options[OP_DSI_RES].count() > 0) {
-        opts.dsi.resolution =  std::stoi(options[OP_DSI_RES].arg);
+        opts.dsi.resolution = std::stoi(options[OP_DSI_RES].arg);
     }
     if (options[OP_DSI_RMIN].count() > 0) {
-        opts.dsi.rmin =  std::stoi(options[OP_DSI_RMIN].arg);
+        opts.dsi.rmin = std::stoi(options[OP_DSI_RMIN].arg);
     }
     if (options[OP_DSI_LREG].count() > 0) {
-        opts.dsi.lreg =  std::stof(options[OP_DSI_LREG].arg);
+        opts.dsi.lreg = std::stof(options[OP_DSI_LREG].arg);
     }
     if (options[OP_DSI_BOX].count() > 0) {
-        opts.dsi.boxhalfwidth =  std::stoi(options[OP_DSI_BOX].arg);
+        opts.dsi.boxhalfwidth = std::stoi(options[OP_DSI_BOX].arg);
     }
 
     std::string readmethod = "slices";
@@ -357,17 +354,17 @@ int main(int argc, char ** argv) {
         if (readmethod == "volume") opts.datreadMethod = VOLUME;
         else if (readmethod == "slices") opts.datreadMethod = SLICES;
         else if (readmethod == "voxels") opts.datreadMethod = VOXELS;
-	else opts.datreadMethod = SLICES;
+        else opts.datreadMethod = SLICES;
     }
 
     if (opts.reconsMethod == DSI) {
-       opts.datreadMethod = VOXELS;
+        opts.datreadMethod = VOXELS;
     }
 
     std::string precision = "float";
 
     if (options[PRECISION].count() > 0) {
-         precision = std::string(options[PRECISION].arg);
+        precision = std::string(options[PRECISION].arg);
     }
 
     LOG_INFO << "    diffImage     = " << diffImage;
@@ -377,13 +374,13 @@ int main(int argc, char ** argv) {
     LOG_INFO << "    ODFfilename   = " << ODFfilename;
     LOG_INFO << "    Precision     = " << precision;
 
-    if (opts.datreadMethod == VOLUME)
+    if (opts.datreadMethod == VOLUME) {
         LOG_INFO << "    Read method   = volume";
-    else if (opts.datreadMethod == SLICES)
+    } else if (opts.datreadMethod == SLICES) {
         LOG_INFO << "    Read method   = slices";
-    else if (opts.datreadMethod == VOXELS)
+    } else if (opts.datreadMethod == VOXELS) {
         LOG_INFO << "    Read method   = voxels";
-
+    }
 
     if (opts.reconsMethod == DSI && opts.datreadMethod == VOLUME) {
         LOG_INFO << "    Read method not compatible";

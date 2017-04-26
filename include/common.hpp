@@ -120,6 +120,11 @@ namespace phardi {
     }
 
 
+    constexpr arma::uword factorial(arma::uword n)
+    {
+        return n <= 1? 1 : (n * factorial(n - 1));
+    }
+
     // Construct spherical harmonics basis matrix at specified points.
     // SYNTAX: [basis] = construct_SH_basis(degree, sphere_points, dl, real_or_complex);
     //

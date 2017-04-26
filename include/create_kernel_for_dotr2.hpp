@@ -95,16 +95,15 @@ namespace phardi {
         for (L = 0; L <= Lmax; L+=2) {
             for (m = -(L); m <= L; ++m)
             {
-                switch (opts.reconsMethod) {
-                    case QBI_DOTR2:
-                        T factor_dot_r2;
-                        // -- Precomputation for DOT-R2 method
-                        // factor_dot_r2 = ((-1)^(L/2))*Vector(1,L/2 + 1)*(4/pi);
-                        factor_dot_r2 = (pow(-1.0, (L/2))) * Vector(L/2) * (4.0/datum::pi) ;
-                        // K_dot_r2 = [K_dot_r2; factor_dot_r2];
-                        K_dot_r2_v.push_back(factor_dot_r2);
-                        break;
-                    case QBI_CSA:
+                if (opts.reconsMethod == QBI_DOTR2) {
+                    T factor_dot_r2;
+                    // -- Precomputation for DOT-R2 method
+                    // factor_dot_r2 = ((-1)^(L/2))*Vector(1,L/2 + 1)*(4/pi);
+                    factor_dot_r2 = (pow(-1.0, (L / 2))) * Vector(L / 2) * (4.0 / datum::pi);
+                    // K_dot_r2 = [K_dot_r2; factor_dot_r2];
+                    K_dot_r2_v.push_back(factor_dot_r2);
+
+                } else if (opts.reconsMethod == QBI_CSA) {
                         T factor_csa;
                         // -- Precomputation for CSA-QBI method
                         // if L > 0
@@ -125,7 +124,6 @@ namespace phardi {
 
                         // K_csa = [K_csa; factor_csa];
                         K_csa_v.push_back(factor_csa);
-                        break;
                 }
                 // -- Precomputation for the spherical harmonic regularization
                 Laplac2_v.push_back(pow(L, 2) * pow((L+1), 2));

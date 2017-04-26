@@ -49,6 +49,8 @@ namespace phardi {
     const double DOTR2_EULERGAMMA      = 0.577216;
 
     const double CSA_LAMBDA            = 0.006;
+
+    const arma::uword DTI_NNLS_TORDER  = 2;
 }
 
 #endif
