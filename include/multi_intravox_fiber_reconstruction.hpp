@@ -36,6 +36,7 @@
 
 #include "eigenvaluefield33.hpp"
 #include "eigenvectorfield33.hpp"
+#include "lsqnonnegvect.hpp"
 
 #include <plog/Log.h>
 #include <armadillo>
@@ -534,6 +535,15 @@ namespace phardi {
                                 diffSignal.at(i,j) = Idiff.at(ind.at(i,j));
 
                         switch (opts.reconsMethod) {
+                            case DTI_NNLS:
+                            {
+                                Mat<T> x;
+
+                                // x=lsqnonnegvect(Kernel,log(diffSignal./repmat(diffSignal(1,:),[size(diffSignal,1) 1])));
+                                x = lsqnonnegvect(Kernel, log(diffSignal / repmap(diffSignal.row(0), diffSignal.n_rows, 1)));
+                                x.print("x=");
+                            }
+                               break;
                             case DSI: 
                             {
                                 // --- Signal in the 3D image
