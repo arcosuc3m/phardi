@@ -322,6 +322,14 @@ namespace phardi {
 
                         ODF.resize(rmatrix.n_rows, inda.n_elem);
                         switch (opts.reconsMethod) {
+                            case RUMBA_SD:
+                            case QBI:
+                            case GQI_L1:
+                            case GQI_L2:
+                            case QBI_DOTR2:
+                            case QBI_CSA:
+                            case DTI_NNLS:
+                                break;
                             case DSI: {
                                 // --- Signal in the 3D image
                                 // Smatrix = SignalMatrixBuilding(qspace,diffSignal,opts.dsi.resolution)
@@ -540,7 +548,7 @@ namespace phardi {
                                 Mat<T> x;
 
                                 // x=lsqnonnegvect(Kernel,log(diffSignal./repmat(diffSignal(1,:),[size(diffSignal,1) 1])));
-                                x = lsqnonnegvect(Kernel, log(diffSignal / repmap(diffSignal.row(0), diffSignal.n_rows, 1)));
+                                x = lsqnonnegvect<T>(Kernel, log(diffSignal / repmat(diffSignal.row(0), diffSignal.n_rows, 1)));
                                 x.print("x=");
                             }
                                break;
@@ -1014,6 +1022,8 @@ namespace phardi {
 
                     Mat<T> ODF;
                     switch (opts.reconsMethod) {
+                        case DTI_NNLS:
+                            break;
                         case QBI_DOTR2:
                         {
                             uvec indb0, indb1;

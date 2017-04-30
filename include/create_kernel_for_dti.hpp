@@ -303,7 +303,10 @@ namespace phardi {
         Kernel = G * C.t();
 
         // Kernel=[-diag(diffBvals)*Kernel ones(size(diffGrads,1),1)];
-        Kernel = join_cols(-diagmat(diffBvals) * Kernel, ones<Col<T>>(diffBvals.n_rows));
+        // Kernel = join_cols(-diagmat(diffBvals) * Kernel, ones<Mat<T>>(diffBvals.n_rows,1));
+        Kernel = -diagmat(diffBvals) * Kernel;
+        Kernel.insert_cols(Kernel.n_cols,ones<Col<T>>(diffBvals.n_rows));
+
         return;
     }
 }
