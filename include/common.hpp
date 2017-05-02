@@ -434,7 +434,7 @@ namespace phardi {
             indexes(i) = sub2ind(size(res), qc(i,0), qc(i,1), qc(i,2));
         }
 
-	uword totalNvoxels = pow(Resolution,3);
+	    uword totalNvoxels = pow(Resolution,3);
 
         // allIndexes = (repmat(indexes(:)',[size(value,2) 1]) + totalNvoxels*repmat([0:size(value,2)-1]',[1 length(indexes) ]))'; % Indexes in 4D
 
@@ -449,7 +449,7 @@ namespace phardi {
         uvec allIndexes_v = vectorise(allIndexes);
         Col<T> value_v = vectorise(value);
 
-	for (uword i = 0; i < totalNvoxels*value.n_cols; ++i)
+	    for (uword i = 0; i < totalNvoxels*value.n_cols; ++i)
             sq(allIndexes_v(i)) = value_v.at(i);  
 
         return sq;

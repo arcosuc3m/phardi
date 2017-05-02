@@ -469,8 +469,13 @@ int main(int argc, char ** argv) {
 
     if (precision == "float")
         Multi_IntraVox_Fiber_Reconstruction<float>(diffImage,bvecsFilename,bvalsFilename,diffBmask,ODFfilename,opts);
-    else
+    else if (precision == "double")
         Multi_IntraVox_Fiber_Reconstruction<double>(diffImage,bvecsFilename,bvalsFilename,diffBmask,ODFfilename,opts);
+    else {
+        LOG_ERROR << "Precision '" << precision << "' not supported.";
+        return 1;
+    }
+
 
     LOG_INFO << "Finalize.";
 

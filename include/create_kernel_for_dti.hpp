@@ -248,10 +248,11 @@ namespace phardi {
 
     template <typename T>
     void create_Kernel_for_dti(const arma::Mat<T> & V,
-                                 const arma::Mat<T> & diffGrads,
-                                 const arma::Col<T> & diffBvals,
-                                 arma::Mat<T> & Kernel,
-                                 const phardi::options opts) {
+                               const arma::Mat<T> & diffGrads,
+                               const arma::Col<T> & diffBvals,
+                               arma::Mat<T> & Kernel,
+                               arma::Mat<T> & C,
+                               const phardi::options opts) {
 
         using namespace arma;
 
@@ -282,7 +283,7 @@ namespace phardi {
         //     end
         // end
 
-        Mat<T> C (V.n_rows, factorial(order+1));
+        C.resize(V.n_rows, factorial(order+1));
         C.zeros();
 
         uword c = 0;

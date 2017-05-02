@@ -26,34 +26,63 @@
 
 namespace phardi {
 
-
-    arma::uvec sortrows_idx(const arma::umat & A) {
-
+    // Based on https://github.com/libigl/libigl/blob/master/include/igl/sortrows.cpp
+    void sortrows(
+            const arma::umat & X,
+            const bool ascending,
+            arma::umat & Y,
+            arma::uvec & IX)
+    {
+        using namespace std;
         using namespace arma;
 
-        uvec ii(A.n_rows);
-        uword ind = 0;
+        // Resize output
+        const uword num_rows = X.n_rows;
+        const uword num_cols = X.n_cols;
 
-        for (uword k = 0; k < A.n_cols; ++k) {
-            for (uword j = 0; j < A.n_rows; ++j) {
-                if (A(j,k) == 1) {
-                    ii(A.n_rows - ind - 1) = j;
-                    ind++;
+        Y.resize(num_rows,num_cols);
+
+        IX.resize(num_rows);
+
+        for(uword i = 0; i<num_rows; ++i)
+        {
+            IX(i) = i;
+        }
+
+        if (ascending) {
+            auto index_less_than = [&X, num_cols](uword i, uword j) {
+                for (uword c=0; c<num_cols; ++c) {
+                    if (X(i, c) < X(j, c)) return true;
+                    else if (X(j,c) < X(i,c)) return false;
                 }
+                return false;
+            };
+            std::sort(
+                    IX.memptr(),
+                    IX.memptr()+IX.n_elem,
+                    index_less_than
+            );
+        } else {
+            auto index_greater_than = [&X, num_cols](uword i, uword j) {
+                for (uword c=0; c<num_cols; ++c) {
+                    if (X(i, c) > X(j, c)) return true;
+                    else if (X(j,c) > X(i,c)) return false;
+                }
+                return false;
+            };
+            std::sort(
+                    IX.memptr(),
+                    IX.memptr()+IX.n_elem,
+                    index_greater_than
+            );
+        }
+        for (uword j=0; j<num_cols; ++j) {
+            for(uword i = 0; i<num_rows; ++i)
+            {
+                Y(i,j) = X(IX(i), j);
             }
         }
-        return ii;
     }
-
-    arma::umat sortrows(const arma::umat & A, const arma::uvec & I) {
-
-        using namespace arma;
-
-        umat B = A.rows(I);
-
-        return B;
-    }
-
 
 
     // %--------------------------------------------------------------------------
@@ -63,8 +92,9 @@ namespace phardi {
         using namespace arma;
 
         // [srtX, srtIdx] = sortrows(A');
-        uvec srtIdx = sortrows_idx(A.t());
-        umat srtX = sortrows(A.t(), srtIdx);
+        uvec srtIdx;
+        umat srtX;
+        sortrows(A.t(), true, srtX, srtIdx);
 
         // dX = diff(srtX, 1, 1);
         imat dX = diff(conv_to<imat>::from(srtX), 1, 0);
@@ -73,7 +103,7 @@ namespace phardi {
         uvec unqIdx = join_cols(ones<uvec>(1), any(dX, 1));
 
         // uniqueCols = A(:,srtIdx(unqIdx));
-        umat uniqueCols = A.cols(srtIdx.elem(find(unqIdx > 0)));
+        umat uniqueCols = A.cols(srtIdx(find(unqIdx)));
 
         return uniqueCols;
     }
@@ -140,7 +170,7 @@ namespace phardi {
         Mat<T> lambda;
 
         // tol = 10*eps*norm(C,1)*length(C);
-        T tol = 10.0f * datum::eps * norm(C) * C.n_rows;
+        T tol = 10.0 * std::numeric_limits<T>::epsilon() * norm(C) * C.n_rows;
 
         // nModel = size(C,2);
         uword nModel = C.n_cols;
@@ -190,7 +220,7 @@ namespace phardi {
 
         // % Data vectors with only zero or negative values do not need to be fitted
         //zeroFitMask = sum(abs(w),1) <= tol;
-        uvec zeroFitMask = sum(abs(w),0) <= tol;
+        uvec zeroFitMask = sum(abs(w),0).t() <= tol;
 
 
         //dataVectLeft = dataVect(~zeroFitMask);
@@ -198,6 +228,9 @@ namespace phardi {
 
         //nDataLeft = numel(dataVectLeft);
         uword nDataLeft = dataVectLeft.n_elem;
+
+        uvec t;
+        uvec ind;
 
         //% Outer loop to put variables into set to hold positive coefficients
         //while nDataLeft > 0 % any(~outerOptimDone)
@@ -221,11 +254,11 @@ namespace phardi {
             // % Find variable for which optimisation is not done with largest Lagrange
             // % multiplier for each data vector
             // [~,t] = max(wz);
-            uvec t = index_max(wz,0).t();
+            t = index_max(wz).t();
 
             // % Faster version of sub2ind(size(wz), t(~outerOptimDone), dataVect(~outerOptimDone));
             // ind = t + (dataVectLeft-1)*nModel;
-            uvec ind = t + dataVectLeft * nModel;
+            ind = t + dataVectLeft * nModel;
 
             // % Move variable t from zero set to positive set
             //P(ind) = true;
@@ -236,13 +269,7 @@ namespace phardi {
 
             // % Compute intermediate solution using only variables in positive set
             //Punique = uniqueCols(P(:,dataVectLeft));
-
-            umat aux = P.cols(dataVectLeft);
-            umat Punique = uniqueCols(aux);
-
-
-            t.print("Punique");
-            wz.print("wz");
+            umat Punique = uniqueCols(P.cols(dataVectLeft));
 
             // for k = 1:size(Punique,2)
             //     modelInd = Punique(:,k);
@@ -250,13 +277,14 @@ namespace phardi {
             //     globalInd = dataVectLeft(colInd);
             //     z(modelInd,colInd) = C(:,modelInd)\d(:,globalInd);
             // end
+
             for (uword k = 0; k < Punique.n_cols; ++k) {
                 uvec modelInd = Punique.col(k);
+
                 umat bsxfun(P.n_rows, dataVectLeft.n_elem);
                 for (uword i = 0; i < dataVectLeft.n_elem; ++i) {
                     bsxfun.col(dataVectLeft(i)) = P.col(dataVectLeft(i)) == modelInd;
                 }
-
                 uvec colInd = find(all(bsxfun, 0));
                 uvec globalInd = dataVectLeft(colInd);
 
@@ -269,11 +297,10 @@ namespace phardi {
             // % inner loop to remove elements from the positive set which no longer
             // % belong
             //while any(z(P(:,dataVectLeft)) <= tol)
-
             while (any(z(find(P.cols(dataVectLeft))) <= tol) == true) {
                 // innerIter = innerIter + 1;
                 innerIter++;
-exit(2);
+
                 //if innerIter > itmax
                 if (innerIter > itmax) {
                     LOG_INFO << "Exiting: Iteration count is exceeded, exiting LSQNONNEGVECT";
@@ -303,10 +330,7 @@ exit(2);
                 // % Although a bit obscure, it can be 100-1000x faster than doing it in a loop
 
                 // [~,indx] = find(Q);
-                uvec indx = find (Q);
-
-                indx.print("Q");
-
+                uvec indx = find (Q,1);
 
                 // alpha = NaN*ones(1,nDataLeft);
                 Col<T> alpha = datum::nan * ones<Col<T>>(nDataLeft);
@@ -315,10 +339,10 @@ exit(2);
                 uvec ind  = find_unique(indx);
 
                 // ind2 = dataVectLeft(ind);
-                uvec ind2 =  dataVectLeft.elem(find (ind > 0));
+                uvec ind2 =  dataVectLeft(ind);
 
                 // alpha(ind) = min(x(:,ind2).*Q(:,ind) ./ (x(:,ind2).*Q(:,ind) - z(:,ind).*Q(:,ind)), [],1);
-                alpha.elem(ind) = min(x.cols(ind2) * Q.cols(ind) / x.cols(ind2) * Q.cols(ind) - z.cols(ind) * Q.cols(ind), 0);
+                alpha(ind) = min(x.cols(ind2) * Q.cols(ind) / x.cols(ind2) * Q.cols(ind) - z.cols(ind) * Q.cols(ind), 0);
 
                 //ind = isnan(alpha);
                 ind = find(alpha == datum::nan);
@@ -327,10 +351,10 @@ exit(2);
                 innerOptimDone.elem(dataVectLeft.elem(ind > 0)).ones();
 
                 // x(:,dataVectLeft(ind)) = z(:,ind);
-                x.cols(dataVectLeft.elem(find(ind > 0))) = z.cols(ind);
+                x.cols(dataVectLeft(ind)) = z.cols(ind);
 
                 // x(:,dataVectLeft(~ind)) = x(:,dataVectLeft(~ind)) + bsxfun(@times, (z(:,~ind) - x(:,dataVectLeft(~ind))), alpha(~ind));
-                x.cols(dataVectLeft.elem(find(ind == 0))) = x.cols(dataVectLeft.elem(find(ind == 0))) +  (z.cols(find(ind == 0)) - x.cols(dataVectLeft.elem(find(ind == 0))))   * alpha.elem(find(ind == 0));
+                x.cols(dataVectLeft(find(ind == 0))) = x.cols(dataVectLeft.elem(find(ind == 0))) +  (z.cols(find(ind == 0)) - x.cols(dataVectLeft.elem(find(ind == 0))))   * alpha.elem(find(ind == 0));
 
                 // dataVectLeft = dataVectLeft(~ind);
                 dataVectLeft = dataVectLeft.elem (find (ind == 0));
@@ -377,6 +401,7 @@ exit(2);
             // x(:,dataVectLeft) = z(:,1:nDataLeft);
             x.cols(dataVectLeft) = z.cols(regspace<uvec>(0,nDataLeft-1));
 
+
             // % Slow
             // dataVectLeft = dataVect(~outerOptimDone);
             dataVectLeft = dataVect(find(outerOptimDone == 0));
@@ -398,10 +423,8 @@ exit(2);
             umat anyr = any(w % Z.cols(dataVectLeft) > tol, 0);
             doneFlag( find(anyl == 0 || anyr == 0 )).ones();
 
-
             // outerOptimDone(dataVectLeft) = doneFlag;
-            outerOptimDone(find(dataVectLeft)) = doneFlag;
-
+            outerOptimDone(dataVectLeft) = doneFlag;
 
             // % Remove values in w which are no longer necessary
             // w = w(:,~doneFlag);
@@ -423,7 +446,7 @@ exit(2);
         resid = d - C * x;
 
         // resnorm = sum(resid.^2);
-        resnorm = sum (pow(resid,2));
+        resnorm = sum(pow(resid,2)).t();
 
         //lambda = C'*resid;
         lambda = C.t() * resid;

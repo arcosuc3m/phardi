@@ -36,11 +36,12 @@ namespace phardi {
 
 
     template <typename T>
-    arma::Col<T> normm(const arma::Mat<T> M) {
+    arma::Row<T> normm(const arma::Mat<T> M) {
         using namespace arma;
 
         // % This script computes the L2 Norm for
         // norma = sqrt(sum((M').^2))';
+
         return sqrt(sum(pow(M.t(),2)));
     }
 
@@ -56,23 +57,23 @@ namespace phardi {
 %   a13 a23 a33
 */
     template <typename T>
-    void eigenvectorfield33(const arma::Col<T>  a11,
-                            const arma::Col<T>  a12,
-                            const arma::Col<T>  a13,
-                            const arma::Col<T>  a22,
-                            const arma::Col<T>  a23,
-                            const arma::Col<T>  a33,
-                            const arma::Col<T>  l1,
-                            const arma::Col<T>  l2,
-                            const arma::Col<T>  l3,
-                            std::vector<arma::Col<T>> &e1,
-                            std::vector<arma::Col<T>> &e2,
-                            std::vector<arma::Col<T>> &e3) {
+    void eigenvectorfield33(const arma::Row<T>  a11,
+                            const arma::Row<T>  a12,
+                            const arma::Row<T>  a13,
+                            const arma::Row<T>  a22,
+                            const arma::Row<T>  a23,
+                            const arma::Row<T>  a33,
+                            const arma::Row<T>  l1,
+                            const arma::Row<T>  l2,
+                            const arma::Row<T>  l3,
+                            std::vector<arma::Row<T>> &e1,
+                            std::vector<arma::Row<T>> &e2,
+                            std::vector<arma::Row<T>> &e3) {
 
         using namespace arma;
 
-        Col<T> A, B , C;
-        Col<T> normal;
+        Row<T> A, B , C;
+        Row<T> normal;
 
         // % eigenvector1
         // A = a11 - l1;
@@ -85,16 +86,16 @@ namespace phardi {
         C = a33 - l1;
 
         // e1x = (a12.*a23-B.*a13).*(a13.*a23-C.*a12);
-        Col<T> e1x = (a12 * a23 - B * a13) * (a13 * a23 - C * a12);
+        Row<T> e1x = (a12 % a23 - B % a13) % (a13 % a23 - C % a12);
 
         // e1y = (a13.*a23-C.*a12).*(a13.*a12-A.*a23);
-        Col<T> e1y = (a13 * a23 - C * a12) * (a13 * a12 - A * a23);
+        Row<T> e1y = (a13 % a23 - C % a12) % (a13 % a12 - A % a23);
 
         // e1z = (a12.*a23-B.*a13).*(a13.*a12-A.*a23);
-        Col<T> e1z = (a12 * a23 - B * a13) * (a13 * a12 - A * a23);
+        Row<T> e1z = (a12 % a23 - B % a13) % (a13 % a12 - A % a23);
 
         // normal = normm([e1x; e1y; e1z]');
-        normal = normm( join_cols(e1x,join_cols(e1y,e1z)) );
+        normal = normm<T>(join_vert(e1x,join_vert(e1y,e1z)).t() );
 
         // e1x = e1x(:)./normal;
         e1x = e1x / normal;
@@ -119,16 +120,16 @@ namespace phardi {
         C = a33 - l2;
 
         // e2x = (a12.*a23-B.*a13).*(a13.*a23-C.*a12);
-        Col<T> e2x = (a12 * a23 - B * a13) * (a13 * a23 - C * a12);
+        Row<T> e2x = (a12 % a23 - B % a13) % (a13 % a23 - C % a12);
 
         // e2y = (a13.*a23-C.*a12).*(a13.*a12-A.*a23);
-        Col<T> e2y = (a13 * a23 - C * a12) * (a13 * a12 - A * a23);
+        Row<T> e2y = (a13 % a23 - C % a12) % (a13 % a12 - A % a23);
 
         // e2z = (a12.*a23-B.*a13).*(a13.*a12-A.*a23);
-        Col<T> e2z = (a12 * a23 - B * a13) * (a13 * a12 - A * a23);
+        Row<T> e2z = (a12 % a23 - B % a13) % (a13 % a12 - A % a23);
 
         // normal = normm([e2x; e2y; e2z]');
-        normal = normm( join_cols(e2x,join_cols(e2y,e2z)) );
+        normal = normm<T>( join_vert(e2x,join_vert(e2y,e2z)).t() );
 
         // e2x = e2x(:)./normal;
         e2x = e2x / normal;
@@ -153,16 +154,16 @@ namespace phardi {
         C = a33 - l3;
 
         // e3x = (a12.*a23-B.*a13).*(a13.*a23-C.*a12);
-        Col<T> e3x = (a12 * a23 - B * a13) *(a13 * a23 - C * a12);
+        Row<T> e3x = (a12 % a23 - B % a13) % (a13 % a23 - C % a12);
 
         // e3y = (a13.*a23-C.*a12).*(a13.*a12-A.*a23);
-        Col<T> e3y = (a13 * a23 - C * a12) * (a13 * a12 - A * a23);
+        Row<T> e3y = (a13 % a23 - C % a12) % (a13 % a12 - A % a23);
 
         // e3z = (a12.*a23-B.*a13).*(a13.*a12-A.*a23);
-        Col<T> e3z = (a12 * a23 - B * a13) * (a13 * a12 - A * a23);
+        Row<T> e3z = (a12 % a23 - B % a13) % (a13 % a12 - A % a23);
 
         // normal = normm([e3x; e3y; e3z]');
-        normal = normm( join_cols(e3x,join_cols(e3y,e3z)) );
+        normal = normm<T>( join_vert(e3x,join_vert(e3y,e3z)).t() );
 
         // e3x = e3x(:)./normal;
         e3x = e3x / normal;

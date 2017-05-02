@@ -204,6 +204,7 @@ namespace phardi {
         Mat<T> yi;
         Mat<T> zi;
         Mat<T> rmatrix;
+        Mat<T> C;
 
         Kernel.zeros();
 
@@ -231,7 +232,7 @@ namespace phardi {
                 LOG_INFO << "Created kernel for GQI_L1/GQI_L2";
                 break;
             case DTI_NNLS:
-                create_Kernel_for_dti<T>(V, diffGrads, diffBvals, Kernel, opts);
+                create_Kernel_for_dti<T>(V, diffGrads, diffBvals, Kernel, C, opts);
                 LOG_INFO << "Created kernel for DTI_NNLS";
                 break;
         }
@@ -549,7 +550,44 @@ namespace phardi {
 
                                 // x=lsqnonnegvect(Kernel,log(diffSignal./repmat(diffSignal(1,:),[size(diffSignal,1) 1])));
                                 x = lsqnonnegvect<T>(Kernel, log(diffSignal / repmat(diffSignal.row(0), diffSignal.n_rows, 1)));
-                                x.print("x=");
+
+                                // T = C' * x(1:size(V,1),:);
+                                Mat<T> TT = C.t() * x.rows(regspace<uvec>(0,V.n_rows-1));
+
+
+
+                                // [l1,l2,l3] = eigenvaluefield33(T(6,:), T(5,:)/2, T(4,:)/2, T(3,:), T(2,:)/2, T(1,:));
+                                Row<T> l1, l2, l3;
+
+                                eigenvaluefield33<T>(TT.row(5), TT.row(4)/2.0, TT.row(3)/2.0, TT.row(2), TT.row(1)/2.0, TT.row(0), l1, l2, l3);
+
+                                // tempVar = sort([l1;l2;l3]);
+                                Mat<T> tempVar = sort(join_vert(l1, join_vert(l2, l3)));
+
+                                // l1 = tempVar(3,:);
+                                l1 = tempVar.row(2);
+
+                                // l2 = tempVar(2,:);
+                                l2 = tempVar.row(1);
+
+                                // l3 = tempVar(1,:);
+                                l3 = tempVar.row(0);
+
+                                // [e1x,e1y,e1z,e2x,e2y,e2z,e3x,e3y,e3z] = eigenvectorfield33( T(6,:), T(5,:)/2, T(4,:)/2, T(3,:), T(2,:)/2, T(1,:), l1, l2, l3);
+                                std::vector<arma::Row<T>> e1;
+                                std::vector<arma::Row<T>> e2;
+                                std::vector<arma::Row<T>> e3;
+
+                                eigenvectorfield33<T>(TT.row(5), TT.row(4)/2.0, TT.row(3)/2.0, TT.row(2), TT.row(1)/2.0, TT.row(0), l1, l2, l3, e1, e2 ,e3);
+
+                                //Tensor = [T(6,:); T(5,:)/2;T(4,:)/2; T(3,:); T(2,:)/2; T(1,:)];
+                                Mat<T> Tensor;
+                                Tensor.insert_rows(0, TT.row(5));
+                                Tensor.insert_rows(1, TT.row(4)/2.0);
+                                Tensor.insert_rows(2, TT.row(3)/2.0);
+                                Tensor.insert_rows(3, TT.row(2));
+                                Tensor.insert_rows(4, TT.row(1)/2.0);
+                                Tensor.insert_rows(5, TT.row(0));
                             }
                                break;
                             case DSI: 
@@ -859,7 +897,7 @@ namespace phardi {
                         Mat<uword> allIndexesODF = repmat(inda.t(),ODF.n_rows,1);
 
                         // ODFindexes = allIndexesODF + totalNvoxels*repmat([0:size(ODF,1)-1]',[1 length(inda) ]); % Indexes in 4D
-                        Mat<uword> ODFindexes = allIndexesODF + totalNvoxels * repmat(linspace<Mat<uword>>(0, ODF.n_rows - 1, ODF.n_rows ),1,inda.n_elem);
+                        Mat<uword> ODFindexes = allIndexesODF + totalNvoxels * repmat(linspace<uvec>(0, ODF.n_rows - 1, ODF.n_rows ),1,inda.n_elem);
 
                         // globODFslice(ODFindexes(:)) = ODF(:);
 #pragma omp parallel for
