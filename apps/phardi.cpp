@@ -18,7 +18,7 @@
 * See COPYRIGHT.txt for copyright notices and details.
 */
 
-#define ARMA_NO_DEBUG
+//#define ARMA_NO_DEBUG
 
 #include "optionparser.hpp"
 #include "options.hpp"
@@ -175,10 +175,12 @@ int main(int argc, char ** argv) {
         opts.zip = true;
     }
 
+    static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
+
     if (options[DEBUG].count() > 0) {
-        static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
         plog::init(plog::verbose, &consoleAppender);
     } else {
+        plog::init(plog::error, &consoleAppender);
         plog::init(plog::debug, "phardi.log");
     }
 
@@ -191,7 +193,16 @@ int main(int argc, char ** argv) {
     std::string bvalsFilename = options[BVALS].arg;
     std::string diffBmask = options[MASK].arg;
     std::string ODFfilename = options[ODF].arg;
-    std::string recons = options[RECONS].arg;
+
+
+    std::string recons;
+
+    if (options[RECONS].count() > 0) {
+        recons = options[RECONS].arg;
+    } else {
+        LOG_ERROR << "Reconstruction method not selected.";
+        return 1;
+    }
 
     if (opts.zip)
         ODFfilename = ODFfilename + kPathSeparator + "data_odf.nii.gz";
@@ -269,7 +280,7 @@ int main(int argc, char ** argv) {
     else if (recons == "dti_nnls")
         opts.reconsMethod = DTI_NNLS;
     else {
-        LOG_ERROR << "Method not recognized. Possible options are: rumba, dsi, dotr2, csa, qbi, gqi_l1, gqi_l2";
+        LOG_ERROR << "Method not recognized. Possible options are: rumba, dti, dsi, dotr2, csa, qbi, gqi_l1, gqi_l2";
         return 0;
     }
 
@@ -430,12 +441,29 @@ int main(int argc, char ** argv) {
          device = std::string(options[DEVICE].arg);
     }
 
-    if (device == "cuda")
+    int backends = af::getAvailableBackends();
+
+    bool cpu    = backends & AF_BACKEND_CPU;
+    bool cuda   = backends & AF_BACKEND_CUDA;
+    bool opencl = backends & AF_BACKEND_OPENCL;
+
+    if (device == "cuda" && cuda)
         af::setBackend(AF_BACKEND_CUDA);
-    else if (device == "opencl")
+    else if (device == "opencl" && opencl)
         af::setBackend(AF_BACKEND_OPENCL);
-    else if (device == "cpu")
+    else if (device == "cpu" && cpu)
         af::setBackend(AF_BACKEND_CPU);
+    else {
+        LOG_ERROR << "Device '" << device << "' not available in this computer.";
+        LOG_ERROR << "Possible devices:";
+        if (cuda)
+            LOG_ERROR << "    CUDA";
+        if (opencl)
+            LOG_ERROR << "    OpenCL";
+        if (cpu)
+            LOG_ERROR << "    CPU";
+        exit(1);
+    }
 
     af::info();
 
