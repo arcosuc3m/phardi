@@ -19,6 +19,7 @@
 */
 
 //#define ARMA_NO_DEBUG
+#define ARMA_PRINT_ERRORS
 
 #include "optionparser.hpp"
 #include "options.hpp"

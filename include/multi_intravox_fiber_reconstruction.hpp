@@ -241,36 +241,60 @@ namespace phardi {
         std::string filenameGM;
         std::string filenameWM;
         std::string filenameGFA;
+        std::string filenameDTI_NNLS_E1;
+        std::string filenameDTI_NNLS_E2;
+        std::string filenameDTI_NNLS_E3;
 
         if (opts.zip) {
             filenameCSF = opts.outputDir + kPathSeparator + "data-vf_csf.nii.gz";
             filenameGM  = opts.outputDir + kPathSeparator + "data-vf_gm.nii.gz";
             filenameWM  = opts.outputDir + kPathSeparator + "data-vf_wm.nii.gz";
             filenameGFA = opts.outputDir + kPathSeparator + "data-vf_gfa.nii.gz";
+            filenameDTI_NNLS_E1 = opts.outputDir + kPathSeparator + "data-dti_nnls_e1.nii.gz";
+            filenameDTI_NNLS_E2 = opts.outputDir + kPathSeparator + "data-dti_nnls_e2.nii.gz";
+            filenameDTI_NNLS_E3 = opts.outputDir + kPathSeparator + "data-dti_nnls_e3.nii.gz";
         }
         else {
             filenameCSF = opts.outputDir + kPathSeparator + "data-vf_csf.nii";
             filenameGM  = opts.outputDir + kPathSeparator + "data-vf_gm.nii";
             filenameWM  = opts.outputDir + kPathSeparator + "data-vf_wm.nii";
             filenameGFA = opts.outputDir + kPathSeparator + "data-vf_gfa.nii";
+            filenameDTI_NNLS_E1 = opts.outputDir + kPathSeparator + "data-dti_nnls_e1.nii";
+            filenameDTI_NNLS_E2 = opts.outputDir + kPathSeparator + "data-dti_nnls_e2.nii";
+            filenameDTI_NNLS_E3 = opts.outputDir + kPathSeparator + "data-dti_nnls_e3.nii";
         }
 
         size3D[0] = xdiff;   index3D[0] = 0;
         size3D[1] = ydiff;   index3D[1] = 0;
         size3D[2] = zdiff;   index3D[2] = 0;
 
-        Image3DType::Pointer imageCSF = Image3DType::New();
-        CreateImage<Image3DType>(imageCSF, size3D, index3D, spacing3D, origin3D, direction3D);
+        Image3DType::Pointer imageCSF;
+        Image3DType::Pointer imageGM;
+        Image3DType::Pointer imageWM;
+        Image3DType::Pointer imageGFA;
+        Image3DType::Pointer imageDTI_NNLS_E1;
+        Image3DType::Pointer imageDTI_NNLS_E2;
+        Image3DType::Pointer imageDTI_NNLS_E3;
 
-        Image3DType::Pointer imageGM = Image3DType::New();
-        CreateImage<Image3DType>(imageGM, size3D, index3D, spacing3D, origin3D, direction3D);
+        if (opts.reconsMethod == RUMBA_SD) {
+            imageCSF = Image3DType::New();
+            imageGM = Image3DType::New();
+            imageWM = Image3DType::New();
+            imageGFA = Image3DType::New();
+            CreateImage<Image3DType>(imageCSF, size3D, index3D, spacing3D, origin3D, direction3D);
+            CreateImage<Image3DType>(imageGM, size3D, index3D, spacing3D, origin3D, direction3D);
+            CreateImage<Image3DType>(imageWM, size3D, index3D, spacing3D, origin3D, direction3D);
+            CreateImage<Image3DType>(imageGFA, size3D, index3D, spacing3D, origin3D, direction3D);
+        }
 
-        Image3DType::Pointer imageWM = Image3DType::New();
-        CreateImage<Image3DType>(imageWM, size3D, index3D, spacing3D, origin3D, direction3D);
-
-        Image3DType::Pointer imageGFA = Image3DType::New();
-        CreateImage<Image3DType>(imageGFA, size3D, index3D, spacing3D, origin3D, direction3D);
-
+        if (opts.reconsMethod == DTI_NNLS) {
+            imageDTI_NNLS_E1 = Image3DType::New();
+            imageDTI_NNLS_E2 = Image3DType::New();
+            imageDTI_NNLS_E3 = Image3DType::New();
+            CreateImage<Image3DType>(imageDTI_NNLS_E1, size3D, index3D, spacing3D, origin3D, direction3D);
+            CreateImage<Image3DType>(imageDTI_NNLS_E2, size3D, index3D, spacing3D, origin3D, direction3D);
+            CreateImage<Image3DType>(imageDTI_NNLS_E3, size3D, index3D, spacing3D, origin3D, direction3D);
+        }
 
         switch (opts.datreadMethod) {
             case VOXELS:
@@ -460,12 +484,16 @@ namespace phardi {
                 Mat<T> slicevf_GM(xdiff,ydiff,fill::zeros);
                 Mat<T> slicevf_WM(xdiff,ydiff,fill::zeros);
                 Mat<T> slicevf_GFA(xdiff,ydiff,fill::zeros);
+                Mat<T> sliceL1 (xdiff,ydiff,fill::zeros);
+                Mat<T> sliceL2 (xdiff,ydiff,fill::zeros);
+                Mat<T> sliceL3 (xdiff,ydiff,fill::zeros);
+
                 Row<T> ODF_iso(ydiff,fill::zeros);
 
                 Cube<T> globODFslice (xdiff,ydiff,Nd,fill::zeros);
 
                 for (uword slice = 0; slice < zdiff; ++slice) {
-                    LOG_INFO << "Processing slice number " << slice << " of " << zdiff;
+                    LOG_INFO << "Processing slice number " << slice + 1 << " of " << zdiff;
 
                     // Imask  = squeeze(spm_slice_vol(Vmask,spm_matrix([0 0 slice]),Vmask.dim(1:2),0));
                     //mat Imask = Vmask.slice(slice);
@@ -546,19 +574,14 @@ namespace phardi {
                         switch (opts.reconsMethod) {
                             case DTI_NNLS:
                             {
-                                Mat<T> x;
-
                                 // x=lsqnonnegvect(Kernel,log(diffSignal./repmat(diffSignal(1,:),[size(diffSignal,1) 1])));
-                                x = lsqnonnegvect<T>(Kernel, log(diffSignal / repmat(diffSignal.row(0), diffSignal.n_rows, 1)));
+                                Mat<T> x = lsqnonnegvect<T>(Kernel, log(diffSignal / repmat(diffSignal.row(0), diffSignal.n_rows, 1)));
 
                                 // T = C' * x(1:size(V,1),:);
                                 Mat<T> TT = C.t() * x.rows(regspace<uvec>(0,V.n_rows-1));
 
-
-
                                 // [l1,l2,l3] = eigenvaluefield33(T(6,:), T(5,:)/2, T(4,:)/2, T(3,:), T(2,:)/2, T(1,:));
                                 Row<T> l1, l2, l3;
-
                                 eigenvaluefield33<T>(TT.row(5), TT.row(4)/2.0, TT.row(3)/2.0, TT.row(2), TT.row(1)/2.0, TT.row(0), l1, l2, l3);
 
                                 // tempVar = sort([l1;l2;l3]);
@@ -588,66 +611,134 @@ namespace phardi {
                                 Tensor.insert_rows(3, TT.row(2));
                                 Tensor.insert_rows(4, TT.row(1)/2.0);
                                 Tensor.insert_rows(5, TT.row(0));
+
+                                // Nd = size(Tensor,1);
+                                uword Ndt = Tensor.n_rows;
+
+                                // slice2Save = zeros(xdiff,ydiff,Nd);
+                                Cube<T> slice2Save = zeros<Cube<T>>(xdiff,ydiff, Ndt);
+
+                                // allIndexesTensor = repmat(inda(:)',[Nd 1]); % Image indexes
+                                umat allIndexesTensor = repmat(inda.t(), Ndt, 1);
+
+                                // Tenindexes = allIndexesTensor + totalNvoxels*repmat([0:Nd-1]',[1 length(inda) ]); % Indexes in 4D
+                                umat Tenindexes = allIndexesTensor + totalNvoxels * repmat (regspace<uvec>(0,Ndt - 1), 1 , inda.n_rows);
+
+                                // slice2Save(Tenindexes(:)) = Tensor(:);
+
+
+                                // sliceL1 = zeros(xdiff,ydiff);% Main eigenvalue
+                                sliceL1.zeros();
+
+                                // sliceL2 = zeros(xdiff,ydiff);% Second eigenvalue
+                                sliceL2.zeros();
+
+                                // sliceL3 = zeros(xdiff,ydiff);% Third eigenvalue
+                                sliceL3.zeros();
+
+                                // sliceL1(inda) = l1;
+                                sliceL1(inda) = l1;
+
+                                // sliceL2(inda) = l2;
+                                sliceL2(inda) = l2;
+
+                                // sliceL3(inda) = l3;
+                                sliceL3(inda) = l3;
+
+                                // sliceV1 = zeros(xdiff,ydiff,3);% Main eigenvector
+                                Cube<T> sliceV1 = zeros<Cube<T>>(xdiff,ydiff, 3);
+
+                                // tempSlice = zeros(xdiff,ydiff);
+                                Mat<T> tempSlice = zeros<Mat<T>>(xdiff,ydiff);
+
+                                // tempSlice(inda) = e1x;
+                                tempSlice(inda) = e1[0];
+
+                                // sliceV1(:,:,1) = tempSlice;
+                                sliceV1.slice(0) = tempSlice;
+
+                                // tempSlice = zeros(xdiff,ydiff);
+                                tempSlice.zeros();
+
+                                // tempSlice(inda) = e1y;
+                                tempSlice(inda) = e1[1];
+
+                                // sliceV1(:,:,2) = tempSlice;
+                                sliceV1.slice(1) = tempSlice;
+
+                                // tempSlice = zeros(xdiff,ydiff);
+                                tempSlice.zeros();
+
+                                // tempSlice(inda) = e1z;
+                                tempSlice(inda) = e1[2];
+
+                                // sliceV1(:,:,3) = tempSlice;
+                                sliceV1.slice(2) = tempSlice;
+
+                                // sliceV2 = zeros(xdiff,ydiff,3);% Second eigenvector
+                                Cube<T> sliceV2 = zeros<Cube<T>>(xdiff,ydiff, 3);
+
+                                // tempSlice = zeros(xdiff,ydiff);
+                                tempSlice.zeros();
+
+                                // tempSlice(inda) = e2x;
+                                tempSlice(inda) = e2[0];
+
+                                // sliceV2(:,:,1) = tempSlice;
+                                sliceV2.slice(0) = tempSlice;
+
+                                // tempSlice = zeros(xdiff,ydiff);
+                                tempSlice.zeros();
+
+                                // tempSlice(inda) = e2y;
+                                tempSlice(inda) = e2[1];
+
+                                // sliceV2(:,:,2) = tempSlice;
+                                sliceV2.slice(1) = tempSlice;
+
+                                // tempSlice = zeros(xdiff,ydiff);
+                                tempSlice.zeros();
+
+                                // tempSlice(inda) = e2z;
+                                tempSlice(inda) = e2[2];
+
+                                // sliceV2(:,:,3) = tempSlice;
+                                sliceV2.slice(2) = tempSlice;
+
+                                // sliceV3 = zeros(xdiff,ydiff,3);% Third eigenvector
+                                Cube<T> sliceV3 = zeros<Cube<T>>(xdiff,ydiff, 3);
+
+                                // tempSlice = zeros(xdiff,ydiff);
+                                tempSlice.zeros();
+
+                                // tempSlice(inda) = e3x;
+                                tempSlice(inda) = e3[0];
+
+                                // sliceV3(:,:,1) = tempSlice;
+                                sliceV3.slice(0) = tempSlice;
+
+                                // tempSlice = zeros(xdiff,ydiff);
+                                tempSlice.zeros();
+
+                                // tempSlice(inda) = e3y;
+                                tempSlice(inda) = e3[1];
+
+                                // sliceV3(:,:,2) = tempSlice;
+                                sliceV3.slice(1) = tempSlice;
+
+                                // tempSlice = zeros(xdiff,ydiff);
+                                tempSlice.zeros();
+
+                                // tempSlice(inda) = e3z;
+                                tempSlice(inda) = e3[2];
+
+                                // sliceV3(:,:,3) = tempSlice;
+                                sliceV3.slice(2) = tempSlice;
+
                             }
                                break;
                             case DSI: 
                             {
-                                // --- Signal in the 3D image
-                                // Smatrix = SignalMatrixBuilding(qspace,diffSignal,opts.dsi.resolution)
-                                Mat<T> tempSignal;
-
-                                uvec indb0, indb1;
-                                // indb0 = find(sum(diffGrads,2) == 0);
-                                indb0 = find(sum(diffGrads, 1) == 0);
-
-                                // indb1 = find(sum(diffGrads,2) ~= 0);
-                                indb1 = find(sum(diffGrads, 1) != 0);
-
-                                // tempSignal = diffSignal(indb1,:);
-                                Mat<T> tempS0;
-                                // if length(indb0)>1
-                                if (indb0.n_elem > 1)
-                                    // tempS0 = repmat(mean(diffSignal(indb0,:)),[size(diffSignal,1) 1]); % Signal from B0
-                                    tempS0 = repmat(mean(diffSignal.rows(indb0)), size(diffSignal, 0), 1);
-                                    // else
-                                else
-                                    // tempS0 = repmat(diffSignal(indb0,:),[size(diffSignal,1) 1]); % Signal from B0
-                                    tempS0 = repmat(diffSignal.rows(indb0), size(diffSignal, 0), 1);
-
-                                // tempSignal = diffSignal./tempS0;
-                                tempSignal = diffSignal / tempS0;
-
-                                // Smatrix = SignalMatrixBuilding_Volume(qspace,tempSignal(:,indvox),opts.dsi.resolution);
-                                Cube<T> Smatrix;// = SignalMatrixBuilding_Volume(qspace, tempSignal, opts.dsi.resolution);
-                                // --- DSI: PDF computation via fft
-
-                                // Pdsi = real(fftshift(fftn(ifftshift(Smatrix))));
-                                Cube<T> Pdsi;// = real(fftshift3D(fft3D(ifftshift3D(Smatrix))));
-
-                                // Pdsi(Pdsi<0)=0;
-                                Pdsi.elem(find(Pdsi < 0.0)).zeros();
-/*
-                                // Pdsi_int = mirt3D_mexinterp(Pdsi,xi,yi,zi);
-                                Mat<T> Pdsi_int = mirt3D_Function(Pdsi, vectorise(xi), vectorise(yi), vectorise(zi));
-
-                                // Pdsi_int(Pdsi_int<0) = 0;
-                                Pdsi_int.elem(find(Pdsi_int < 0.0)).zeros();
-
-                                // Pdsi_int = Pdsi_int./sum(Pdsi_int(:));
-                                Pdsi_int = Pdsi_int / sum(vectorise(Pdsi_int));
-
-                                // --- Numerical ODF-DSI reconstruction
-
-                                // Smoothing
-                                // sphE_dsi = Kernel*ODF;
-                                Mat<T> sphE_dsi = Kernel * ODF;
-
-                                // ODF = abs(basisV*sphE_dsi);
-                                ODF = abs(basisV*sphE_dsi);
-
-                                // ODF = ODF./repmat(sum(ODF),[size(ODF,1) 1]);
-                                ODF = ODF / repmat(sum(ODF), size(ODF,0), 1);
-*/
 
                             }
                                 break;
@@ -853,29 +944,19 @@ namespace phardi {
                                 // TODO ODF = intravox_fiber_reconst_sphdeconv_rumba_sd_gpu<T>(diffSignal, Kernel, fODF0, opts.rumba_sd.Niter);
                                 LOG_INFO << "Estimated mean SNR = " << mean_SNR;
 
-#pragma omp parallel for
-                                for (uword i = 0; i < inda.n_elem; ++i) {
-                                    slicevf_CSF.at(inda(i)) = ODF.at(ODF.n_rows - 2 ,i);
-                                }
 
-#pragma omp parallel for
-                                for (uword i = 0; i < inda.n_elem; ++i) {
-                                    slicevf_GM.at(inda(i)) = ODF.at(ODF.n_rows - 1 ,i);
-                                }
+                                slicevf_CSF(find(inda)) = ODF.row(ODF.n_rows - 2);
 
+                                slicevf_GM(find(inda)) = ODF.row(ODF.n_rows - 1);
 
                                 //ODF_iso = ODF(end,:) + ODF(end-1,:);
                                 ODF_iso = ODF.row(ODF.n_rows - 1) + ODF.row(ODF.n_rows - 2);
 
                                 // ODF = ODF(1:end-2,:);
-                                ODF.resize(ODF.n_rows - 2, ODF.n_cols);
+                                ODF = ODF.rows(regspace<uvec>(0,ODF.n_rows - 3));
 
                                 //volvf_WM(inda) = sum(ODF,1);    % Volume fraction of WM
-                                Row<T> tsum = sum(ODF,0);
-#pragma omp parallel for
-                                for (uword i = 0; i < inda.n_elem; ++i) {
-                                    slicevf_WM.at(inda.at(i)) = tsum.at(i);
-                                }
+                                slicevf_WM(find(inda)) = sum(ODF,0);
 
                                 // Adding the isotropic components to the ODF
                                 ODF = ODF + repmat( ODF_iso / ODF.n_rows , ODF.n_rows, 1 );
@@ -889,22 +970,24 @@ namespace phardi {
                                 }
                                 break;
                         }
-                        // % Allocating memory to save the ODF
-                        // globODFslice = zeros(xdiff,ydiff,Nd);
 
-                        // % Reordering ODF
-                        //  allIndexesODF = repmat(inda(:)',[size(ODF,1) 1]); % Image indexes
-                        Mat<uword> allIndexesODF = repmat(inda.t(),ODF.n_rows,1);
+                        if (opts.reconsMethod != DTI_NNLS) {
+                            // % Allocating memory to save the ODF
+                            // globODFslice = zeros(xdiff,ydiff,Nd);
+                            globODFslice.zeros();
 
-                        // ODFindexes = allIndexesODF + totalNvoxels*repmat([0:size(ODF,1)-1]',[1 length(inda) ]); % Indexes in 4D
-                        Mat<uword> ODFindexes = allIndexesODF + totalNvoxels * repmat(linspace<uvec>(0, ODF.n_rows - 1, ODF.n_rows ),1,inda.n_elem);
+                            // % Reordering ODF
+                            //  allIndexesODF = repmat(inda(:)',[size(ODF,1) 1]); % Image indexes
+                            Mat<uword> allIndexesODF = repmat(inda.t(), ODF.n_rows, 1);
 
-                        // globODFslice(ODFindexes(:)) = ODF(:);
-#pragma omp parallel for
-                        for (uword j = 0; j < ODF.n_cols; ++j) {
-                            for (uword i = 0; i < ODF.n_rows; ++i) {
-                                globODFslice.at(ODFindexes.at(i,j)) = ODF.at(i ,j);
-                            }
+                            // ODFindexes = allIndexesODF + totalNvoxels*repmat([0:size(ODF,1)-1]',[1 length(inda) ]); % Indexes in 4D
+                            Mat<uword> ODFindexes = allIndexesODF + totalNvoxels *
+                                                                    repmat(linspace<uvec>(0, ODF.n_rows - 1,
+                                                                                          ODF.n_rows), 1, inda.n_elem);
+
+                            // globODFslice(ODFindexes(:)) = ODF(:);
+                            globODFslice(find(ODFindexes)) = ODF;
+
                         }
                     }
                     if (opts.reconsMethod == RUMBA_SD) {
@@ -915,40 +998,13 @@ namespace phardi {
                             for (uword i = 0; i < xdiff; ++i) {
                                 coord[0] = i;
                                 imageCSF->SetPixel(coord, slicevf_CSF.at(i,j));
-                            }
-                        }
-
-#pragma omp parallel for
-                        for (uword j = 0; j < ydiff; ++j) {
-                            Index3DType coord;
-                            coord[1] = j; coord[2] = slice;
-                            for (uword i = 0; i < xdiff; ++i) {
-                                coord[0] = i;
                                 imageGM->SetPixel(coord, slicevf_GM.at(i,j));
-                            }
-                        }
-
-#pragma omp parallel for
-                        for (uword j = 0; j < ydiff; ++j) {
-                            Index3DType coord;
-                            coord[1] = j; coord[2] = slice;
-                            for (uword i = 0; i < xdiff; ++i) {
-                                coord[0] = i;
                                 imageWM->SetPixel(coord, slicevf_WM.at(i,j));
-                            }
-                        }
-
-#pragma omp parallel for
-                        for (uword j = 0; j < ydiff; ++j) {
-                            Index3DType coord;
-                            coord[1] = j; coord[2] = slice;
-                            for (uword i = 0; i < xdiff; ++i) {
-                                coord[0] = i;
                                 imageGFA->SetPixel(coord, slicevf_GFA.at(i,j));
                             }
                         }
                     }
-#pragma omp parallel for
+/* #pragma omp parallel for
                     for (uword i = 0; i < xdiff; ++i) {
                         Index4DType coord;
                         coord[0] = i; coord[2] = slice;
@@ -957,6 +1013,20 @@ namespace phardi {
                             for (uword k = 0; k < Nd; ++k) {
                                 coord[3] = k;
                                 imageODF->SetPixel(coord, globODFslice.at(i,j,k));
+                            }
+                        }
+                    }
+*/
+                    if (opts.reconsMethod == DTI_NNLS) {
+#pragma omp parallel for
+                        for (uword j = 0; j < ydiff; ++j) {
+                            Index3DType coord;
+                            coord[1] = j; coord[2] = slice;
+                            for (uword i = 0; i < xdiff; ++i) {
+                                coord[0] = i;
+                                imageDTI_NNLS_E1->SetPixel(coord, sliceL1.at(i,j));
+                                imageDTI_NNLS_E2->SetPixel(coord, sliceL2.at(i,j));
+                                imageDTI_NNLS_E3->SetPixel(coord, sliceL3.at(i,j));
                             }
                         }
                     }
@@ -1270,28 +1340,18 @@ namespace phardi {
                             LOG_INFO << "Estimated mean SNR = " << mean_SNR;
 
 
-#pragma omp parallel for
-                            for (uword i = 0; i < inda.n_elem; ++i) {
-                                slicevf_CSF.at(inda.at(i)) = ODF.at(ODF.n_rows - 2 ,i);
-                            }
+                            slicevf_CSF(find(slicevf_CSF)) = ODF.row(ODF.n_rows - 2);
 
-#pragma omp parallel for
-                            for (uword i = 0; i < inda.n_elem; ++i) {
-                                slicevf_GM.at(inda.at(i)) = ODF.at(ODF.n_rows - 1 ,i);
-                            }
+                            slicevf_GM(find(inda)) = ODF.row(ODF.n_rows - 1);
 
                             //ODF_iso = ODF(end,:) + ODF(end-1,:);
                             ODF_iso = ODF.row(ODF.n_rows - 1) + ODF.row(ODF.n_rows - 2);
 
                             // ODF = ODF(1:end-2,:);
-                            ODF.resize(ODF.n_rows - 2, ODF.n_cols);
+                            ODF.resize(ODF.n_rows - 3, ODF.n_cols);
 
                             //volvf_WM(inda) = sum(ODF,1);    % Volume fraction of WM
-                            Row<T> tsum = sum(ODF,0);
-#pragma omp parallel for
-                            for (uword i = 0; i < inda.n_elem; ++i) {
-                                slicevf_WM.at(inda.at(i)) = tsum.at(i);
-                            }
+                            slicevf_WM(find(inda)) = sum(ODF,0);
 
                             // Adding the isotropic components to the ODF
                             ODF = ODF + repmat( ODF_iso / ODF.n_rows , ODF.n_rows, 1 );
@@ -1303,6 +1363,8 @@ namespace phardi {
                             for (uword i = 0; i < inda.n_elem; ++i) {
                                 slicevf_GFA.at(inda.at(i)) = temp.at(i);
                             }
+
+
                             break;
                     }
                     // % Allocating memory to save the ODF
@@ -1332,51 +1394,11 @@ namespace phardi {
                         for (auto j = 0; j < ydiff; ++j) {
                             coord[1] = j;
                             for (auto k = 0; k < zdiff; ++k) {
-                                T temp = slicevf_CSF.at(i,j,k);
                                 coord[2] = k;
-                                imageCSF->SetPixel(coord, temp);
-                            }
-                        }
-                    }
-
-#pragma omp parallel for
-                    for (auto i = 0; i < xdiff; ++i) {
-                        Index3DType coord;
-                        coord[0] = i;
-                        for (auto j = 0; j < ydiff; ++j) {
-                            coord[1] = j;
-                            for (auto k = 0; k < zdiff; ++k) {
-                                T temp = slicevf_GM.at(i,j,k);
-                                coord[2] = k;
-                                imageGM->SetPixel(coord, temp);
-                            }
-                        }
-                    }
-
-#pragma omp parallel for
-                    for (auto i = 0; i < xdiff; ++i) {
-                        Index3DType coord;
-                        coord[0] = i;
-                        for (auto j = 0; j < ydiff; ++j) {
-                            coord[1] = j;
-                            for (auto k = 0; k < zdiff; ++k) {
-                                T temp = slicevf_WM.at(i,j,k);
-                                coord[2] = k;
-                                imageWM->SetPixel(coord, temp);
-                            }
-                        }
-                    }
-
-#pragma omp parallel for
-                    for (auto i = 0; i < xdiff; ++i) {
-                        Index3DType coord;
-                        coord[0] = i;
-                        for (auto j = 0; j < ydiff; ++j) {
-                            coord[1] = j;
-                            for (auto k = 0; k < zdiff; ++k) {
-                                T temp = slicevf_GFA.at(i,j,k);
-                                coord[2] = k;
-                                imageGFA->SetPixel(coord, temp);
+                                imageCSF->SetPixel(coord, slicevf_CSF.at(i,j,k));
+                                imageGM->SetPixel(coord, slicevf_GM.at(i,j,k));
+                                imageWM->SetPixel(coord, slicevf_WM.at(i,j,k));
+                                imageGFA->SetPixel(coord, slicevf_GFA.at(i,j,k));
                             }
                         }
                     }
@@ -1404,20 +1426,27 @@ namespace phardi {
 
         if (opts.reconsMethod == RUMBA_SD) {
             LOG_INFO << "writting file " << filenameCSF;
-            // LOG_INFO << imageCSF;
             WriteImage<Image3DType,NiftiType>(filenameCSF,imageCSF);
 
             LOG_INFO << "writting file " << filenameGM;
-            // LOG_INFO <<  imageGM;
             WriteImage<Image3DType,NiftiType>(filenameGM,imageGM);
 
             LOG_INFO << "writting file " << filenameWM;
-            // LOG_INFO <<  imageWM;
             WriteImage<Image3DType,NiftiType>(filenameWM,imageWM);
 
             LOG_INFO << "writting file " << filenameGFA;
-            // LOG_INFO <<  imageGFA;
             WriteImage<Image3DType,NiftiType>(filenameGFA,imageGFA);
+        }
+
+        if (opts.reconsMethod == DTI_NNLS) {
+            LOG_INFO << "writting file " << filenameDTI_NNLS_E1;
+            WriteImage<Image3DType,NiftiType>(filenameDTI_NNLS_E1,imageDTI_NNLS_E1);
+
+            LOG_INFO << "writting file " << filenameDTI_NNLS_E2;
+            WriteImage<Image3DType,NiftiType>(filenameDTI_NNLS_E2,imageDTI_NNLS_E2);
+
+            LOG_INFO << "writting file " << filenameDTI_NNLS_E3;
+            WriteImage<Image3DType,NiftiType>(filenameDTI_NNLS_E3,imageDTI_NNLS_E3);
         }
 
         LOG_INFO << "writting file " << ODFfilename;

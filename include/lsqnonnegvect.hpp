@@ -170,7 +170,7 @@ namespace phardi {
         Mat<T> lambda;
 
         // tol = 10*eps*norm(C,1)*length(C);
-        T tol = 10.0 * std::numeric_limits<T>::epsilon() * norm(C) * C.n_rows;
+        T tol = 10 * std::numeric_limits<T>::epsilon() * norm(C,1) * C.n_cols;
 
         // nModel = size(C,2);
         uword nModel = C.n_cols;
@@ -278,12 +278,14 @@ namespace phardi {
             //     z(modelInd,colInd) = C(:,modelInd)\d(:,globalInd);
             // end
 
+
+
             for (uword k = 0; k < Punique.n_cols; ++k) {
                 uvec modelInd = Punique.col(k);
 
                 umat bsxfun(P.n_rows, dataVectLeft.n_elem);
                 for (uword i = 0; i < dataVectLeft.n_elem; ++i) {
-                    bsxfun.col(dataVectLeft(i)) = P.col(dataVectLeft(i)) == modelInd;
+                    bsxfun.col(i) = P.col(dataVectLeft(i)) == modelInd;
                 }
                 uvec colInd = find(all(bsxfun, 0));
                 uvec globalInd = dataVectLeft(colInd);
@@ -310,7 +312,7 @@ namespace phardi {
                     // output.message = msg;
                     // output.algorithm = 'active-set';
                     // resnorm = sum(resid.*resid);
-                    resnorm = sum(resid * resid);
+                    resnorm = sum(resid % resid);
 
                     // x = z;
                     x = z;
@@ -324,43 +326,45 @@ namespace phardi {
                 // Q = (z <= tol) & P(:,dataVectLeft);
                 umat Q = (z <= tol) && P.cols(dataVectLeft);
 
-
                 // % This is equivalent to the lsqnonneg line alpha = min(x(Q)./(x(Q) - z(Q)))
                 // % since Q here can have multiple columns
                 // % Although a bit obscure, it can be 100-1000x faster than doing it in a loop
 
                 // [~,indx] = find(Q);
-                uvec indx = find (Q,1);
+                uvec indx = find(Q) / Q.n_rows;
 
                 // alpha = NaN*ones(1,nDataLeft);
                 Col<T> alpha = datum::nan * ones<Col<T>>(nDataLeft);
 
                 // ind = unique(indx);
-                uvec ind  = find_unique(indx);
+                uvec ind  = unique(indx);
 
                 // ind2 = dataVectLeft(ind);
                 uvec ind2 =  dataVectLeft(ind);
 
                 // alpha(ind) = min(x(:,ind2).*Q(:,ind) ./ (x(:,ind2).*Q(:,ind) - z(:,ind).*Q(:,ind)), [],1);
-                alpha(ind) = min(x.cols(ind2) * Q.cols(ind) / x.cols(ind2) * Q.cols(ind) - z.cols(ind) * Q.cols(ind), 0);
+                alpha(ind) = min(x.cols(ind2) % Q.cols(ind) / x.cols(ind2) % Q.cols(ind) - z.cols(ind) % Q.cols(ind), 0);
 
                 //ind = isnan(alpha);
-                ind = find(alpha == datum::nan);
+                ind.resize(size(alpha));
+                for (uword i = 0; i < alpha.n_elem; ++i)
+                     ind(i) = std::isnan(alpha(i)) ? 1 : 0;
 
                 // innerOptimDone(dataVectLeft(ind)) = true;
-                innerOptimDone.elem(dataVectLeft.elem(ind > 0)).ones();
+                innerOptimDone.elem(find(dataVectLeft(ind))).ones();
 
                 // x(:,dataVectLeft(ind)) = z(:,ind);
-                x.cols(dataVectLeft(ind)) = z.cols(ind);
+                x.cols(dataVectLeft(find(ind))) = z.cols(find(ind));
 
                 // x(:,dataVectLeft(~ind)) = x(:,dataVectLeft(~ind)) + bsxfun(@times, (z(:,~ind) - x(:,dataVectLeft(~ind))), alpha(~ind));
-                x.cols(dataVectLeft(find(ind == 0))) = x.cols(dataVectLeft.elem(find(ind == 0))) +  (z.cols(find(ind == 0)) - x.cols(dataVectLeft.elem(find(ind == 0))))   * alpha.elem(find(ind == 0));
+                Mat<T> aux = z.cols(find(ind == 0)) - x.cols(dataVectLeft(find(ind == 0)));
+                x.cols(dataVectLeft(find(ind == 0))) = x.cols(dataVectLeft(find(ind == 0))) +  aux.each_row() % alpha(find(ind == 0)).t();
 
                 // dataVectLeft = dataVectLeft(~ind);
-                dataVectLeft = dataVectLeft.elem (find (ind == 0));
+                dataVectLeft = dataVectLeft(find (ind == 0));
 
                 //nDataLeft = length(dataVectLeft);
-                nDataLeft = dataVectLeft.n_rows;
+                nDataLeft = dataVectLeft.n_elem;
 
                 // % Reset Z and P given intermediate values of x
                 // Z(:,dataVectLeft) = ((abs(x(:,dataVectLeft)) < tol) & P(:,dataVectLeft)) | Z(:,dataVectLeft);
@@ -383,11 +387,13 @@ namespace phardi {
                 //     z(modelInd,colInd) = C(:,modelInd)\d(:,globalInd);
                 // end
 
+
                 for (uword k = 0; k < Punique.n_cols; ++k) {
                     uvec modelInd = Punique.col(k);
+
                     umat bsxfun(P.n_rows, dataVectLeft.n_elem);
                     for (uword i = 0; i < dataVectLeft.n_elem; ++i) {
-                        bsxfun.col(dataVectLeft(i)) = P.col(dataVectLeft(i)) == modelInd;
+                        bsxfun.col(i) = P.col(dataVectLeft(i)) == modelInd;
                     }
 
                     uvec colInd = find(all(bsxfun, 0));
@@ -395,12 +401,9 @@ namespace phardi {
 
                     z(find(modelInd), colInd) = solve(C.cols(find(modelInd)), d.cols(globalInd));
                 }
-
             }
-
             // x(:,dataVectLeft) = z(:,1:nDataLeft);
             x.cols(dataVectLeft) = z.cols(regspace<uvec>(0,nDataLeft-1));
-
 
             // % Slow
             // dataVectLeft = dataVect(~outerOptimDone);

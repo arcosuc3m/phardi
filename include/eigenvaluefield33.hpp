@@ -94,18 +94,11 @@ namespace phardi {
         //d=-(b.*d.*j - double(a23).^2.*b - double(a12).^2.*j - double(a13).^2.*d + 2*double(a13).*double(a12).*double(a23));
         d = -(b % d % j - pow(a23,2) % b - pow(a12,2) % j - pow(a13,2) % d + 2.0 * a13 % a12 % a23);
 
-        d.raw_print("d");
-
         //b=-double(a11) - double(a22) - double(a33) - ep - ep -ep;
         b= -a11 - a22 - a33 - eps - eps - eps;
 
-        b.raw_print("b");
-
         //d = d + ((2*b.^3) - (9*b.*c))/27;
         d = d + (2.0 * pow(b,3) - (9.0 * b % c))/27.0;
-
-        d.raw_print("d");
-
 
         //%%%c=(d.^2/4-(d.^2/4 + ((3 * c - (b.^2))/3).^3/27));
         //c=(b.^2)/3 - c;
@@ -140,8 +133,6 @@ namespace phardi {
 
         //d=real(acos(d)/3);
         d = real(acos(d)/3.0);
-
-        d.print("d");
 
         //c=j.*cos(d);
         c = j % cos(d);
