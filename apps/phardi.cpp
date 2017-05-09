@@ -41,7 +41,7 @@ enum  optionIndex { UNKNOWN, HELP, READ, DATA, RECONS, MASK, BVECS, BVALS, DEVIC
                     OP_RUMBA_ITER, OP_RUMBA_LAMBDA1, OP_RUMBA_LAMBDA2, OP_RUMBA_LAMBDA_CSF, OP_RUMBA_LAMBDA_GM,
                     OP_QBI_LAMBDA, OP_GQI_LAMBDA, OP_GQI_MDDR, OP_DOTR2_LAMBDA, OP_DOTR2_T, OP_DOTR2_EULER, 
                     OP_CSA_LAMBDA, OP_DSI_LMAX, OP_DSI_RES, OP_DSI_RMIN, OP_DSI_LREG, OP_DSI_BOX, OP_DTI_NNLS_TORDER, 
-                    ZIP, DEBUG};
+                    ZIP, DEBUG, DIRSCHEME};
 
 struct Arg: public option::Arg
 {
@@ -101,6 +101,7 @@ const option::Descriptor usage[] =
     {BVALS, 0,"b","bvals",Arg::Required, "  --bvals, -b  \tb-values file." },
     {ODF, 0,"o","odf",Arg::Required, "  --odf, -o  \tOutput path." },
     {PRECISION, 0,"p","presicion",Arg::NonEmpty, "  --precision, -p  \tCalculation precision (float|double)." },
+    {DIRSCHEME, 0,"s","scheme",Arg::NonEmpty, "  --scheme, -s  \tODF spherical representation file path (362 points)." },
 
     {DEVICE, 0,"","device",Arg::NonEmpty, "  --device   \tHardware backend: cuda, opencl or cpu (default cuda)." },
 
@@ -288,6 +289,17 @@ int main(int argc, char ** argv) {
     LOG_INFO << "phardi " << VERSION_MAJOR << "." << VERSION_MINOR;
     LOG_INFO << "Start.";
 
+
+    opts.ODFDirscheme = "";
+
+    if (options[DIRSCHEME].count() > 0) {
+        opts.ODFDirscheme = options[DIRSCHEME].arg;
+        if (!is_file_exist(opts.ODFDirscheme)) {
+            LOG_ERROR << "Can't find " << opts.ODFDirscheme;
+            return 1;
+        }
+    }
+
     // Options casting for RUMBA
     if (options[OP_RUMBA_ITER].count() > 0) {
         opts.rumba_sd.Niter = std::stoi(options[OP_RUMBA_ITER].arg);
@@ -379,19 +391,23 @@ int main(int argc, char ** argv) {
         precision = std::string(options[PRECISION].arg);
     }
 
-    LOG_INFO << "    diffImage     = " << diffImage;
-    LOG_INFO << "    bvecsFilename = " << bvecsFilename;
-    LOG_INFO << "    bvalsFilename = " << bvalsFilename;
-    LOG_INFO << "    diffBmask     = " << diffBmask;
-    LOG_INFO << "    ODFfilename   = " << ODFfilename;
-    LOG_INFO << "    Precision     = " << precision;
+    LOG_INFO << "    diffImage        = " << diffImage;
+    LOG_INFO << "    bvecsFilename    = " << bvecsFilename;
+    LOG_INFO << "    bvalsFilename    = " << bvalsFilename;
+    LOG_INFO << "    diffBmask        = " << diffBmask;
+    LOG_INFO << "    ODFfilename      = " << ODFfilename;
+    LOG_INFO << "    Precision        = " << precision;
 
     if (opts.datreadMethod == VOLUME) {
-        LOG_INFO << "    Read method   = volume";
+        LOG_INFO << "    Read method      = volume";
     } else if (opts.datreadMethod == SLICES) {
-        LOG_INFO << "    Read method   = slices";
+        LOG_INFO << "    Read method      = slices";
     } else if (opts.datreadMethod == VOXELS) {
-        LOG_INFO << "    Read method   = voxels";
+        LOG_INFO << "    Read method      = voxels";
+    }
+ 
+    if(opts.ODFDirscheme.length() > 0) {
+    LOG_INFO << "    Sph. points file = " << opts.ODFDirscheme;
     }
 
     if (opts.reconsMethod == DSI && opts.datreadMethod == VOLUME) {
@@ -402,38 +418,42 @@ int main(int argc, char ** argv) {
 
     if (opts.reconsMethod == QBI_DOTR2) {
         LOG_INFO << "Configuration details for DOTR2:";
-        LOG_INFO << "    Lambda         = " << opts.dotr2.lambda;
-        LOG_INFO << "    T              = " << opts.dotr2.t;
-        LOG_INFO << "    Euler Gamma    = " << opts.dotr2.eulerGamma;
+        LOG_INFO << "    Lambda            = " << opts.dotr2.lambda;
+        LOG_INFO << "    T                 = " << opts.dotr2.t;
+        LOG_INFO << "    Euler Gamma       = " << opts.dotr2.eulerGamma;
     }
     else if (opts.reconsMethod == DSI) {
         LOG_INFO << "Configuration details for DSI:";
-        LOG_INFO << "    L Max          = " << opts.dsi.lmax;
-        LOG_INFO << "    Resolution     = " << opts.dsi.resolution;
-        LOG_INFO << "    R Min          = " << opts.dsi.rmin;
-        LOG_INFO << "    L Reg          = " << opts.dsi.lreg;
-        LOG_INFO << "    Box half width = " << opts.dsi.boxhalfwidth;
+        LOG_INFO << "    L Max             = " << opts.dsi.lmax;
+        LOG_INFO << "    Resolution        = " << opts.dsi.resolution;
+        LOG_INFO << "    R Min             = " << opts.dsi.rmin;
+        LOG_INFO << "    L Reg             = " << opts.dsi.lreg;
+        LOG_INFO << "    Box half width    = " << opts.dsi.boxhalfwidth;
     }
     else if (opts.reconsMethod == GQI_L1 || opts.reconsMethod == GQI_L2) {
         LOG_INFO << "Configuration details for GQI:";
-        LOG_INFO << "    Mean diffusion distance ratio = " << opts.gqi.mean_diffusion_distance_ratio;
-        LOG_INFO << "    Lambda                        = " << opts.gqi.lambda;
+        LOG_INFO << "    Mean diffusion distance ratio    = " << opts.gqi.mean_diffusion_distance_ratio;
+        LOG_INFO << "    Lambda                           = " << opts.gqi.lambda;
     }
     else if (opts.reconsMethod == QBI) {
         LOG_INFO << "Configuration details for QBI:";
-        LOG_INFO << "    Lambda                        = " << opts.qbi.lambda;
+        LOG_INFO << "    Lambda                           = " << opts.qbi.lambda;
     }
     else if (opts.reconsMethod == QBI_CSA) {
         LOG_INFO << "Configuration details for CSA:";
-        LOG_INFO << "    Lambda                        = " << opts.csa.lambda;
+        LOG_INFO << "    Lambda                           = " << opts.csa.lambda;
     }
     else if (opts.reconsMethod == RUMBA_SD) {
         LOG_INFO << "Configuration details for RUMBA:";
-        LOG_INFO << "    Iterations     = " << opts.rumba_sd.Niter;
-        LOG_INFO << "    Lambda 1       = " << opts.rumba_sd.lambda1;
-        LOG_INFO << "    Lambda 2       = " << opts.rumba_sd.lambda2;
-        LOG_INFO << "    Lambda CSF     = " << opts.rumba_sd.lambda_csf;
-        LOG_INFO << "    Lambda GM      = " << opts.rumba_sd.lambda_gm;
+        LOG_INFO << "    Iterations        = " << opts.rumba_sd.Niter;
+        LOG_INFO << "    Lambda 1          = " << opts.rumba_sd.lambda1;
+        LOG_INFO << "    Lambda 2          = " << opts.rumba_sd.lambda2;
+        LOG_INFO << "    Lambda CSF        = " << opts.rumba_sd.lambda_csf;
+        LOG_INFO << "    Lambda GM         = " << opts.rumba_sd.lambda_gm;
+    } 
+    else if (opts.reconsMethod == RUMBA_SD) {
+        LOG_INFO << "Configuration details for DTI_NNLS:";
+        LOG_INFO << "    Tensor order      = " << opts.dti_nnls.torder;
     }
 
     std::string device = "cuda";

@@ -74,7 +74,7 @@ USAGE: phardi [options]
 
 Options:
 Compulsory arguments (You MUST specify ALL arguments):
-  --alg, -a           Reconstruction method (rumba, dsi, qbi, gqi_l1, gqi_l2, dotr2, csa)
+  --alg, -a           Reconstruction method (rumba, dsi, qbi, gqi_l1, gqi_l2, dotr2, csa, dti_nnls)
   --data, -k          Data file
   --mask, -m          Binary mask file
   --bvecs, -r         b-vectors file
@@ -87,6 +87,7 @@ Optional arguments (You may optionally specify one or more of):
   --help, -h          Print usage and exit
   --compress, -z      Compress resulting files
   --device            Hardware backend: cuda, opencl or cpu (default cuda).
+  --scheme, -s        ODF spherical representation file path (362 points).
 
 Related to each reconstruction method:
 
@@ -118,6 +119,13 @@ Related to each reconstruction method:
   --dsi-lreg          LREG parameter  (default 0.004).
   --dsi-boxhalfwidth  Box half width parameter  (default 5).
 
+  DTI
+  --dti_nnls-torder   Tensor order  (default 2).  
+
 Examples:
  phardi -a rumba -k /data/data.nii.gz -m /data/nodif_brain_mask.nii.gz -r /data/bvecs -b /data/bvals --odf /result/
 ```
+
+### Acknowledgements ###
+
+This work was supported by the EU project ICT 644235 *RePhrase: REfactoring Parallel Heterogeneous Resource-Aware Applications* and project TIN2013-41350-P *Scalable Data Management Techniques for High-End Computing Systems* from the Ministerio de Economía y Competitividad, Spain.

@@ -65,7 +65,13 @@ namespace phardi {
         using namespace arma;
         using namespace itk;
 
-        Mat<T> V = ODFDirscheme_362<T>();
+        Mat<T> V;
+
+        if (opts.ODFDirscheme.length() > 0) {
+            V.load(diffGradsfilename, arma::raw_ascii); 
+        } else {
+            V = ODFDirscheme_362<T>();
+        }
 
         Mat<T> diffGrads;
         diffGrads.load(diffGradsfilename, arma::raw_ascii);
