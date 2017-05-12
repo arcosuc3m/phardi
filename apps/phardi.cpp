@@ -451,12 +451,12 @@ int main(int argc, char ** argv) {
         LOG_INFO << "    Lambda CSF        = " << opts.rumba_sd.lambda_csf;
         LOG_INFO << "    Lambda GM         = " << opts.rumba_sd.lambda_gm;
     } 
-    else if (opts.reconsMethod == RUMBA_SD) {
+    else if (opts.reconsMethod == DTI_NNLS) {
         LOG_INFO << "Configuration details for DTI_NNLS:";
         LOG_INFO << "    Tensor order      = " << opts.dti_nnls.torder;
     }
 
-    std::string device = "cuda";
+    std::string device = "";
 
     if (options[DEVICE].count() > 0) {
          device = std::string(options[DEVICE].arg);
@@ -468,7 +468,9 @@ int main(int argc, char ** argv) {
     bool cuda   = backends & AF_BACKEND_CUDA;
     bool opencl = backends & AF_BACKEND_OPENCL;
 
-    if (device == "cuda" && cuda)
+    if (device.length() == 0)
+        af::setBackend(AF_BACKEND_DEFAULT);
+    else if (device == "cuda" && cuda)
         af::setBackend(AF_BACKEND_CUDA);
     else if (device == "opencl" && opencl)
         af::setBackend(AF_BACKEND_OPENCL);
