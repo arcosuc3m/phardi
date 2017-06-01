@@ -34,6 +34,22 @@ Optional packages:
 sudo apt install libatlas-dev liblapack-dev libblas-dev libopenblas-dev libarpack2-dev liblapacke-dev libatlas3gf-base libatlas3-base opencl-headers
 ```
 
+Installing OpenCL support and libraries:
+
+- Open source approach:
+```
+sudo apt install ocl-icd-opencl-dev beignet-opencl-icd opencl-headers mesa-opencl-icd
+```
+
+- AMD 
+
+```
+sudo apt install ocl-icd-opencl-dev 
+```
+
+http://support.amd.com/en-us/kb-articles/Pages/OpenCL2-Driver.aspx
+
+
 Downloading and Installing ArrayFire:
 
 ```
