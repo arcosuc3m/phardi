@@ -19,6 +19,7 @@ The following libraries and compiler are required for compilation:
 * Armadillo (>= 6.7)
 * ITK (>= 4.9)
 * ArrayFire (>= 3.4.0)
+* Cmake (>= 3.0.0)
 
 ### Installation ####
 
