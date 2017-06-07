@@ -1,0 +1,9 @@
+[submodule "lib/armadillo"]
+	path = lib/armadillo
+	url = https://github.com/conradsnicta/armadillo-code.git
+[submodule "lib/arrayfire"]
+	path = lib/arrayfire
+	url = https://github.com/arrayfire/arrayfire.git
+[submodule "lib/itk"]
+	path = lib/itk
+	url = git://itk.org/ITK.git
