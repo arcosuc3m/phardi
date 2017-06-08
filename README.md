@@ -31,20 +31,20 @@ sudo apt install libfontconfig1-dev build-essential git cmake libfreeimage-dev c
 
 Optional packages:
 
-```
+```bash
 sudo apt install libatlas-dev liblapack-dev libblas-dev libopenblas-dev libarpack2-dev liblapacke-dev libatlas3gf-base libatlas3-base opencl-headers
 ```
 
 Installing OpenCL support and libraries:
 
 - Open source approach:
-```
+```bash
 sudo apt install ocl-icd-opencl-dev beignet-opencl-icd opencl-headers mesa-opencl-icd
 ```
 
 - AMD 
 
-```
+```bash
 sudo apt install ocl-icd-opencl-dev 
 ```
 
@@ -53,7 +53,7 @@ http://support.amd.com/en-us/kb-articles/Pages/OpenCL2-Driver.aspx
 
 Downloading and Installing ArrayFire:
 
-```
+```bash
 git clone https://github.com/arrayfire/arrayfire.git
 cd arrayfire/
 git submodule init
@@ -68,7 +68,7 @@ sudo make install
 ### How do I get set up? ###
 
 
-```
+```bash
 git clone https://github.com/arcosuc3m/phardi
 cd phardi/
 mkdir build
@@ -84,9 +84,7 @@ http://doi.org/10.5281/zenodo.258764
 ### Execution ###
 
 
-```
-#!bash
-
+```bash
 USAGE: phardi [options]
 
 Options:
