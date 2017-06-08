@@ -46,6 +46,9 @@ Yalamanchili,   P.,   Arshad,   U.,   Mohammed,   Z.,   Garigipati,   P.,   Ents
 Kloppenborg,  B.,  Malcolm,  J.,  and Melonakos,  J. (2015).   ArrayFire - A high
 performance software library for parallel computing with an easy-to-use API.
 
+Sanderson, C. (2010). Armadillo: An open source C++ linear algebra library for fast
+prototyping and computationally intensive experiments.
+
 ### Requirements ###
 
 The following libraries and compiler are required for compilation:
