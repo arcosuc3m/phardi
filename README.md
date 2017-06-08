@@ -1,15 +1,50 @@
 # README #
 
-This is a collection of routines for the analysis of High Angular Resolution Diffusion Imaging (HARDI) data. It is a subset of the code internally used in the FIDMAG Research Foundation (unit of research at the Benito Menni Hospital, Barcelona, Spain), the Cuban Neuroscience Center (Havana, Cuba), and the Medical Imaging Laboratory at Gregorio Marañón Hospital (Madrid, Spain).
+pHARDI (parallel High Angular Resolution Diffusion Imaging) is a toolkit for the GPU/CPU-accelerated reconstruction of different intra-voxel reconstruction methods from diffusion Magnetic Resonance Imaging (dMRI) data. It has a layer-based design, which allows the use of multiple linear algebra accelerators in a wide range of devices, such as multi-core GPU devices (both CUDA and OpenCL) or even co-processors, like Intel Xeon Phi. For platforms that do not support any GPU-based accelerator, our solution can also run on multi-core processors (CPU) using highly-tuned linear algebra libraries. We use Armadillo on top of the linear algebra accelerators for providing a common interface and the ArrayFire library for supporting GPU devices.
 
 List of reconstruction methods currently included:
 
-* Q-Ball Imaging (QBI) 
-* Q-Ball Imaging in Constant Solid Angle (CSA-QBI) 
-* Revisited version of the DOT method (DOT-R2)
-* Diffusion Spectrum Imaging (DSI)
-* Robust and Unbiased Model-Based Spherical Deconvolution (RUMBA)
+* Diffusion Tensor Imaging (DTI) with symmetric positive-definite constraints (Barmpoutis, 2010)
+* Q-Ball Imaging (QBI) (Tuch, 2004; Descoteaux, 2007)
+* Q-Ball Imaging in Constant Solid Angle (QBI-CSA) (Aganj, 2010)
+* Revisited version of the Diffusion Orientation Transform (DOT-R2) (Canales-Rodríguez, 2010)
+* Diffusion Spectrum Imaging (DSI) (Wedeen, 2005)
+* Robust and Unbiased Model-Based Spherical Deconvolution (RUMBA-SD) (Canales-Rodríguez, 2015; Garcia-Blas, 2016)
 
+In the near future we plan to include some additional techniques, as well as fiber tracking algorithms.
+
+### References ###
+Barmpoutis, A. and Vemuri, B. C. (2010). A unified framework for estimating
+diffusion tensors of any order with symmetric positive-definite constraints.
+In Proceedings of ISBI10: IEEE International Symposium on Biomedical Imaging,pages 1385–1388.
+
+Tuch, D.S. (2004). Q-ball imaging. Magnetic Resonance in Medicine, 52, 1358–1372.
+
+Descoteaux, M., Angelino, E., Fitzgibbons, S., and Deriche, R. (2007). Regularized, fast, and robust 
+analytical q-ball imaging. Magnetic Resonance in Medicine, 58(3), 497–510.
+
+Aganj, I., Lenglet, C., Sapiro, G., Yacoub, E., Ugurbil, K., and Harel, N. (2010).
+Reconstruction of the orientation distribution function in single- and multiple-shell
+q-ball imaging within constant solid angle. Magnetic Resonance in Medicine,64,554–566.
+
+Canales-Rodríguez, E.J., Lin, C.P., Iturria-Medina, Y., Yeh, C.H., Cho, K. H., Melie-García, L. (2010).
+Diffusion orientation transform revisited. NeuroImage,49 (2), 1326–1339.
+
+Wedeen VJ, Hagmann P, T.W. R. T. W. R.  (2005). Mapping complex tissue architecture with 
+diffusion spectrum magnetic resonance imaging. Magn Reson Med, 54(6), 11377–86.
+
+Canales-Rodríguez, E.J., Daducci, A., Sotiropoulos, S.N., Caruyer, E., Aja-Fernández, S., Radua, J., 
+Mendizabal, J. M. Y., Iturria-Medina, Y., Melie-García, L., Alemán-Gómez, Y., et al. (2015).
+Spherical deconvolution of multichannel diffusion MRI data with non-Gaussian noise models and spatial 
+regularization. PloS one, 10(10).
+
+Garcia-Blas, J., Dolz, M. F., Garcia., J. D., Carretero, J., Daducci, A., Aleman, Y., and 
+Canales-Rodriguez, E.J. (2016). Porting Matlab Applications to High-Performance C++ Codes: CPU/GPU-Accelerated 
+Spherical Deconvolution of Diffusion MRI Data, pages 630–643. Springer International Publishing, Cham.
+
+Yalamanchili,   P.,   Arshad,   U.,   Mohammed,   Z.,   Garigipati,   P.,   Entschev,   P.,
+Kloppenborg,  B.,  Malcolm,  J.,  and Melonakos,  J. (2015).   ArrayFire - A high
+performance software library for parallel computing with an easy-to-use API.
 
 ### Requirements ###
 
