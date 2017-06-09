@@ -2,7 +2,7 @@
 
 Parallel High Angular Resolution Diffusion Imaging (pHARDI) is a toolkit for the GPU/CPU-accelerated reconstruction of intra-voxel reconstruction methods from diffusion Magnetic Resonance Imaging (dMRI) data. It was designed to support multiple linear algebra accelerators in a wide range of devices, such as multi-core GPU devices (both CUDA and OpenCL) or even co-processors, like Intel Xeon Phi. For platforms that do not support any GPU-based accelerator, our solution can also run on multi-core processors (CPU) using highly-tuned linear algebra libraries. We use Armadillo on top of the linear algebra accelerators for providing a common interface and ArrayFire for supporting GPU devices.
 
-List of reconstruction methods currently included:
+List of reconstruction methods:
 
 * Diffusion Tensor Imaging (of order-2 or higher) with Symmetric Positive-Definite Constraints (DTI-SPD) (Barmpoutis, 2010)
 * Q-Ball Imaging (QBI) (Tuch, 2004; Descoteaux, 2007)
@@ -35,8 +35,8 @@ Canales-Rodríguez, E.J., Lin, C.P., Iturria-Medina, Y., Yeh, C.H., Cho, K. H., 
 Yeh, Fang-Cheng, Van Jay Wedeen, and Wen-Yih Isaac Tseng (2010), "Generalized Q-sampling imaging".
 Medical Imaging, IEEE Transactions on 29.9: 1626-1635.
 
-Wedeen VJ, Hagmann P, Tseng WY, Reese TG, Weisskoff RM  (2005). "Mapping complex tissue architecture with 
-diffusion spectrum magnetic resonance imaging". Magn Reson Med, 54(6), 11377–86.
+Wedeen VJ, Hagmann P, Tseng WY, Reese TG, Weisskoff RM  (2005). "Mapping complex tissue architecture 
+with diffusion spectrum magnetic resonance imaging". Magn Reson Med, 54(6), 11377–86.
 
 Canales-Rodríguez, E.J., Daducci, A., Sotiropoulos, S.N., Caruyer, E., Aja-Fernández, S., Radua, J., 
 Mendizabal, J. M. Y., Iturria-Medina, Y., Melie-García, L., Alemán-Gómez, Y., et al. (2015).
@@ -44,12 +44,13 @@ Mendizabal, J. M. Y., Iturria-Medina, Y., Melie-García, L., Alemán-Gómez, Y.,
 regularization". PloS one, 10(10).
 
 Garcia-Blas, J., Dolz, M. F., Garcia., J. D., Carretero, J., Daducci, A., Aleman, Y., and 
-Canales-Rodriguez, E.J. (2016). "Porting Matlab Applications to High-Performance C++ Codes: CPU/GPU-Accelerated 
-Spherical Deconvolution of Diffusion MRI Data", pages 630–643. Springer International Publishing, Cham.
+Canales-Rodriguez, E.J. (2016). "Porting Matlab Applications to High-Performance C++ Codes: 
+CPU/GPU-Accelerated Spherical Deconvolution of Diffusion MRI Data", pages 630–643. 
+Springer International Publishing, Cham.
 
 Yalamanchili, P., Arshad, U., Mohammed, Z., Garigipati, P., Entschev, P., Kloppenborg, B., Malcolm, J.
-and Melonakos, J. (2015). "ArrayFire - A high performance software library for parallel computing with an
-easy-to-use API". Atlanta: AccelerEyes. Retrieved from https://github.com/arrayfire/arrayfire
+and Melonakos, J. (2015). "ArrayFire - A high performance software library for parallel computing with 
+an easy-to-use API". Atlanta: AccelerEyes. Retrieved from https://github.com/arrayfire/arrayfire
 
 Sanderson, C. (2016). "Armadillo: An open source C++ linear algebra library for fast prototyping and 
 computationally intensive experiments". Journal of Open Source Software, Vol. 1, pp. 26. 
