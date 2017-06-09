@@ -4,7 +4,7 @@ Parallel High Angular Resolution Diffusion Imaging (pHARDI) is a toolkit for the
 
 List of reconstruction methods:
 
-* Diffusion Tensor Imaging (of order-2 or higher) with Symmetric Positive-Definite Constraints (DTI-SPD) (Barmpoutis, 2010)
+* Diffusion Tensor Imaging (order-2 or higher) with Symmetric Positive-Definite Constraints (DTI-SPD) (Barmpoutis, 2010)
 * Q-Ball Imaging (QBI) (Tuch, 2004; Descoteaux, 2007)
 * Q-Ball Imaging in Constant Solid Angle (QBI-CSA) (Aganj, 2010)
 * Revisited version of the Diffusion Orientation Transform (DOT-R2) (Canales-Rodríguez, 2010)
