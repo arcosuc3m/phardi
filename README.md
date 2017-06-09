@@ -1,10 +1,10 @@
 # README #
 
-pHARDI (parallel High Angular Resolution Diffusion Imaging) is a toolkit for the GPU/CPU-accelerated reconstruction of intra-voxel reconstruction methods from diffusion Magnetic Resonance Imaging (dMRI) data. It was designed to support multiple linear algebra accelerators in a wide range of devices, such as multi-core GPU devices (both CUDA and OpenCL) or even co-processors, like Intel Xeon Phi. For platforms that do not support any GPU-based accelerator, our solution can also run on multi-core processors (CPU) using highly-tuned linear algebra libraries. We use Armadillo on top of the linear algebra accelerators for providing a common interface and ArrayFire for supporting GPU devices.
+Parallel High Angular Resolution Diffusion Imaging (pHARDI) is a toolkit for the GPU/CPU-accelerated reconstruction of intra-voxel reconstruction methods from diffusion Magnetic Resonance Imaging (dMRI) data. It was designed to support multiple linear algebra accelerators in a wide range of devices, such as multi-core GPU devices (both CUDA and OpenCL) or even co-processors, like Intel Xeon Phi. For platforms that do not support any GPU-based accelerator, our solution can also run on multi-core processors (CPU) using highly-tuned linear algebra libraries. We use Armadillo on top of the linear algebra accelerators for providing a common interface and ArrayFire for supporting GPU devices.
 
 List of reconstruction methods currently included:
 
-* Diffusion Tensor Imaging with Symmetric Positive-Definite Constraints (DTI-SPD) (Barmpoutis, 2010)
+* Diffusion Tensor Imaging (of order-2 or higher) with Symmetric Positive-Definite Constraints (DTI-SPD) (Barmpoutis, 2010)
 * Q-Ball Imaging (QBI) (Tuch, 2004; Descoteaux, 2007)
 * Q-Ball Imaging in Constant Solid Angle (QBI-CSA) (Aganj, 2010)
 * Revisited version of the Diffusion Orientation Transform (DOT-R2) (Canales-Rodríguez, 2010)
@@ -15,6 +15,7 @@ List of reconstruction methods currently included:
 In the near future we plan to include additional 'state-of-the-art' intra-voxel methods, as well as fiber tracking algorithms.
 
 ### References ###
+```
 Barmpoutis, A. and Vemuri, B. C. (2010). "A unified framework for estimating
 diffusion tensors of any order with symmetric positive-definite constraints".
 In Proceedings of ISBI10: IEEE International Symposium on Biomedical Imaging,pages 1385–1388.
@@ -52,7 +53,7 @@ easy-to-use API". Atlanta: AccelerEyes. Retrieved from https://github.com/arrayf
 
 Sanderson, C. (2016). "Armadillo: An open source C++ linear algebra library for fast prototyping and 
 computationally intensive experiments". Journal of Open Source Software, Vol. 1, pp. 26. 
-
+```
 ### Requirements ###
 
 The following libraries and compiler are required for compilation:
