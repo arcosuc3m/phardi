@@ -146,7 +146,8 @@ Optional arguments (You may optionally specify one or more of):
   --help, -h          Print usage and exit
   --compress, -z      Compress resulting files
   --device            Hardware backend: cuda, opencl or cpu (default cuda).
-  --scheme, -s        ODF spherical representation file path (362 points).
+  --scheme, -s        file path to the reconstruction grid (i.e., spherical-mesh) 
+                      (default, 362 unit vectors on the hemisphere).
 
 Related to each reconstruction method:
 
