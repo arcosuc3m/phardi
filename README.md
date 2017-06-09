@@ -133,7 +133,7 @@ USAGE: phardi [options]
 
 Options:
 Compulsory arguments (You MUST specify ALL arguments):
-  --alg, -a           Reconstruction method (dti-spd, qbi, qbi-csa, dot-r2, gqi-l1, gqi-l2, dsi, rumba-sd)
+  --alg, -a           Reconstruction method (dti-spd, qbi, qbi-csa, dotr2, gqi-l1, gqi-l2, dsi, rumba)
   --data, -k          Data file
   --mask, -m          Binary mask file
   --bvecs, -r         b-vectors file
@@ -169,7 +169,7 @@ Related to each reconstruction method:
   --dotr2-lambda      Regularization parameter (default 0.006).
 
   CSA
-  --csa-lambda        Regularization parameter (default 0.006).
+  --qbi-csa-lambda    Regularization parameter (default 0.006).
 
   DSI
   --dsi-lmax          LMAX parameter  (default 10).
@@ -179,7 +179,7 @@ Related to each reconstruction method:
   --dsi-boxhalfwidth  Box half width parameter  (default 5).
 
   DTI
-  --dti_nnls-torder   Tensor order  (default 2).  
+  --dti-spd-torder    Tensor order  (default 2).  
 
 Examples:
  phardi -a rumba -k /data/data.nii.gz -m /data/nodif_brain_mask.nii.gz -r /data/bvecs -b /data/bvals --odf /result/
