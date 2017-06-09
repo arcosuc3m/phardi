@@ -131,7 +131,7 @@ Related to each reconstruction method:
   --qbi-csa-lambda    Regularization parameter (default 0.006).
 
   DSI
-  --dsi-lmax          Maximum spherical harmonic order (default lmax=10).
+  --dsi-lmax          Maximum spherical harmonic order (default 10).
   --dsi-resolution    Reconstruction grid resolution to compute the propagator (default 35, i.e, 35x35x35).
   --dsi-rmin          RMIN parameter  (default 1).
   --dsi-lreg          Regularization parameter  (default 0.004).
