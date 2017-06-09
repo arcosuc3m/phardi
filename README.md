@@ -14,52 +14,6 @@ List of reconstruction methods:
 
 In the near future we plan to include additional 'state-of-the-art' intra-voxel methods, as well as fiber tracking algorithms.
 
-### References ###
-```
-Barmpoutis, A. and Vemuri, B. C. (2010). "A unified framework for estimating
-diffusion tensors of any order with symmetric positive-definite constraints".
-In Proceedings of ISBI10: IEEE International Symposium on Biomedical Imaging,pages 1385–1388.
-
-Tuch, D.S. (2004). "Q-ball imaging". Magnetic Resonance in Medicine, 52, 1358–1372.
-
-Descoteaux, M., Angelino, E., Fitzgibbons, S., and Deriche, R. (2007). "Regularized, fast, and robust 
-analytical q-ball imaging". Magnetic Resonance in Medicine, 58(3), 497–510.
-
-Aganj, I., Lenglet, C., Sapiro, G., Yacoub, E., Ugurbil, K., and Harel, N. (2010).
-"Reconstruction of the orientation distribution function in single- and multiple-shell
-q-ball imaging within constant solid angle". Magnetic Resonance in Medicine,64,554–566.
-
-Canales-Rodríguez, E.J., Lin, C.P., Iturria-Medina, Y., Yeh, C.H., Cho, K. H., Melie-García, L. (2010a).
-"Diffusion orientation transform revisited". NeuroImage,49 (2), 1326–1339.
-
-Yeh, Fang-Cheng, Van Jay Wedeen, and Wen-Yih Isaac Tseng (2010), "Generalized Q-sampling imaging".
-Medical Imaging, IEEE Transactions on 29.9: 1626-1635.
-
-Wedeen VJ, Hagmann P, Tseng WY, Reese TG, Weisskoff RM  (2005). "Mapping complex tissue architecture 
-with diffusion spectrum magnetic resonance imaging". Magn Reson Med, 54(6), 11377–86.
-
-Canales-Rodríguez, E.J., Iturria-Medina, Y., Alemán-Gómez, Y., Melie-García, L. (2010b). 
-"Deconvolution in diffusion spectrum imaging". NeuroImage 50(1): 136-149.
-
-Canales-Rodríguez, E.J., Daducci, A., Sotiropoulos, S.N., Caruyer, E., Aja-Fernández, S., Radua, J., 
-Mendizabal, J. M. Y., Iturria-Medina, Y., Melie-García, L., Alemán-Gómez, Y., et al. (2015).
-"Spherical deconvolution of multichannel diffusion MRI data with non-Gaussian noise models and spatial 
-regularization". PloS one, 10(10).
-
-Garcia-Blas, J., Dolz, M. F., Garcia., J. D., Carretero, J., Daducci, A., Aleman, Y., and 
-Canales-Rodriguez, E.J. (2016). "Porting Matlab Applications to High-Performance C++ Codes: 
-CPU/GPU-Accelerated Spherical Deconvolution of Diffusion MRI Data", pages 630–643. 
-Springer International Publishing, Cham.
-
-Yalamanchili, P., Arshad, U., Mohammed, Z., Garigipati, P., Entschev, P., Kloppenborg, B., Malcolm, J.
-and Melonakos, J. (2015). "ArrayFire - A high performance software library for parallel computing with 
-an easy-to-use API". Atlanta: AccelerEyes. Retrieved from https://github.com/arrayfire/arrayfire
-
-Sanderson, C. (2016). "Armadillo: An open source C++ linear algebra library for fast prototyping and 
-computationally intensive experiments". Journal of Open Source Software, Vol. 1, pp. 26.
-Retrieved from http://arma.sourceforge.net/
-```
-
 ### Requirements ###
 
 The following libraries and compiler are required for compilation:
@@ -193,3 +147,49 @@ Examples:
 ### Acknowledgements ###
 
 This work was supported by the EU project ICT 644235 *RePhrase: REfactoring Parallel Heterogeneous Resource-Aware Applications* and project TIN2013-41350-P *Scalable Data Management Techniques for High-End Computing Systems* from the Ministerio de Economía y Competitividad, Spain.
+
+### References ###
+```
+Barmpoutis, A. and Vemuri, B. C. (2010). "A unified framework for estimating
+diffusion tensors of any order with symmetric positive-definite constraints".
+In Proceedings of ISBI10: IEEE International Symposium on Biomedical Imaging,pages 1385–1388.
+
+Tuch, D.S. (2004). "Q-ball imaging". Magnetic Resonance in Medicine, 52, 1358–1372.
+
+Descoteaux, M., Angelino, E., Fitzgibbons, S., and Deriche, R. (2007). "Regularized, fast, and robust 
+analytical q-ball imaging". Magnetic Resonance in Medicine, 58(3), 497–510.
+
+Aganj, I., Lenglet, C., Sapiro, G., Yacoub, E., Ugurbil, K., and Harel, N. (2010).
+"Reconstruction of the orientation distribution function in single- and multiple-shell
+q-ball imaging within constant solid angle". Magnetic Resonance in Medicine,64,554–566.
+
+Canales-Rodríguez, E.J., Lin, C.P., Iturria-Medina, Y., Yeh, C.H., Cho, K. H., Melie-García, L. (2010a).
+"Diffusion orientation transform revisited". NeuroImage,49 (2), 1326–1339.
+
+Yeh, Fang-Cheng, Van Jay Wedeen, and Wen-Yih Isaac Tseng (2010), "Generalized Q-sampling imaging".
+Medical Imaging, IEEE Transactions on 29.9: 1626-1635.
+
+Wedeen VJ, Hagmann P, Tseng WY, Reese TG, Weisskoff RM  (2005). "Mapping complex tissue architecture 
+with diffusion spectrum magnetic resonance imaging". Magn Reson Med, 54(6), 11377–86.
+
+Canales-Rodríguez, E.J., Iturria-Medina, Y., Alemán-Gómez, Y., Melie-García, L. (2010b). 
+"Deconvolution in diffusion spectrum imaging". NeuroImage 50(1): 136-149.
+
+Canales-Rodríguez, E.J., Daducci, A., Sotiropoulos, S.N., Caruyer, E., Aja-Fernández, S., Radua, J., 
+Mendizabal, J. M. Y., Iturria-Medina, Y., Melie-García, L., Alemán-Gómez, Y., et al. (2015).
+"Spherical deconvolution of multichannel diffusion MRI data with non-Gaussian noise models and spatial 
+regularization". PloS one, 10(10).
+
+Garcia-Blas, J., Dolz, M. F., Garcia., J. D., Carretero, J., Daducci, A., Aleman, Y., and 
+Canales-Rodriguez, E.J. (2016). "Porting Matlab Applications to High-Performance C++ Codes: 
+CPU/GPU-Accelerated Spherical Deconvolution of Diffusion MRI Data", pages 630–643. 
+Springer International Publishing, Cham.
+
+Yalamanchili, P., Arshad, U., Mohammed, Z., Garigipati, P., Entschev, P., Kloppenborg, B., Malcolm, J.
+and Melonakos, J. (2015). "ArrayFire - A high performance software library for parallel computing with 
+an easy-to-use API". Atlanta: AccelerEyes. Retrieved from https://github.com/arrayfire/arrayfire
+
+Sanderson, C. (2016). "Armadillo: An open source C++ linear algebra library for fast prototyping and 
+computationally intensive experiments". Journal of Open Source Software, Vol. 1, pp. 26.
+Retrieved from http://arma.sourceforge.net/
+```
