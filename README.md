@@ -133,20 +133,20 @@ USAGE: phardi [options]
 
 Options:
 Compulsory arguments (You MUST specify ALL arguments):
-  --alg, -a           Reconstruction method (dti-spd, qbi, qbi-csa, dotr2, gqi-l1, gqi-l2, dsi, rumba)
-  --data, -k          Data file
-  --mask, -m          Binary mask file
+  --alg,   -a         Reconstruction method (dti-spd, qbi, qbi-csa, dotr2, gqi-l1, gqi-l2, dsi, rumba)
+  --data,  -k         Data file
+  --mask,  -m         Binary mask file
   --bvecs, -r         b-vectors file
   --bvals, -b         b-values file
-  --odf, -o           Output path
+  --odf,   -o         Output path
 
 Optional arguments (You may optionally specify one or more of):
   --precision, -p     Calculation precision (float|double)
-  --verbose, -v       Verbose execution details
-  --help, -h          Print usage and exit
-  --compress, -z      Compress resulting files
+  --verbose,   -v     Verbose execution details
+  --help,      -h     Print usage and exit
+  --compress,  -z     Compress resulting files
   --device            Hardware backend: cuda, opencl or cpu (default cuda).
-  --scheme, -s        file path to the reconstruction grid (i.e., spherical-mesh) 
+  --scheme,    -s     File path to the reconstruction grid (i.e., spherical-mesh) 
                       (default, 362 unit vectors on the hemisphere).
 
 Related to each reconstruction method:
@@ -157,7 +157,6 @@ Related to each reconstruction method:
   --rumba-lambda2     Radial diffusivity value, in units of mm^2/s (default 0.0003).
   --rumba-lambda-csf  Diffusivity value in CSF, in units of mm^2/s (default 0.0030).
   --rumba-lambda-gm   Diffusivity value in GM, in units of mm^2/s (default 0.0007).
-  --rumba-noise       Add rician noise.
 
   QBI:
   --qbi-lambda        Regularization parameter (default 0.006).
@@ -176,7 +175,7 @@ Related to each reconstruction method:
   --dsi-lmax          LMAX parameter  (default 10).
   --dsi-resolution    Resolution parameter  (default 35).
   --dsi-rmin          RMIN parameter  (default 1).
-  --dsi-lreg          LREG parameter  (default 0.004).
+  --dsi-lreg          Regularization parameter  (default 0.004).
   --dsi-boxhalfwidth  Box half width parameter  (default 5).
 
   DTI
