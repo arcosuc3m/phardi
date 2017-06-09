@@ -7,9 +7,9 @@ List of reconstruction methods:
 * Diffusion Tensor Imaging (order-2 or higher) with Symmetric Positive-Definite Constraints (DTI-SPD) (Barmpoutis, 2010)
 * Q-Ball Imaging (QBI) (Tuch, 2004; Descoteaux, 2007)
 * Q-Ball Imaging in Constant Solid Angle (QBI-CSA) (Aganj, 2010)
-* Revisited version of the Diffusion Orientation Transform (DOT-R2) (Canales-Rodríguez, 2010)
+* Revisited version of the Diffusion Orientation Transform (DOT-R2) (Canales-Rodríguez, 2010a)
 * Generalized Q-sampling Imaging (GQI) (Fang-Cheng, 2010)
-* Diffusion Spectrum Imaging (DSI) (Wedeen, 2005)
+* Diffusion Spectrum Imaging (DSI) (Wedeen, 2005; Canales-Rodríguez, 2010b)
 * Robust and Unbiased Model-Based Spherical Deconvolution (RUMBA-SD) (Canales-Rodríguez, 2015; Garcia-Blas, 2016)
 
 In the near future we plan to include additional 'state-of-the-art' intra-voxel methods, as well as fiber tracking algorithms.
@@ -29,7 +29,7 @@ Aganj, I., Lenglet, C., Sapiro, G., Yacoub, E., Ugurbil, K., and Harel, N. (2010
 "Reconstruction of the orientation distribution function in single- and multiple-shell
 q-ball imaging within constant solid angle". Magnetic Resonance in Medicine,64,554–566.
 
-Canales-Rodríguez, E.J., Lin, C.P., Iturria-Medina, Y., Yeh, C.H., Cho, K. H., Melie-García, L. (2010).
+Canales-Rodríguez, E.J., Lin, C.P., Iturria-Medina, Y., Yeh, C.H., Cho, K. H., Melie-García, L. (2010a).
 "Diffusion orientation transform revisited". NeuroImage,49 (2), 1326–1339.
 
 Yeh, Fang-Cheng, Van Jay Wedeen, and Wen-Yih Isaac Tseng (2010), "Generalized Q-sampling imaging".
@@ -37,6 +37,9 @@ Medical Imaging, IEEE Transactions on 29.9: 1626-1635.
 
 Wedeen VJ, Hagmann P, Tseng WY, Reese TG, Weisskoff RM  (2005). "Mapping complex tissue architecture 
 with diffusion spectrum magnetic resonance imaging". Magn Reson Med, 54(6), 11377–86.
+
+Canales-Rodríguez, E.J., Iturria-Medina, Y., Alemán-Gómez, Y., Melie-García, L. (2010b). 
+"Deconvolution in diffusion spectrum imaging". NeuroImage 50(1): 136-149.
 
 Canales-Rodríguez, E.J., Daducci, A., Sotiropoulos, S.N., Caruyer, E., Aja-Fernández, S., Radua, J., 
 Mendizabal, J. M. Y., Iturria-Medina, Y., Melie-García, L., Alemán-Gómez, Y., et al. (2015).
@@ -53,8 +56,10 @@ and Melonakos, J. (2015). "ArrayFire - A high performance software library for p
 an easy-to-use API". Atlanta: AccelerEyes. Retrieved from https://github.com/arrayfire/arrayfire
 
 Sanderson, C. (2016). "Armadillo: An open source C++ linear algebra library for fast prototyping and 
-computationally intensive experiments". Journal of Open Source Software, Vol. 1, pp. 26. 
+computationally intensive experiments". Journal of Open Source Software, Vol. 1, pp. 26.
+Retrieved from http://arma.sourceforge.net/
 ```
+
 ### Requirements ###
 
 The following libraries and compiler are required for compilation:
@@ -156,7 +161,7 @@ Related to each reconstruction method:
   --rumba-lambda1     Longitudinal diffusivity value, in units of mm^2/s (default 0.0017).
   --rumba-lambda2     Radial diffusivity value, in units of mm^2/s (default 0.0003).
   --rumba-lambda-csf  Diffusivity value in CSF, in units of mm^2/s (default 0.0030).
-  --rumba-lambda-gm   Diffusivity value in GM, in units of mm^2/s (default 0.0007).
+  --rumba-lambda-gm   Diffusivity value in GM, in units of mm^2/s  (default 0.0007).
 
   QBI:
   --qbi-lambda        Regularization parameter (default 0.006).
@@ -172,8 +177,8 @@ Related to each reconstruction method:
   --qbi-csa-lambda    Regularization parameter (default 0.006).
 
   DSI
-  --dsi-lmax          LMAX parameter  (default 10).
-  --dsi-resolution    Resolution parameter  (default 35).
+  --dsi-lmax          Maximum spherical harmonic order (default lmax=10).
+  --dsi-resolution    Reconstruction grid resolution to compute the propagator (default 35, i.e, 35x35x35).
   --dsi-rmin          RMIN parameter  (default 1).
   --dsi-lreg          Regularization parameter  (default 0.004).
   --dsi-boxhalfwidth  Box half width parameter  (default 5).
