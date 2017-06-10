@@ -1,0 +1,60 @@
+find_package(Git)
+if(NOT GIT_FOUND)
+  message(ERROR "Cannot find git. git is required for Superbuild")
+endif()
+
+option( USE_GIT_PROTOCOL "If behind a firewall turn this off to use http instead." ON)
+
+set(git_protocol "git")
+
+include( ExternalProject )
+
+# Compute -G arg for configuring external projects with the same CMake gener    ator:
+if(CMAKE_EXTRA_GENERATOR)
+  set(gen "${CMAKE_EXTRA_GENERATOR} - ${CMAKE_GENERATOR}")
+else()
+  set(gen "${CMAKE_GENERATOR}" )
+endif()
+
+set(ep_common_args
+    "-DCMAKE_BUILD_TYPE:STRING=Release"
+)
+
+FIND_PACKAGE(Armadillo 7.800 QUIET)
+IF (ARMADILLO_FOUND)
+    MESSAGE("-- FOUND Armadillo. Not installing")
+ELSE()
+    MESSAGE("-- NOT FOUND Armadillo. Installing")
+    IF (NOT EXISTS ${CMAKE_BINARY_DIR}/deps/Armadillo)
+        include( ${CMAKE_SOURCE_DIR}/superbuild/Armadillo.cmake )
+    ENDIF()
+ENDIF()
+
+FIND_PACKAGE(ITK 4.12 QUIET)
+IF (ITK_FOUND)
+    MESSAGE("-- FOUND ITK. Not Installing")
+ELSE()
+    MESSAGE("-- NOT FOUND ITK. Installing")
+    IF (NOT EXISTS ${CMAKE_BINARY_DIR}/deps/zlib)
+        include( ${CMAKE_SOURCE_DIR}/superbuild/ZLIB.cmake )
+    ENDIF()
+    IF (NOT EXISTS ${CMAKE_BINARY_DIR}/deps/ITK)
+        include( ${CMAKE_SOURCE_DIR}/superbuild/ITK.cmake )
+    ENDIF()
+ENDIF()
+
+FIND_PACKAGE(ArrayFire QUIET)
+IF (ArrayFire_FOUND)
+    MESSAGE("-- FOUND ArrayFire. Not Installing")
+ELSE()
+    MESSAGE("-- NOT FOUND ArrayFire. Installing")
+    IF (NOT EXISTS ${CMAKE_BINARY_DIR}/deps/FFTW)
+        include( ${CMAKE_SOURCE_DIR}/superbuild/FFTW.cmake )
+    ENDIF()
+    IF (NOT EXISTS ${CMAKE_BINARY_DIR}/deps/Boost)
+        include( ${CMAKE_SOURCE_DIR}/superbuild/Boost.cmake )
+    ENDIF()
+    IF (NOT EXISTS ${CMAKE_BINARY_DIR}/deps/ArrayFire)
+        include( ${CMAKE_SOURCE_DIR}/superbuild/ArrayFire.cmake )
+    ENDIF()
+ENDIF()
