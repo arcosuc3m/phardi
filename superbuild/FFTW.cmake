@@ -2,13 +2,6 @@
 # Encapsulates building FFTW as an External Project.
 
 
-set(msg "ATTENTION: You have enabled the use of fftw,")
-set(msg "${msg} this library is distributed under a GPL license.")
-set(msg "${msg} By enabling this option, the binary of SmartDeblur")
-set(msg "${msg} that you are going to build will be covered by a GPL license,")
-set(msg "${msg} and so it will be any executable that you link against these libraries.")
-message("${msg}")
-
 set(FFTW_THREADS_CONFIGURATION --enable-threads)
 
 #--Some influential environment variables:
@@ -62,20 +55,40 @@ else()
       ${FFTW_LIBRARIES_PATH}${CMAKE_SHARED_LIBRARY_PREFIX}fftw3_threads${CMAKE_SHARED_LIBRARY_SUFFIX})
 
     include(ExternalProject)
-  	ExternalProject_add(FFTW
+  	ExternalProject_add(FFTW_F
   	  URL ${FFTW_URL_PRE}${FFTW_VERSION}${FFTW_URL_POST}
   	  URL_MD5 ${FFTW_MD5}
           PREFIX ${FFTW_INSTALL_DIR}
   	  UPDATE_COMMAND ""
+          BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} -j4
   	  CONFIGURE_COMMAND <SOURCE_DIR>/configure
   	    ${FFTW_SHARED_FLAG}
   	    ${FFTW_OPTIMIZATION_CONFIGURATION}
   	    ${FFTW_THREADS_CONFIGURATION}
   	    --disable-fortran
   	    --prefix=<INSTALL_DIR>
+            --enable-single
             --enable-float
+            #--enable-long-double            
+            --enable-sse --enable-sse2 --enable-avx --enable-openmp
   	    ${FFTW_COMPILER_FLAGS}
   	)
+
+    ExternalProject_add(FFTW_D
+          URL ${FFTW_URL_PRE}${FFTW_VERSION}${FFTW_URL_POST}
+          URL_MD5 ${FFTW_MD5}
+          PREFIX ${FFTW_INSTALL_DIR}
+          UPDATE_COMMAND ""
+          BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} -j4
+          CONFIGURE_COMMAND <SOURCE_DIR>/configure
+            ${FFTW_SHARED_FLAG}
+            ${FFTW_OPTIMIZATION_CONFIGURATION}
+            ${FFTW_THREADS_CONFIGURATION}
+            --disable-fortran
+            --prefix=<INSTALL_DIR>
+            --enable-sse2 --enable-avx --enable-openmp
+            ${FFTW_COMPILER_FLAGS}
+        )
 
     set(FFTW_INCLUDES ${FFTW_INSTALL_DIR}/include)
     set(ENV{FFTWDIR} ${FFTW_INSTALL_DIR})
