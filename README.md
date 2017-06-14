@@ -146,10 +146,7 @@ Examples:
 
 ### Acknowledgements ###
 
-This work was supported by the EU project ICT 644235 *RePhrase: REfactoring Parallel Heterogeneous Resource-Aware Applications* and project TIN2013-41350-P *Scalable Data Management Techniques for High-End Computing Systems* from the Ministerio de Economía y Competitividad, Spain.
-
-
-This work has been partially supported through the EU project ICT 644235 ``\textsc{RePhrase}: REfactoring Parallel Heterogeneous Resource-Aware Applications'' and TIN2016-79637-P ``Towards unification of HPC and Big Data Paradigms'' from the Spanish Ministry of Economy and Competitiveness, as well as the research project grant PI15/00277 by Instituto de Salud Carlos III (Co-funded by European Regional Development Fund/European Social Fund) ``Investing in your future'').
+This work has been partially supported through the EU project ICT 644235 *RePhrase: REfactoring Parallel Heterogeneous Resource-Aware Applications* and TIN2016-79637-P *Scalable Data Management Techniques for High-End Computing Systems* from the Ministerio de Economía y Competitividad, Spain, as well as the research project grant PI15/00277 by Instituto de Salud Carlos III (Co-funded by European Regional Development Fund/European Social Fund) "Investing in your future").
 
 
 ### References ###
