@@ -23,5 +23,6 @@ ExternalProject_Add(ArrayFire
     -DBUILD_EXAMPLES:BOOL=OFF
     -DUSE_FREEIMAGE_STATIC:BOOL=ON
     -DLAPACK_DIR:PATH=${LAPACK_DIR}
-    -DLAPACK_LIBRARIES:PATH=/tmp/phardi/build/deps/Lapack/lib/x86_64-linux-gnu/liblapack.a
+    -DLAPACK_LIBRARIES:PATH=${LAPACK_DIR}/lib/liblapack.a
+    -DLAPACK_INCLUDE_DIR:PATH=${LAPACK_DIR}/src/Lapack/LAPACKE/include
   )

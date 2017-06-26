@@ -49,12 +49,15 @@ IF (ArrayFire_FOUND)
 ELSE()
 
     MESSAGE("-- NOT FOUND ArrayFire. Installing")
+
     IF (NOT EXISTS ${CMAKE_BINARY_DIR}/deps/Lapack/lib)
         MESSAGE("-- NOT FOUND Lapack. Installing")
         INCLUDE (${CMAKE_SOURCE_DIR}/superbuild/Lapack.cmake )
     ELSE()
         add_custom_target(Lapack SOURCES ${CMAKE_BINARY_DIR}/deps/Lapack/lib)
+        INCLUDE(${CMAKE_BINARY_DIR}/deps/Lapack/lib/cmake/lapack-3.7.0/lapack-config.cmake )
     ENDIF()
+    SET (LAPACK_DIR ${CMAKE_BINARY_DIR}/deps/Lapack)
 
     IF (NOT EXISTS ${CMAKE_BINARY_DIR}/deps/FFTW/lib)
         INCLUDE (${CMAKE_SOURCE_DIR}/superbuild/FFTW.cmake )
@@ -69,7 +72,8 @@ ELSE()
 
    # INCLUDE (${CMAKE_SOURCE_DIR}/superbuild/OpenBLAS.cmake )
 
-    INCLUDE(${CMAKE_BINARY_DIR}/deps/Lapack/lib/x86_64-linux-gnu/cmake/lapack-3.7.0/lapack-config.cmake )
+
+#    INCLUDE(${CMAKE_BINARY_DIR}/deps/Lapack/lib/x86_64-linux-gnu/cmake/lapack-3.7.0/lapack-config.cmake )
     #SET (LAPACK_DIR ${CMAKE_BINARY_DIR}/deps/Lapack/lib)
     #SET (LAPACK_LIBRARIES ${CMAKE_BINARY_DIR}/deps/Lapack/lib)
 
@@ -78,16 +82,19 @@ ELSE()
         INCLUDE (${CMAKE_SOURCE_DIR}/superbuild/Boost.cmake )
     ELSE()
         MESSAGE("-- FOUND deps Boost. Not installing")
-    ENDIF()
-
-    add_custom_target(Boost SOURCES ${CMAKE_BINARY_DIR}/deps/Boost)
+        add_custom_target(Boost SOURCES ${CMAKE_BINARY_DIR}/deps/Boost)
         IF( NOT WIN32 )
             SET (Boost_LIBRARY_DIR ${CMAKE_BINARY_DIR}/deps/Boost/lib/boost/ )
             SET (Boost_INCLUDE_DIR ${CMAKE_BINARY_DIR}/deps/Boost/include/ )
         ELSE()
             SET (Boost_LIBRARY_DIR ${CMAKE_BINARY_DIR}/deps/Boost/lib/ )
-            SET (Boost_INCLUDE_DIR ${CMAKE_BINARY_DIR}/deps/Boost/include/boost-1_49/ )
+            SET (ENV{Boost_LIBRARY_DIR} ${CMAKE_BINARY_DIR}/deps/Boost/lib/ )
+            SET (Boost_INCLUDE_DIR ${CMAKE_BINARY_DIR}/deps/Boost/include/boost/ )
+            SET (ENV{Boost_INCLUDE_DIR} ${CMAKE_BINARY_DIR}/deps/Boost/include/boost/ )
         ENDIF()
+
+
+    ENDIF()
 
     IF (NOT EXISTS ${CMAKE_BINARY_DIR}/deps/ArrayFire/lib)
         include( ${CMAKE_SOURCE_DIR}/superbuild/ArrayFire.cmake )
