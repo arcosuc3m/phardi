@@ -25,11 +25,8 @@ IF(NOT CMAKE_BUILD_TYPE)
       FORCE)
 ENDIF(NOT CMAKE_BUILD_TYPE)
 
-MESSAGE(${PROJECT_BINARY_DIR})
-
-
 IF(EXISTS ${PROJECT_BINARY_DIR}/deps/Armadillo)
-        INCLUDE(${PROJECT_BINARY_DIR}/Armadillo/share/Armadillo/CMake/ArmadilloConfig.cmake)
+        INCLUDE(${PROJECT_BINARY_DIR}/deps/Armadillo/share/Armadillo/CMake/ArmadilloConfig.cmake)
         INCLUDE_DIRECTORIES(${ARMADILLO_INCLUDE_DIRS})
 ELSE()
     FIND_PACKAGE(Armadillo 7.800 QUIET REQUIRED)
@@ -60,12 +57,19 @@ ELSE()
     SET(EXTRA_LIBS  ${CMAKE_THREAD_LIBS_INIT} ${OpenCL_LIBRARIES})                                                                                                    
 ENDIF()   
 
-FIND_PACKAGE(ArrayFire REQUIRED QUIET)                                                                                                                                      
-IF (ArrayFire_FOUND)
-    MESSAGE("-- Found ArrayFire: " ${ArrayFire_INCLUDE_DIRS})
+
+IF(EXISTS ${PROJECT_BINARY_DIR}/deps/ArrayFire)
+    INCLUDE(${PROJECT_BINARY_DIR}/deps/ArrayFire/share/ArrayFire/cmake/ArrayFireConfig.cmake)    
     INCLUDE_DIRECTORIES(${ArrayFire_INCLUDE_DIRS})                                                                                                                        
-ENDIF()
- 
+ELSE()
+    FIND_PACKAGE(ArrayFire REQUIRED QUIET)                                                                                                                                      
+    IF (ArrayFire_FOUND)
+        MESSAGE("-- Found ArrayFire: " ${ArrayFire_INCLUDE_DIRS})
+        INCLUDE_DIRECTORIES(${ArrayFire_INCLUDE_DIRS})                                                                                                                        
+    ENDIF()
+ENDIF() 
+
+
 INCLUDE_DIRECTORIES( "${CMAKE_SOURCE_DIR}/include" "${PROJECT_BINARY_DIR}/include" )
 
 # configure a header file to pass some of the CMake SETtings
@@ -97,7 +101,18 @@ IF (OPENMP_FOUND)
 ENDIF()
 
 FIND_PACKAGE(BLAS REQUIRED)
-FIND_PACKAGE(LAPACK REQUIRED)
+
+    FIND_PACKAGE(LAPACK REQUIRED QUIET)
+IF(EXISTS ${PROJECT_BINARY_DIR}/deps/Lapack)
+    MESSAGE("-- Found Lapack: " ${PROJECT_BINARY_DIR}/deps/Lapack)
+    SET(LAPACK_LIBRARIES ${PROJECT_BINARY_DIR}/deps/Lapack/lib/liblapack.so)
+ELSE()
+    FIND_PACKAGE(LAPACK REQUIRED QUIET)
+ENDIF()
+
+
+
+
 
 SET( CMAKE_CXX_FLAGS  " ${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS} -DARMA_DONT_USE_WRAPPER -DARMA_USE_LAPACK")
 
