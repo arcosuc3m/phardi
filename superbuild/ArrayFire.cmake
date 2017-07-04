@@ -4,7 +4,7 @@ ExternalProject_Add(ArrayFire
   PREFIX deps/ArrayFire
   BUILD_IN_SOURCE
   UPDATE_COMMAND ""
-  DEPENDS FFTW_D FFTW_F Boost Lapack
+  DEPENDS OpenBLAS FFTW_D FFTW_F Boost Lapack
   CMAKE_CACHE_ARGS
     ## CXX should not be needed, but it a cmake default test
     -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
@@ -22,11 +22,10 @@ ExternalProject_Add(ArrayFire
     -DBUILD_TEST:BOOL=OFF
     -DBUILD_EXAMPLES:BOOL=OFF
     -DUSE_FREEIMAGE_STATIC:BOOL=ON
-    -DBUILD_CPU:BOOL=OFF
-    -DBUILD_OPENCL:BOOL=OFF
-    -DCBLAS_INCLUDE_DIR:PATH=${LAPACK_DIR}/src/Lapack/CBLAS/include
+    -DCBLAS_openblas_INCLUDE:PATH=${CBLAS_INC_DIR}                                                                                                                                                           
+    -DCBLAS_openblas_LIBRARY:PATH=${CBLAS_LIBRARIES}
     -DLAPACK_DIR:PATH=${LAPACK_DIR}
     -DLAPACKE_INCLUDES:PATH=${LAPACK_INCLUDE_DIR}
-    -DLAPACK_LIBRARIES:PATH=${LAPACK_DIR}/lib/liblapack.a
+    -DLAPACK_LIBRARIES:PATH=${LAPACK_LIBRARIES}
     -DLAPACK_INCLUDE_DIR:PATH=${LAPACK_INCLUDE_DIR}
   )

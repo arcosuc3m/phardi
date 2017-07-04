@@ -5,20 +5,21 @@ endif()
 
 option( USE_GIT_PROTOCOL "If behind a firewall turn this off to use http instead." ON)
 
-set(git_protocol "git")
+SET (git_protocol "git")
 
-include( ExternalProject )
+INCLUDE ( ExternalProject )
 
 # Compute -G arg for configuring external projects with the same CMake gener    ator:
-if(CMAKE_EXTRA_GENERATOR)
-  set(gen "${CMAKE_EXTRA_GENERATOR} - ${CMAKE_GENERATOR}")
-else()
-  set(gen "${CMAKE_GENERATOR}" )
-endif()
+IF(CMAKE_EXTRA_GENERATOR)
+  SET (gen "${CMAKE_EXTRA_GENERATOR} - ${CMAKE_GENERATOR}")
+ELSE()
+  SET (gen "${CMAKE_GENERATOR}" )
+ENDIF()
 
-set(ep_common_args
-    "-DCMAKE_BUILD_TYPE:STRING=Release"
+SET (ep_common_args "-DCMAKE_BUILD_TYPE:STRING=Release"
 )
+
+SET (CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 FIND_PACKAGE(Armadillo 7.800 QUIET)
 IF (ARMADILLO_FOUND)
@@ -62,6 +63,8 @@ ELSE()
     ENDIF()
     SET (LAPACK_DIR ${CMAKE_BINARY_DIR}/deps/Lapack)
     SET (LAPACK_INCLUDE_DIR ${CMAKE_BINARY_DIR}/deps/Lapack/src/Lapack/LAPACKE/include) 
+    SET (LAPACK_LIBRARIES ${PROJECT_BINARY_DIR}/deps/Lapack/lib/liblapack.so)
+    SET (CBLAS_LIBRARIES ${PROJECT_BINARY_DIR}/deps/Lapack/lib/libcblas.so)
 
     IF (NOT EXISTS ${CMAKE_BINARY_DIR}/deps/FFTW/lib)
         MESSAGE("-- NOT FOUND FFTW. Installing")
@@ -81,20 +84,27 @@ ELSE()
     ELSE()
         MESSAGE("-- FOUND deps Boost. Not installing")
         add_custom_target(Boost SOURCES ${CMAKE_BINARY_DIR}/deps/Boost)
-        IF( NOT WIN32 )
-            SET (Boost_LIBRARY_DIR ${CMAKE_BINARY_DIR}/deps/Boost/lib/boost/ )
-            SET (Boost_INCLUDE_DIR ${CMAKE_BINARY_DIR}/deps/Boost/include/ )
-        ELSE()
-            SET (Boost_LIBRARY_DIR ${CMAKE_BINARY_DIR}/deps/Boost/lib/ )
-            SET (ENV{Boost_LIBRARY_DIR} ${CMAKE_BINARY_DIR}/deps/Boost/lib/ )
-            SET (Boost_INCLUDE_DIR ${CMAKE_BINARY_DIR}/deps/Boost/include/boost/ )
-            SET (ENV{Boost_INCLUDE_DIR} ${CMAKE_BINARY_DIR}/deps/Boost/include/boost/ )
-        ENDIF()
-
-
     ENDIF()
+    SET (Boost_DIR ${CMAKE_BINARY_DIR}/deps/Boost)
+    SET (Boost_INCLUDE_DIR  ${CMAKE_BINARY_DIR}/deps/Boost/include)
+    SET (Boost_LIBRARY_DIR  ${CMAKE_BINARY_DIR}/deps/Boost/lib/boost)
 
-    IF (NOT EXISTS ${CMAKE_BINARY_DIR}/deps/ArrayFire/lib)
+
+    IF (NOT EXISTS ${CMAKE_BINARY_DIR}/deps/OpenBLAS/lib)
+    MESSAGE("-- NOT FOUND OpenBLAS. Installing")
+        INCLUDE (${CMAKE_SOURCE_DIR}/superbuild/OpenBLAS.cmake )
+    ELSE()
+        MESSAGE("-- FOUND deps OpenBLAS. Not installing")
+        add_custom_target(OpenBLAS SOURCES ${CMAKE_BINARY_DIR}/deps/OpenBLAS)
+    ENDIF()
+    SET (OpenBLAS_VERSION "0.2.19")
+    SET (OpenBLAS_INCLUDE_DIRS ${CMAKE_BINARY_DIR}/deps/OpenBLAS/include)
+    SET (OpenBLAS_LIBRARIES ${CMAKE_BINARY_DIR}/deps/OpenBLAS/lib/libopenblas.so)
+    SET (CBLAS_INSTALL_DIR ${CMAKE_BINARY_DIR}/OpenBLAS)
+    SET (CBLAS_INC_DIR "${CBLAS_INSTALL_DIR}/include" CACHE PATH "openblas include directory." FORCE)
+    SET (CBLAS_LIBRARIES ${CMAKE_BINARY_DIR}/deps/OpenBLAS/lib/libopenblas.so) 
+
+    IF (NOT EXISTS ${CMAKE_BINARY_DIR}/deps/ArrayFire/share/ArrayFire/cmake/ArrayFireConfig.cmake)
         include( ${CMAKE_SOURCE_DIR}/superbuild/ArrayFire.cmake )
     ENDIF()
 ENDIF()

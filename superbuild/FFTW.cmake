@@ -69,6 +69,7 @@ else()
   	    --prefix=<INSTALL_DIR>
             --enable-single
             --enable-float
+            --enable-shared
             #--enable-long-double            
             --enable-sse --enable-sse2 --enable-avx --enable-openmp
   	    ${FFTW_COMPILER_FLAGS}
@@ -85,6 +86,7 @@ else()
             ${FFTW_OPTIMIZATION_CONFIGURATION}
             ${FFTW_THREADS_CONFIGURATION}
             --disable-fortran
+            --enable-shared
             --prefix=<INSTALL_DIR>
             --enable-sse2 --enable-avx --enable-openmp
             ${FFTW_COMPILER_FLAGS}
