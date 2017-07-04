@@ -4,6 +4,9 @@ if(NOT GIT_FOUND)
 endif()
 
 option( USE_GIT_PROTOCOL "If behind a firewall turn this off to use http instead." ON)
+option( FORCE_ARMADILLO "Force to download and install Armadillo as dependencie." OFF)
+option( FORCE_ITK "Force to download and install ITK as dependencie." OFF)
+option( FORCE_ARRAYFIRE "Force to download and install ArrayFire as dependencie." OFF)
 
 SET (git_protocol "git")
 
@@ -22,7 +25,7 @@ SET (ep_common_args "-DCMAKE_BUILD_TYPE:STRING=Release"
 SET (CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 FIND_PACKAGE(Armadillo 7.800 QUIET)
-IF (ARMADILLO_FOUND)
+IF (ARMADILLO_FOUND AND NOT FORCE_ARMADILLO)
     MESSAGE("-- FOUND Armadillo. Not installing")
 ELSE()
     IF (NOT EXISTS ${CMAKE_BINARY_DIR}/deps/Armadillo/lib)
@@ -32,7 +35,7 @@ ELSE()
 ENDIF()
 
 FIND_PACKAGE(ITK 4.12 QUIET)
-IF (ITK_FOUND)
+IF (ITK_FOUND AND NOT FORCE_ITK)
     MESSAGE("-- FOUND ITK. Not Installing")
 ELSE()
     IF (NOT EXISTS ${CMAKE_BINARY_DIR}/deps/zlib)
@@ -46,7 +49,7 @@ ENDIF()
 
 
 FIND_PACKAGE(ArrayFire QUIET)
-IF (ArrayFire_FOUND)
+IF (ArrayFire_FOUND AND NOT FORCE_ARRAYFIRE)
     MESSAGE("-- FOUND ArrayFire. Not Installing")
 ELSEIF (EXISTS ${CMAKE_BINARY_DIR}/deps/ArrayFire/lib)
     MESSAGE("-- FOUND deps ArrayFire. Not installing")
