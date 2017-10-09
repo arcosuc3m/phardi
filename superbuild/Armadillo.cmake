@@ -1,6 +1,6 @@
 ExternalProject_Add(Armadillo
   GIT_REPOSITORY "https://github.com/conradsnicta/armadillo-code.git"
-  GIT_TAG "7.950.x"
+  GIT_TAG "7.960.x"
   PREFIX deps/Armadillo
   BUILD_IN_SOURCE
   UPDATE_COMMAND ""
