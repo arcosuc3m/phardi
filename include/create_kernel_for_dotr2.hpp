@@ -23,7 +23,6 @@
 
 #include "common.hpp"
 
-#include <boost/math/special_functions/legendre.hpp>
 #include <plog/Log.h>
 #include <iostream>
 #include <cmath>
