@@ -14,7 +14,7 @@ List of reconstruction methods:
 
 In the near future we plan to include additional 'state-of-the-art' intra-voxel methods, as well as fiber tracking algorithms.
 
-### Requirements ###
+## Requirements ##
 
 The following libraries and compiler are required for compilation:
 
@@ -24,7 +24,9 @@ The following libraries and compiler are required for compilation:
 * ArrayFire (>= 3.4.0)
 * Cmake (>= 3.0.0)
 
-### Installation ####
+## Installation ###
+
+### Using package manager ###
 
 Mandatory packages:
 
@@ -68,8 +70,16 @@ make -j8
 sudo make install
 ```
 
-### How do I get set up? ###
+### Using Superbuild ###
 
+This method will download and cross-compile all dependencies from author's repositories. During this process, all dependencies will be downloaded and compiled under *deps* folder. This method obtains bynaries for: Armadillo (7.950), ITK (4.12.0), Boost (1.64), FFTW (3.3.2), OpenBlas (0.2.19), Lapack (3.7.0), ArrayFire (3.4.2). 
+
+```bash
+cmake .. -DUSE_SUPERBUILD=ON -DCMAKE_CXX_COMPILER=/usr/bin/g++-5 -DCMAKE_CXX_COMPILER=/usr/bin/gcc-5 -DCMAKE_BUILD_TYPE=Release
+make
+```
+
+## How do I get set up? ##
 
 ```bash
 git clone https://github.com/arcosuc3m/phardi
@@ -80,11 +90,11 @@ cmake .. -DCMAKE_CXX_COMPILER=/usr/bin/g++-5 -DCMAKE_BUILD_TYPE=Release
 make 
 ```
 
-### Sample data ###
+## Sample data ##
 
 http://doi.org/10.5281/zenodo.258764
 
-### Execution ###
+## Execution ##
 
 
 ```bash
@@ -144,12 +154,12 @@ Examples:
  phardi -a rumba -k /data/data.nii.gz -m /data/nodif_brain_mask.nii.gz -r /data/bvecs -b /data/bvals --odf /result/
 ```
 
-### Acknowledgements ###
+## Acknowledgements ##
 
 This work has been partially supported through the EU project ICT 644235 *RePhrase: REfactoring Parallel Heterogeneous Resource-Aware Applications* and TIN2016-79637-P *Scalable Data Management Techniques for High-End Computing Systems* from the Ministerio de Economía y Competitividad, Spain, as well as the research project grant PI15/00277 by Instituto de Salud Carlos III (Co-funded by European Regional Development Fund/European Social Fund) "Investing in your future").
 
 
-### References ###
+## References ##
 ```
 Barmpoutis, A. and Vemuri, B. C. (2010). "A unified framework for estimating
 diffusion tensors of any order with symmetric positive-definite constraints".
