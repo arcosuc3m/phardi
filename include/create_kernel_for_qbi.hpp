@@ -59,8 +59,9 @@ namespace phardi {
             Lmax = 8;
         }
 
-        uvec indb0 = find(sum(diffGrads, 1)==0);
-        uvec indb1 = find(sum(diffGrads, 1)!=0);
+        uvec indb0 = find((prod((sum(abs(diffGrads),1), diffBvals),1) ==0) || diffBvals <=10);
+        uvec indb1 = find((prod((sum(abs(diffGrads),1), diffBvals),1) !=0) && diffBvals > 10);
+
 
         construct_SH_basis<T>(Lmax, diffGrads.rows(indb1), 2, "real", thetaG, phiG, basisG);
         construct_SH_basis<T>(Lmax, V, 2, "real", thetaV, phiV, basisV);

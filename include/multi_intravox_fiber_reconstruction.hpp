@@ -101,8 +101,12 @@ namespace phardi {
 
         // --- volumes where b-value = 0
         // ind_S0 = find(diffBvals.*sum(diffGrads.^2,2) == 0);
-        uvec ind_S0_vec = find(diffBvals % sum(pow(diffGrads, 2), 1) == 0);
+//        uvec ind_S0_vec = find(diffBvals % sum(pow(diffGrads, 2), 1) <= 10);
+        uvec ind_S0_vec = find((prod((sum(abs(diffGrads),1), diffBvals),1) ==0) || diffBvals <=10);
+        uvec indb1_vec = find((prod((sum(abs(diffGrads),1), diffBvals),1) !=0) && diffBvals > 10);
+
         Mat<T> ind_S0 = conv_to<Mat<T>>::from(ind_S0_vec);
+        Mat<T> indb1 = conv_to<Mat<T>>::from(indb1_vec);
 
         // display(['From the ' num2str(Ngrad) ' volumes, ' num2str(length(ind_S0)) ' are b0 images']);
         LOG_INFO << "From the " << Ngrad << " volumes, " << ind_S0.n_elem << " are b0 images";
@@ -351,12 +355,16 @@ namespace phardi {
                                 // Smatrix = SignalMatrixBuilding(qspace,diffSignal,opts.dsi.resolution)
                                 Mat<T> tempSignal;
 
-                                uvec indb0, indb1;
-                                // indb0 = find(sum(diffGrads,2) == 0);
-                                indb0 = find(sum(diffGrads, 1) == 0);
+//                                uvec indb0, indb1;
+//                                // indb0 = find(sum(diffGrads,2) == 0);
+//                               indb0 = find(sum(diffGrads, 1) == 0);
 
-                                // indb1 = find(sum(diffGrads,2) ~= 0);
-                                indb1 = find(sum(diffGrads, 1) != 0);
+//                               // indb1 = find(sum(diffGrads,2) ~= 0);
+//                               indb1 = find(sum(diffGrads, 1) != 0);
+
+                                uvec indb0 = find((prod((sum(abs(diffGrads),1), diffBvals),1) ==0) || diffBvals <=10);
+                                uvec indb1 = find((prod((sum(abs(diffGrads),1), diffBvals),1) !=0) && diffBvals > 10);
+
 
                                 // tempSignal = diffSignal(indb1,:);
                                 Mat<T> tempS0;
@@ -523,18 +531,18 @@ namespace phardi {
                     S0_est_M = mean(S0_est, 2);
                     // if there are several b0 images in the data, we compute the mean value
                     if (ind_S0.n_elem > 1) {
-#pragma omp parallel for
+//#pragma omp parallel for
                         for (uword i = 0; i < ind_S0.n_elem; ++i)
                             S0_est.slice(i) = S0_est_M % Vmask.slice(slice);
                     }
 
-                    // reordering the data such that the b0 image appears first (see lines 152-166)
-                    // Idiff(:,:,ind_S0) = [];
-                    for (sword i = ind_S0.n_elem - 1; i >= 0; --i)
-                        Idiff.shed_slice(ind_S0(i));
+//                    // reordering the data such that the b0 image appears first (see lines 152-166)
+//                    // Idiff(:,:,ind_S0) = [];
+//                    for (sword i = ind_S0.n_elem - 1; i >= 0; --i)
+//                        Idiff.shed_slice(ind_S0(i));
 
-                    //?? Idiff = cat(3,S0_est,Idiff);
-                    Idiff = join_slices(S0_est, Idiff);
+//                    //?? Idiff = cat(3,S0_est,Idiff);
+//                    Idiff = join_slices(S0_est, Idiff);
 
                     //  normalize the signal S/S0
                     //for graddir = 1:Ngrad_mod
@@ -750,12 +758,8 @@ namespace phardi {
                             }
                                 break;
                             case QBI_DOTR2: {
-                                uvec indb0, indb1;
-                                //indb0 = find(sum(diffGrads,2) == 0);
-                                indb0 = find(sum(diffGrads, 1) == 0);
-
-                                //indb1 = find(sum(diffGrads,2) ~= 0);
-                                indb1 = find(sum(diffGrads, 1) != 0);
+                                uvec indb0 = find((prod((sum(abs(diffGrads),1), diffBvals),1) ==0) || diffBvals <=10);
+                                uvec indb1 = find((prod((sum(abs(diffGrads),1), diffBvals),1) !=0) && diffBvals > 10);
 
                                 //tempSignal = diffSignal(indb1,:);
                                 Mat<T> tempSignal = diffSignal.rows(indb1);
@@ -803,12 +807,8 @@ namespace phardi {
                             }
                                 break;
                             case QBI_CSA: {
-                                uvec indb0, indb1;
-                                //indb0 = find(sum(diffGrads,2) == 0);
-                                indb0 = find(sum(diffGrads, 1) == 0);
-
-                                //indb1 = find(sum(diffGrads,2) ~= 0);
-                                indb1 = find(sum(diffGrads, 1) != 0);
+                                 uvec indb0 = find((prod((sum(abs(diffGrads),1), diffBvals),1) ==0) || diffBvals <=10);
+                                 uvec indb1 = find((prod((sum(abs(diffGrads),1), diffBvals),1) !=0) && diffBvals > 10);
 
                                 //tempSignal = diffSignal(indb1,:);
                                 Mat<T> tempSignal = diffSignal.rows(indb1);
@@ -844,12 +844,8 @@ namespace phardi {
                             }
                                 break;
                             case GQI_L1: {
-                                uvec indb0, indb1;
-                                //indb0 = find(sum(diffGrads,2) == 0);
-                                indb0 = find(sum(diffGrads, 1) == 0);
-
-                                //indb1 = find(sum(diffGrads,2) ~= 0);
-                                indb1 = find(sum(diffGrads, 1) != 0);
+                                  uvec indb0 = find((prod((sum(abs(diffGrads),1), diffBvals),1) ==0) || diffBvals <=10);
+                                  uvec indb1 = find((prod((sum(abs(diffGrads),1), diffBvals),1) !=0) && diffBvals > 10);
 
                                 //tempSignal = diffSignal(indb1,:);
                                 Mat<T> tempSignal = diffSignal.rows(indb1);
@@ -877,12 +873,8 @@ namespace phardi {
                             }
                                 break;
                             case GQI_L2: {
-                                uvec indb0, indb1;
-                                //indb0 = find(sum(diffGrads,2) == 0);
-                                indb0 = find(sum(diffGrads, 1) == 0);
-
-                                //indb1 = find(sum(diffGrads,2) ~= 0);
-                                indb1 = find(sum(diffGrads, 1) != 0);
+                               uvec indb0 = find((prod((sum(abs(diffGrads),1), diffBvals),1) ==0) || diffBvals <=10);
+                               uvec indb1 = find((prod((sum(abs(diffGrads),1), diffBvals),1) !=0) && diffBvals > 10);
 
                                 //tempSignal = diffSignal(indb1,:);
                                 Mat<T> tempSignal = diffSignal.rows(indb1);
@@ -910,27 +902,42 @@ namespace phardi {
                             }
                                 break;
                             case QBI: {
-                                uvec indb0, indb1;
-                                Mat<T> coeff, ss;
+                                uvec indb0 = find((prod((sum(abs(diffGrads),1), diffBvals),1) ==0) || diffBvals <=10);
+                                uvec indb1 = find((prod((sum(abs(diffGrads),1), diffBvals),1) !=0) && diffBvals > 10);                                Mat<T> coeff, ss;
 
-                                // indb0 = find(sum(diffGrads,2) == 0);
-                                indb0 = find(sum(diffGrads, 1) == 0);
-                                // indb1 = find(sum(diffGrads,2) ~= 0);
-                                indb1 = find(sum(diffGrads, 1) != 0);
+//                                // indb0 = find(sum(diffGrads,2) == 0);
+//                                indb0 = find(sum(diffGrads, 1) == 0);
+//                                // indb1 = find(sum(diffGrads,2) ~= 0);
+//                                indb1 = find(sum(diffGrads, 1) != 0);
 
                                 // coeff = Kernel*diffSignal(indb1,:);
                                 coeff = Kernel * diffSignal.rows(indb1);
+
+//                                LOG_INFO << diffSignal.rows(indb1);
+//                                LOG_INFO << Kernel;
+//                                LOG_INFO << coeff;
+
+
                                 // ss = coeff.*repmat(K,[1 size(coeff,2)]);
                                 ss = coeff % repmat(K, 1, size(coeff, 1));
+//                                LOG_INFO << ss;
 
                                 // ODF = basisV*ss;
                                 ODF = basisV * ss;
+//                                LOG_INFO << ODF;
 
                                 // ODF = ODF - repmat(min(ODF),size(V,1),1);
                                 ODF = ODF - repmat(min(ODF), size(V, 0), 1);
 
                                 // ODF = ODF./repmat(sum(ODF),size(V,1),1); % normalization
                                 ODF = ODF / repmat(sum(ODF), size(V, 0), 1);
+
+//                                LOG_INFO << ODF.col(0);
+//                                LOG_INFO << ODF.col(1);
+//                                LOG_INFO << ODF.col(3);
+
+
+
                             }
                                 break;
                             case RUMBA_SD:
@@ -1139,12 +1146,8 @@ namespace phardi {
                         case DTI_NNLS:
                             break;
                         case QBI_DOTR2: {
-                            uvec indb0, indb1;
-                            //indb0 = find(sum(diffGrads,2) == 0);
-                            indb0 = find(sum(diffGrads, 1) == 0);
-
-                            //indb1 = find(sum(diffGrads,2) ~= 0);
-                            indb1 = find(sum(diffGrads, 1) != 0);
+                           uvec indb0 = find((prod((sum(abs(diffGrads),1), diffBvals),1) ==0) || diffBvals <=10);
+                           uvec indb1 = find((prod((sum(abs(diffGrads),1), diffBvals),1) !=0) && diffBvals > 10);
 
                             //tempSignal = diffSignal(indb1,:);
                             Mat<T> tempSignal = diffSignal.rows(indb1);
@@ -1194,12 +1197,8 @@ namespace phardi {
                         }
                             break;
                         case QBI_CSA: {
-                            uvec indb0, indb1;
-                            //indb0 = find(sum(diffGrads,2) == 0);
-                            indb0 = find(sum(diffGrads, 1) == 0);
-
-                            //indb1 = find(sum(diffGrads,2) ~= 0);
-                            indb1 = find(sum(diffGrads, 1) != 0);
+                            uvec indb0 = find((prod((sum(abs(diffGrads),1), diffBvals),1) ==0) || diffBvals <=10);
+                            uvec indb1 = find((prod((sum(abs(diffGrads),1), diffBvals),1) !=0) && diffBvals > 10);
 
                             //tempSignal = diffSignal(indb1,:);
                             Mat<T> tempSignal = diffSignal.rows(indb1);
@@ -1237,12 +1236,8 @@ namespace phardi {
                         case DSI:
                             break;
                         case GQI_L1: {
-                            uvec indb0, indb1;
-                            //indb0 = find(sum(diffGrads,2) == 0);
-                            indb0 = find(sum(diffGrads, 1) == 0);
-
-                            //indb1 = find(sum(diffGrads,2) ~= 0);
-                            indb1 = find(sum(diffGrads, 1) != 0);
+                            uvec indb0 = find((prod((sum(abs(diffGrads),1), diffBvals),1) ==0) || diffBvals <=10);
+                            uvec indb1 = find((prod((sum(abs(diffGrads),1), diffBvals),1) !=0) && diffBvals > 10);
 
                             //tempSignal = diffSignal(indb1,:);
                             Mat<T> tempSignal = diffSignal.rows(indb1);
@@ -1270,12 +1265,8 @@ namespace phardi {
                         }
                             break;
                         case GQI_L2: {
-                            uvec indb0, indb1;
-                            //indb0 = find(sum(diffGrads,2) == 0);
-                            indb0 = find(sum(diffGrads, 1) == 0);
-
-                            //indb1 = find(sum(diffGrads,2) ~= 0);
-                            indb1 = find(sum(diffGrads, 1) != 0);
+                             uvec indb0 = find((prod((sum(abs(diffGrads),1), diffBvals),1) ==0) || diffBvals <=10);
+                             uvec indb1 = find((prod((sum(abs(diffGrads),1), diffBvals),1) !=0) && diffBvals > 10);
 
                             //tempSignal = diffSignal(indb1,:);
                             Mat<T> tempSignal = diffSignal.rows(indb1);
@@ -1303,14 +1294,10 @@ namespace phardi {
                         }
                             break;
                         case QBI: {
-                            uvec indb0, indb1;
                             Mat<T> coeff, ss;
 
-                            // indb0 = find(sum(diffGrads,2) == 0);
-                            indb0 = find(sum(diffGrads, 1) == 0);
-
-                            // indb1 = find(sum(diffGrads,2) ~= 0);
-                            indb1 = find(sum(diffGrads, 1) != 0);
+                            uvec indb0 = find((prod((sum(abs(diffGrads),1), diffBvals),1) ==0) || diffBvals <=10);
+                            uvec indb1 = find((prod((sum(abs(diffGrads),1), diffBvals),1) !=0) && diffBvals > 10);
 
                             // coeff = Kernel*diffSignal(indb1,:);
                             coeff = Kernel * diffSignal.rows(indb1);

@@ -23,6 +23,7 @@
 
 #include "common.hpp"
 
+#include <boost/math/special_functions/legendre.hpp>
 #include <plog/Log.h>
 #include <iostream>
 #include <cmath>
@@ -43,7 +44,6 @@ namespace phardi {
         using namespace arma;
 
         uword Lmax, Nmin;
-        uvec indb0, indb1;
         Col<T> thetaG, thetaV, phiG, phiV;
         Mat<T> basisG;
         Mat<uword> Laplac;
@@ -67,11 +67,8 @@ namespace phardi {
         //%display(['The maximum order of the spherical harmonics decomposition is Lmax = ' num2str(Lmax) '.']);
         LOG_INFO << "The maximum order of the spherical harmonics decomposition is Lmax = " << Lmax;
 
-        //indb0 = find(sum(diffGrads,2) == 0);
-        indb0 = find(sum(diffGrads,1) == 0);
-
-        //indb1 = find(sum(diffGrads,2) ~= 0);
-        indb1 = find(sum(diffGrads,1) != 0);
+        uvec indb0 = find((prod((sum(abs(diffGrads),1), diffBvals),1) ==0) || diffBvals <=10);
+        uvec indb1 = find((prod((sum(abs(diffGrads),1), diffBvals),1) !=0) && diffBvals > 10);
 
         // [basisG, thetaG, phiG] = construct_SH_basis (Lmax, diffGrads(indb1,:), 2, 'real');
         construct_SH_basis<T>(Lmax, diffGrads.rows(indb1), 2, "real", thetaG, phiG, basisG);

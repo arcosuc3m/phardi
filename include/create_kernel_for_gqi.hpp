@@ -43,13 +43,8 @@ namespace phardi {
         using namespace arma;
 
         Mat<T>  b_matrix, x;
-        uvec indb0, indb1 ;
-
-        // indb0 = find(sum(diffGrads,2) == 0);
-        indb0 = find(arma::sum(diffGrads, 1)==0);
-
-        //indb1 = find(sum(diffGrads,2) ~= 0);
-        indb1 = find(arma::sum(diffGrads, 1)!=0);
+        uvec indb0 = find((prod((sum(abs(diffGrads),1), diffBvals),1) ==0) || diffBvals <=10);
+        uvec indb1 = find((prod((sum(abs(diffGrads),1), diffBvals),1) !=0) && diffBvals > 10);
 
         if (opts.reconsMethod == GQI_L1)
         {
