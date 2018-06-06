@@ -75,7 +75,7 @@ sudo make install
 This method will download and cross-compile all dependencies from author's repositories. During this process, all dependencies will be downloaded and compiled under *deps* folder. This method obtains bynaries for: Armadillo (7.950), ITK (4.12.0), Boost (1.64), FFTW (3.3.2), OpenBlas (0.2.19), Lapack (3.7.0), ArrayFire (3.4.2). 
 
 ```bash
-cmake .. -DUSE_SUPERBUILD=ON -DCMAKE_CXX_COMPILER=/usr/bin/g++-5 -DCMAKE_CXX_COMPILER=/usr/bin/gcc-5 -DCMAKE_BUILD_TYPE=Release
+cmake .. -DUSE_SUPERBUILD=ON -DCMAKE_CXX_COMPILER=/usr/bin/g++-5 -DCMAKE_C_COMPILER=/usr/bin/gcc-5 -DCMAKE_BUILD_TYPE=Release
 make
 ```
 
