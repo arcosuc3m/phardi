@@ -41,7 +41,7 @@ enum  optionIndex { UNKNOWN, HELP, READ, DATA, RECONS, MASK, BVECS, BVALS, DEVIC
                     OP_RUMBA_ITER, OP_RUMBA_LAMBDA1, OP_RUMBA_LAMBDA2, OP_RUMBA_LAMBDA_CSF, OP_RUMBA_LAMBDA_GM,
                     OP_QBI_LAMBDA, OP_GQI_LAMBDA, OP_GQI_MDDR, OP_DOTR2_LAMBDA, OP_DOTR2_T, OP_DOTR2_EULER, 
                     OP_CSA_LAMBDA, OP_DSI_LMAX, OP_DSI_RES, OP_DSI_RMIN, OP_DSI_LREG, OP_DSI_BOX, OP_DTI_NNLS_TORDER, 
-                    ZIP, DEBUG, DIRSCHEME};
+                    ZIP, DEBUG, DIRSCHEME, FORMAT, PEAKS, NORM};
 
 struct Arg: public option::Arg
 {
@@ -99,7 +99,11 @@ const option::Descriptor usage[] =
     {MASK, 0,"m","mask",Arg::Required, "  --mask, -m  \tBinary mask file." },
     {BVECS, 0,"r","bvecs",Arg::Required, "  --bvecs, -r  \tb-vectors file." },
     {BVALS, 0,"b","bvals",Arg::Required, "  --bvals, -b  \tb-values file." },
-    {ODF, 0,"o","odf",Arg::Required, "  --odf, -o  \tOutput path." },
+    {ODF, 0,"o","odf",Arg::Required, "  --odf, -o  \tOutput file route and prefix." },
+    {FORMAT, 0,"f","output-format",Arg::Required, "  --output-format, -f  \tOutput ODF volume format (mrtrix, standard)." },
+    {PEAKS, 0,"","save-peaks",Arg::None, "  --save-peaks  \tSave the peaks for the estimated ODFs." },
+    {NORM, 0,"n","norm-odfs",Arg::None, "  --norm-odf  \tNormalize the ODFs." },
+
     {PRECISION, 0,"p","presicion",Arg::NonEmpty, "  --precision, -p  \tCalculation precision (float|double)." },
     {DIRSCHEME, 0,"s","scheme",Arg::NonEmpty, "  --scheme, -s  \tODF spherical representation file path (362 points)." },
 
@@ -134,7 +138,7 @@ const option::Descriptor usage[] =
     {ZIP, 0,"z","compress",option::Arg::None, "  --compress, -z  \tCompress resulting files." },
 
     {UNKNOWN, 0, "", "",option::Arg::None, "\nExamples:\n"
-        " phardi -a rumba -k /data/data.nii.gz -m /data/nodif_brain_mask.nii.gz -r /data/bvecs -b /data/bvals --odf /result/ \n"
+        " phardi -a rumba -f mrtrix -k /data/data.nii.gz -m /data/nodif_brain_mask.nii.gz -r /data/bvecs -b /data/bvals --odf /result/output \n"
         "  " },
     {0,0,0,0,0,0}
 };
@@ -177,6 +181,33 @@ int main(int argc, char ** argv) {
         opts.zip = true;
     }
 
+    opts.save_peaks = false;
+    if (options[PEAKS].count() > 0) {
+        opts.save_peaks = true;
+    }
+
+    opts.norm_odfs = false;
+    if (options[NORM].count() > 0) {
+        opts.norm_odfs = true;
+    }
+    std::string format;
+
+    if (options[FORMAT].count() > 0) {
+        format = options[FORMAT].arg;
+    } else {
+        LOG_ERROR << "Output format not selected.";
+        return 1;
+    }
+
+    if (format == "mrtrix")
+        opts.save_mrtrix = true;
+     else if (format == "standard")
+        opts.save_mrtrix = false;
+    else {
+        LOG_ERROR << "Output format not recognized. Possible options are: mrtrix or standard";
+        return 0;
+    }
+
     static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
 
     if (options[DEBUG].count() > 0) {
@@ -207,9 +238,9 @@ int main(int argc, char ** argv) {
     }
 
     if (opts.zip)
-        ODFfilename = ODFfilename + kPathSeparator + "data_odf.nii.gz";
+        ODFfilename = ODFfilename + "_odf.nii.gz";
     else
-        ODFfilename = ODFfilename + kPathSeparator + "data_odf.nii";
+        ODFfilename = ODFfilename + "_odf.nii";
 
     if (!is_file_exist(diffImage)) {
         LOG_ERROR << "Can't find " << diffImage;

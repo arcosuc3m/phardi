@@ -23,6 +23,7 @@
 
 #include "common.hpp"
 
+#include <boost/math/special_functions/legendre.hpp>
 #include <plog/Log.h>
 #include <iostream>
 #include <cmath>
@@ -75,6 +76,72 @@ namespace phardi {
                 Mat<T> factor1;
 
 		Col<T> z(1);
+                z.zeros();
+                factor1 = legendre(L, z) ;
+                K_v.push_back(factor1(0,0));
+                Laplac2_v.push_back(pow(L, 2) * pow((L+1), 2));
+            }
+        }
+
+        Laplac2.set_size(Laplac2_v.size());
+        K.set_size(K_v.size());
+
+        K = conv_to<Col<T>>::from(K_v);
+        Laplac2 = conv_to<Col<uword>>::from(Laplac2_v);
+
+        Laplac = diagmat(Laplac2);
+
+        Kernel = recon_matrix<T>(basisG, Laplac, opts.qbi.lambda);
+        return;
+    }
+
+
+    template <typename T>
+    void create_Kernel_for_qbi_MrTrix(const arma::Mat<T> & V,
+                                 const arma::Mat<T> & diffGrads,
+                                 const arma::Col<T> & diffBvals,
+                                 arma::Mat<T> & Kernel,
+                                 arma::Mat<T> & basisV,
+                                 arma::Col<T> & K,
+                                 const phardi::options opts) {
+
+        using namespace arma;
+
+        Mat<T> basisG;
+        Mat<uword> Laplac;
+        Col<uword> Laplac2;
+
+        Col<T> thetaG, thetaV, phiG, phiV;
+        uword Lmax, Nmin;
+        sword m, L;
+
+        std::vector<T> K_v;
+        std::vector<uword> Laplac2_v;
+
+        obtain_Lmax(diffGrads, Lmax, Nmin);
+
+        if (Lmax >= 8)
+        {
+            Lmax = 8;
+        }
+
+        uvec indb0 = find((prod((sum(abs(diffGrads),1), diffBvals),1) ==0) || diffBvals <=10);
+        uvec indb1 = find((prod((sum(abs(diffGrads),1), diffBvals),1) !=0) && diffBvals > 10);
+
+
+        construct_SH_basis_MrTrix<T>(Lmax, diffGrads.rows(indb1), 2, "complex", thetaG, phiG, basisG);
+        construct_SH_basis_MrTrix<T>(Lmax, V, 2, "complex", thetaV, phiV, basisV);
+
+
+        K.reset();
+        Laplac2.reset();
+        for (L = 0; L <= Lmax; L+=2)
+        {
+            for (m = -(L); m <= L; ++m)
+            {
+                Mat<T> factor1;
+
+        Col<T> z(1);
                 z.zeros();
                 factor1 = legendre(L, z) ;
                 K_v.push_back(factor1(0,0));

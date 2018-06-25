@@ -81,6 +81,9 @@ namespace phardi {
         options_dti_nnls dti_nnls;
         bool             zip;
         bool             debug;
+        bool             save_peaks;
+        bool             norm_odfs;
+        bool             save_mrtrix;
     };
 }
 

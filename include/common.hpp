@@ -27,6 +27,7 @@
 #include <math.h>
 #include <cmath>
 #include <limits>
+#include <complex>
 #include <arrayfire.h>
 
 #define fftshift3(in)  af::shift(in, in.dims(0)/2, in.dims(1)/2, in.dims(2)/2)
@@ -246,6 +247,111 @@ namespace phardi {
         basis = Y;
     }
 
+
+    template <typename T>
+    void construct_SH_basis_MrTrix(arma::uword degree, const arma::Mat<T> & sphere_points, arma::uword dl, std::string real_or_complex, arma::Col<T>& theta, arma::Col<T>& phi, arma::Mat<T> & basis)
+    {
+
+        using namespace arma;
+
+        T k, lconstant, precoeff;
+        uword n;
+
+        // n = size(sphere_points,1);  % number of points
+        n = size(sphere_points, 0);
+
+        phi.resize(n);
+        theta.resize(n);
+
+#pragma omp parallel for
+        for (uword i = 0; i < n; ++i) {
+            // [phi, theta] = cart2sph(sphere_points(:,1),sphere_points(:,2),sphere_points(:,3));
+            Cart2Sph<T>(sphere_points(i,0), -1*sphere_points(i,1), -1*sphere_points(i,2), phi(i), theta(i)) ;
+        }
+
+
+        // theta = pi/2 - theta;  % convert to interval [0, PI]
+        theta.transform([](T val) { return datum::pi/2.0 - val;});
+
+        if (dl==1)
+            k = (degree+1)*(degree+1) ;
+        else
+        {
+            if (dl==2)
+                k = (degree+2)*(degree+1)/2.0 ;
+            else
+                std::cerr << "dl can only be 1 or 2" << std::endl ;
+        }
+
+        Mat<T> Y(n, k, fill::zeros);
+        int i = sqrt(-1);
+
+        for (uword l=0; l <= degree; l+=dl)
+        {
+            uword center;
+
+            Col<T> ctheta = cos(theta);
+            // Pm = legendre(l,cos(theta')); % legendre part
+            Mat<T> Pm = legendre(l, ctheta);
+
+            // lconstant = sqrt((2*l + 1)/(4*pi));
+            lconstant = std::sqrt((2.0*l+1.0) / (4.0 * datum::pi));
+
+            if (dl==2)
+            {
+                center = (l+1)*(l+2)/2-l ;
+            }
+            else
+            {
+                if (dl==1)
+                {
+                    center = (l+1)*(l+1)-l ;
+                }
+            }
+
+            // Y(:,center) = lconstant*Pm(:,1);
+            Y.col(center-1) = lconstant * Pm.col(0);
+
+            for (uword m=1; m<=l; ++m)
+            {
+                // precoeff = lconstant * sqrt(factorial(l - m)/factorial(l + m));
+                precoeff = lconstant * std::sqrt(factorial<T>(l-m)/factorial<T>(l+m)) ;
+
+                if ("real" == real_or_complex)
+                {
+                    if (m % 2 == 1)
+                    {
+                        precoeff = -precoeff;
+                    }
+                    // Y(:, center + m) = sqrt(2)*precoeff*Pm(:,m+1).*cos(m*phi);
+                    Y.col(center + m -1) = sqrt(2.0f) * precoeff * Pm.col(m) % cos(m*phi);
+
+                    // Y(:, center - m) = sqrt(2)*precoeff*Pm(:,m+1).*sin(m*phi);
+                    Y.col(center - m -1) = sqrt(2.0f) * precoeff * Pm.col(m) % sin(m*phi);
+                }
+                else if ("complex" == real_or_complex)
+                {
+//                    cx_vec C = m;
+                    if (m % 2 == 1)
+
+                    {
+                        Y.col(center+m-1) = precoeff * Pm.col(m) % cos(m*phi);
+                        Y.col(center-m-1) = precoeff * Pm.col(m) % sin(m*phi) ;
+                    }
+                    else
+                    {
+                        Y.col(center+m-1) =     precoeff *Pm.col(m) % cos(m*phi);
+                        Y.col(center-m-1) =     precoeff *Pm.col(m) % sin(m*phi);
+                    }
+                }
+                else
+                {
+                    std::cerr << "The last argument must be either \"real\" (default) or \"complex\"." << std::endl ;
+                }
+            }
+        }
+        basis = Y;
+    }
     // This function computes the maximum order for the spherical harmonic decomposition (Lmax)
     // by taking into account the dimensionality of the signal (number of discrete points)
     // The above relationship is based on the real spherical harmonic expansion

@@ -38,7 +38,7 @@ namespace phardi {
     template<typename T>
     af::array mBessel_ratio(T n, const af::array & x) {
         using namespace arma;
-	    using namespace af;
+	using namespace af;
 
         af::array y(x.dims(0),x.dims(1));
         y = x/( (2*n + x) - ( 2*x*(n+1.0/2.0)/ ( 2.0*n + 1.0 + 2.0*x - ( 2.0*x*(n+3.0/2.0) / ( 2.0*n + 2.0 + 2.0*x - ( 2.0*x*(n+5.0/2.0) / ( 2.0*n + 3.0 + 2.0*x ) ) ) ) ) ) );
@@ -50,9 +50,9 @@ namespace phardi {
                                                            const arma::Mat<T> & Kernel,
                                                            const arma::Mat<T> & fODF0,
                                                            const int Niter,
-							                                T & mean_SNR) {
+							   T & mean_SNR) {
         using namespace arma;
-	    using namespace af;
+	using namespace af;
 
         Mat<T> fODF;
 
@@ -72,7 +72,7 @@ namespace phardi {
         // sigma0 = 1/15;
         T sigma0 = 1.0/15.0;
 
-	    size_t cols = Signal.n_cols;
+	size_t cols = Signal.n_cols;
 
         //N = Dim(1);
         int N = Signal.n_rows;
@@ -86,7 +86,7 @@ namespace phardi {
 	    af::array Signal_af = af::array(Signal.n_rows,Signal.n_cols,Signal.memptr());
 	    af::array Kernel_af = af::array(Kernel.n_rows,Kernel.n_cols,Kernel.memptr());
 	    af::array KernelT_af = transpose (Kernel_af);
-	    //Reblurred = Kernel*fODF;
+	//Reblurred = Kernel*fODF;
 	    af::array Reblurred_af = matmul(Kernel_af,fODF_af);
 	    af::array Reblurred_S_af = Signal_af * Reblurred_af / sigma2_af;
 
@@ -98,19 +98,20 @@ namespace phardi {
             Reblurred_S_af = (Signal_af * Reblurred_af) / sigma2_af;
 	        sigma2_i_af = (1.0/N) * af::sum( (af::pow(Signal_af,2) + af::pow(Reblurred_af,2))/2 - (sigma2_af * Reblurred_S_af) * Ratio_af , 0) / n_order;
 	        sigma2_i_af = af::min(std::pow<T>(1.0/10.0,2), af::max(sigma2_i_af, std::pow<T>(1.0/50.0,2)));
-	        gfor(seq j, N)
+	    gfor(seq j, N)
 		        sigma2_af(j,af::span) = sigma2_i_af(af::span);
         }
 
-	    //mean_SNR = mean( 1./sqrt( sigma2_i ) );
+	//mean_SNR = mean( 1./sqrt( sigma2_i ) );  
         Mat<T> sigma2_i( sigma2_i_af.dims(0),  sigma2_i_af.dims(1));
         sigma2_i_af.host(sigma2_i.memptr());
         Mat<T> SNR = arma::mean (1.0 / arma::sqrt(sigma2_i));
 	    mean_SNR =  SNR(0);
 	    fODF_af.host(fODF.memptr());
-	    //Normalization
-	    //fODF = fODF./repmat( sum(fODF,1) + eps, [size(fODF,1), 1] ); %
-	    fODF = fODF / repmat(sum(fODF,0) + std::numeric_limits<double>::epsilon(), fODF.n_rows  ,1);
+	//Normalization
+	//fODF = fODF./repmat( sum(fODF,1) + eps, [size(fODF,1), 1] ); %  
+
+        // fODF = fODF / repmat(sum(fODF,0) + std::numeric_limits<double>::epsilon(), fODF.n_rows  ,1);
 
         return fODF;
     }
