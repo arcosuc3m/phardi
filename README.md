@@ -1,3 +1,4 @@
+jsjsjsjsjsj
 # README #
 
 Parallel High Angular Resolution Diffusion Imaging (pHARDI) is a toolkit for the GPU/CPU-accelerated reconstruction of intra-voxel reconstruction methods from diffusion Magnetic Resonance Imaging (dMRI) data. It was designed to support multiple linear algebra accelerators in a wide range of devices, such as multi-core GPU devices (both CUDA and OpenCL) or even co-processors, like Intel Xeon Phi. For platforms that do not support any GPU-based accelerator, our solution can also run on multi-core processors (CPU) using highly-tuned linear algebra libraries. We use Armadillo on top of the linear algebra accelerators for providing a common interface and ArrayFire for supporting GPU devices.
