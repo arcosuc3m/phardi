@@ -700,6 +700,7 @@ void Multi_IntraVox_Fiber_Reconstruction(const std::string diffSignalfilename,
 
             globODFslice.zeros();
             globSHslice.zeros();
+            globSHWMslice.zeros();
             globPeaksslice.zeros();
 
             slicevf_CSF.zeros();
@@ -1152,14 +1153,16 @@ void Multi_IntraVox_Fiber_Reconstruction(const std::string diffSignalfilename,
 
                     LOG_INFO << "Estimated mean SNR = " << mean_SNR;
 
+                    Row<T> tfSum = sum(ODF,0);
+
 #pragma omp parallel for
                     for (uword i = 0; i < inda.n_elem; ++i) {
-                        slicevf_CSF.at(inda(i)) = ODF.at(ODF.n_rows - 2, i);
+                        slicevf_CSF.at(inda(i)) = ODF.at(ODF.n_rows - 2, i)/tfSum.at(i);
                     }
 
 #pragma omp parallel for
                     for (uword i = 0; i < inda.n_elem; ++i) {
-                        slicevf_GM.at(inda(i)) = ODF.at(ODF.n_rows - 1, i);
+                        slicevf_GM.at(inda(i)) = ODF.at(ODF.n_rows - 1, i)/tfSum.at(i);
                     }
 
 
@@ -1173,7 +1176,7 @@ void Multi_IntraVox_Fiber_Reconstruction(const std::string diffSignalfilename,
                     Row<T> tsum = sum(ODF, 0);
 #pragma omp parallel for
                     for (uword i = 0; i < inda.n_elem; ++i) {
-                        slicevf_WM.at(inda.at(i)) = tsum.at(i);
+                        slicevf_WM.at(inda.at(i)) = tsum.at(i)/tfSum.at(i);
                     }
 
                     // Adding the isotropic components to the ODF
@@ -1656,15 +1659,16 @@ void Multi_IntraVox_Fiber_Reconstruction(const std::string diffSignalfilename,
                 // TODO ODF = intravox_fiber_reconst_sphdeconv_rumba_sd_gpu<T>(diffSignal, Kernel, fODF0, opts.rumba_sd.Niter);
                 LOG_INFO << "Estimated mean SNR = " << mean_SNR;
 
+                Row<T> tfSum = sum(ODF, 0);
 
 #pragma omp parallel for
                 for (uword i = 0; i < inda.n_elem; ++i) {
-                    slicevf_CSF.at(inda.at(i)) = ODF.at(ODF.n_rows - 2, i);
+                    slicevf_CSF.at(inda.at(i)) = ODF.at(ODF.n_rows - 2, i)/tfSum.at(i);
                 }
 
 #pragma omp parallel for
                 for (uword i = 0; i < inda.n_elem; ++i) {
-                    slicevf_GM.at(inda.at(i)) = ODF.at(ODF.n_rows - 1, i);
+                    slicevf_GM.at(inda.at(i)) = ODF.at(ODF.n_rows - 1, i)/tfSum.at(i);
                 }
 
                 //ODF_iso = ODF(end,:) + ODF(end-1,:);
@@ -1677,12 +1681,12 @@ void Multi_IntraVox_Fiber_Reconstruction(const std::string diffSignalfilename,
                 Row<T> tsum = sum(ODF, 0);
 #pragma omp parallel for
                 for (uword i = 0; i < inda.n_elem; ++i) {
-                    slicevf_WM.at(inda.at(i)) = tsum.at(i);
+                    slicevf_WM.at(inda.at(i)) = tsum.at(i)/tfSum.at(i);
                 }
 
                 // Adding the isotropic components to the ODF
                 ODF = ODF + repmat(ODF_iso / ODF.n_rows, ODF.n_rows, 1);
-                ODF = ODF / repmat(sum(ODF, 0) + std::numeric_limits<double>::epsilon(), ODF.n_rows, 1);
+                //ODF = ODF / repmat(sum(ODF, 0) + std::numeric_limits<double>::epsilon(), ODF.n_rows, 1);
 
                 // std(ODF,0,1)./( sqrt(mean(ODF.^2,1)) + eps )
                 Row<T> temp = stddev(ODF, 0, 0) /
