@@ -102,7 +102,7 @@ const option::Descriptor usage[] =
     {ODF, 0,"o","odf",Arg::Required, "  --odf, -o  \tOutput file route and prefix." },
     {FORMAT, 0,"f","output-format",Arg::Required, "  --output-format, -f  \tOutput ODF volume format (mrtrix, standard)." },
     {PEAKS, 0,"","save-peaks",Arg::None, "  --save-peaks  \tSave the peaks for the estimated ODFs." },
-    {NORM, 0,"n","norm-odfs",Arg::None, "  --norm-odf  \tNormalize the ODFs." },
+    {NORM, 0,"n","norm-odf",Arg::None, "  --norm-odf, -n  \tNormalize the ODFs." },
 
     {PRECISION, 0,"p","presicion",Arg::NonEmpty, "  --precision, -p  \tCalculation precision (float|double)." },
     {DIRSCHEME, 0,"s","scheme",Arg::NonEmpty, "  --scheme, -s  \tODF spherical representation file path (362 points)." },

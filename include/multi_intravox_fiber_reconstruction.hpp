@@ -1198,8 +1198,10 @@ void Multi_IntraVox_Fiber_Reconstruction(const std::string diffSignalfilename,
                     Mat<T> TempMat = trans(basisV)*basisV;
                     ss = inv(TempMat)*trans(basisV)*(ODF);
                     ss_wm = inv(TempMat)*trans(basisV)*ODF_WM;
-                   // ss =ss/repmat(sum(abs(ss))+ std::numeric_limits<double>::epsilon(),Nsh,1);
-
+                    if (opts.norm_odfs)    {
+                        ss =ss/repmat(sqrt(sum(pow(ss, 2)))+ std::numeric_limits<double>::epsilon(),Nsh,1);
+                        ss_wm =ss_wm/repmat(sqrt(sum(pow(ss_wm, 2)))+ std::numeric_limits<double>::epsilon(),Nsh,1);
+                    }
                     // %% =================== Estimating ODFs Peaks ===========================
                     // #pragma omp parallel for
                     Mat<T> peaksMat(Nd,inda.n_elem);
